@@ -27,6 +27,7 @@ This file is the resumable working log for Tolaria mobile. The strategy and road
 - Added `scripts/run-tests.mjs` so `pnpm test` runs desktop and shared-package tests, while targeted test arguments remain targeted.
 - Updated the pre-commit branch guard to allow local commits on `codex/mobile` for this isolated mobile worktree.
 - Split `src/utils/wikilinks.ts` into shared `@tolaria/markdown` modules for frontmatter, wikilink block transforms, outgoing links, backlink context, snippets, and word counts.
+- Moved note-title derivation helpers into `@tolaria/markdown`, leaving the existing desktop import path as a compatibility export.
 
 ## Next Action
 
@@ -58,6 +59,11 @@ Continue Phase 1 with the next low-risk shared extraction:
 - `pnpm test -- src/utils/wikilinks.test.ts src/utils/noteTitle.test.ts` passed: 91 desktop tests.
 - `pnpm --filter @tolaria/markdown typecheck` passed after wikilink extraction.
 - `pnpm lint`, `npx tsc --noEmit`, and `pnpm build` passed after wikilink extraction.
+- CodeScene before note-title extraction: `src/utils/noteTitle.ts` scored `9.68`.
+- CodeScene after note-title extraction: `packages/markdown/src/noteTitle.ts` and `packages/markdown/src/noteTitle.test.ts` scored `10`; the desktop compatibility export returned no scorable code and no findings.
+- `pnpm --filter @tolaria/markdown test` passed after note-title extraction: 56 tests.
+- `pnpm test -- src/utils/noteTitle.test.ts` passed: 14 desktop tests.
+- `pnpm --filter @tolaria/markdown typecheck` passed after note-title extraction.
 
 ## Risks / Watch Items
 

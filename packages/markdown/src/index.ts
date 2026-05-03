@@ -11,3 +11,10 @@ export {
   extractOutgoingLinks,
   extractSnippet,
 } from './contentSummary'
+export {
+  contentDefinesDisplayTitle,
+  deriveDisplayTitleState,
+  extractFrontmatterTitleFromContent,
+  extractH1TitleFromContent,
+  filenameStemToTitle,
+} from './noteTitle'
