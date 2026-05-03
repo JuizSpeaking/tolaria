@@ -1,9 +1,12 @@
 packages:
+  - apps/*
   - packages/*
   - mcp-server
 
 ignoredBuiltDependencies:
   - esbuild
+
+nodeLinker: hoisted
 
 patchedDependencies:
   '@blocknote/core@0.46.2': patches/@blocknote__core@0.46.2.patch

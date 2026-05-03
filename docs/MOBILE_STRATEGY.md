@@ -260,6 +260,8 @@ tolaria/
 
 Move desktop into `apps/desktop` only when the shared package structure is stable enough that the relocation will not distract from feature work.
 
+Use pnpm workspaces for all packages and apps. React Native / Expo dependency resolution is sensitive to package hoisting, so the initial mobile workspace uses pnpm's hoisted node linker. Treat that as part of the mobile runtime setup, not as a desktop architecture decision: if it causes desktop dependency churn later, isolate and document the smallest workspace-level adjustment instead of rewriting the package strategy.
+
 ### Package Boundaries
 
 #### `packages/core`

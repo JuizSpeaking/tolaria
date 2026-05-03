@@ -7,8 +7,8 @@ This file is the resumable working log for Tolaria mobile. The strategy and road
 ## Current State
 
 - Branch: `codex/mobile`
-- Active phase: Phase 1 - Shared Foundation
-- Active slice: Extract shared Markdown utilities for desktop/mobile reuse
+- Active phase: Phase 2 - Mobile Shell
+- Active slice: Scaffold iPad-first Expo shell with fixture data
 - Push policy: commit locally; do not push unless explicitly requested
 - Validation target: iPad/iOS simulator first
 
@@ -28,16 +28,21 @@ This file is the resumable working log for Tolaria mobile. The strategy and road
 - Updated the pre-commit branch guard to allow local commits on `codex/mobile` for this isolated mobile worktree.
 - Split `src/utils/wikilinks.ts` into shared `@tolaria/markdown` modules for frontmatter, wikilink block transforms, outgoing links, backlink context, snippets, and word counts.
 - Moved note-title derivation helpers into `@tolaria/markdown`, leaving the existing desktop import path as a compatibility export.
+- Added `apps/mobile` as an Expo React Native workspace package.
+- Added root mobile scripts: `mobile:start`, `mobile:ios`, `mobile:test`, and `mobile:typecheck`.
+- Configured Expo for a universal light-mode app with a development bundle identifier (`com.tolaria.mobile.dev`) and iPad support enabled.
+- Added the first iPad-first/phone-ready shell using fixture notes, shared Markdown title/snippet helpers, Phosphor React Native icons, and responsive panels for sidebar, note list, editor, and properties.
+- Split mobile styles into small panel-specific StyleSheet modules so new mobile code starts at CodeScene `10.0`.
+- Pinned Expo runtime dependencies to the versions expected by Expo 55 after the initial generated versions failed iOS bundle export (`react-native@0.83.6`, `react@19.2.0`, matching safe-area/svg versions).
 
 ## Next Action
 
-Continue Phase 1 with the next low-risk shared extraction:
+Continue Phase 2 with the next mobile shell slice:
 
-1. Identify pure markdown/frontmatter/wikilink utilities suitable for `packages/markdown`.
-2. Capture CodeScene scores before editing any existing scorable files.
-3. Add tests or preserve existing tests around extracted behavior.
-4. Create the package with CodeScene `10.0` and zero scanner issues as the target.
-5. Prefer `noteTitle` next only after splitting or moving the small frontmatter/wikilink dependencies it needs.
+1. Resolve the local CoreSimulator hang so `pnpm mobile:ios` can launch the app in an iPad simulator.
+2. Add a navigation-state test around the compact panel flow before introducing gestures.
+3. Add native gesture support for phone/tablet panel transitions.
+4. Start the storage/auth abstraction skeleton only after the shell has a reliable simulator loop.
 
 ## Verification Log
 
@@ -64,6 +69,18 @@ Continue Phase 1 with the next low-risk shared extraction:
 - `pnpm --filter @tolaria/markdown test` passed after note-title extraction: 56 tests.
 - `pnpm test -- src/utils/noteTitle.test.ts` passed: 14 desktop tests.
 - `pnpm --filter @tolaria/markdown typecheck` passed after note-title extraction.
+- `pnpm --filter @tolaria/mobile typecheck` passed.
+- `pnpm --filter @tolaria/mobile test` passed: 1 file / 2 tests.
+- `pnpm --filter @tolaria/mobile exec expo install --check` passed after pinning Expo-compatible dependency versions.
+- `pnpm --filter @tolaria/mobile exec expo config --type public` passed and shows iOS bundle identifier `com.tolaria.mobile.dev`, Android package `com.tolaria.mobile.dev`, and `supportsTablet: true`.
+- `pnpm --filter @tolaria/mobile exec expo export --platform ios --output-dir /tmp/tolaria-mobile-export` passed and produced the iOS bundle.
+- `pnpm lint` passed with one pre-existing warning in `src/components/tolariaBlockNoteSideMenu.tsx`.
+- `npx tsc --noEmit` passed.
+- `pnpm test` passed after the mobile scaffold: 309 desktop test files / 3639 desktop tests plus 56 shared package tests.
+- CodeScene mobile shell scores: `apps/mobile/App.tsx`, `apps/mobile/src/MobileApp.tsx`, `apps/mobile/src/NamedIcon.tsx`, `apps/mobile/src/demoData.ts`, `apps/mobile/src/demoData.test.ts`, and all scorable style modules scored `10`; tiny config/export/theme files returned no scorable code.
+- CodeScene pre-commit safeguard passed for the current change set.
+- Codacy MCP can read repository analysis and security items for `refactoringhq/tolaria`; local Codacy CLI analysis is currently blocked because the Codacy CLI binary is not installed in this environment.
+- iOS simulator validation is blocked locally: Xcode is installed (`Xcode 26.3`), but `xcrun simctl list ...` hangs indefinitely even after opening `/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app`.
 
 ## Risks / Watch Items
 
