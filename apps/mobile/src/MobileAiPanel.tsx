@@ -1,31 +1,35 @@
-import { CaretLeft, PaperPlaneTilt } from 'phosphor-react-native'
+import { CaretLeft, GearSix, PaperPlaneTilt, Robot } from 'phosphor-react-native'
 import { useState } from 'react'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import type { MobileNote } from './mobileNoteProjection'
-import { sendMobileAiRequest } from './mobileAiClient'
+import type { MobileAiProvider } from './mobileAiSettings'
 import { styles } from './styles'
 import { colors } from './theme'
 
 export function MobileAiPanel({
   note,
   onClose,
+  onOpenSettings,
+  onSendPrompt,
+  provider,
 }: {
   note: MobileNote
   onClose?: () => void
+  onOpenSettings: () => void
+  onSendPrompt: (prompt: string, provider: MobileAiProvider) => Promise<string>
+  provider: MobileAiProvider | null
 }) {
-  const [apiKey, setApiKey] = useState('')
-  const [baseUrl, setBaseUrl] = useState('https://api.openai.com/v1')
   const [failed, setFailed] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [model, setModel] = useState('')
   const [prompt, setPrompt] = useState('')
   const [response, setResponse] = useState('')
 
-  const canSend = apiKey.trim().length > 0 && baseUrl.trim().length > 0 && model.trim().length > 0 && prompt.trim().length > 0
   const sendPrompt = () => {
+    if (!provider || prompt.trim().length === 0) return
+
     setFailed(false)
     setIsSending(true)
-    void sendMobileAiRequest({ apiKey, baseUrl, model, note, prompt })
+    void onSendPrompt(prompt, provider)
       .then(setResponse)
       .catch(() => setFailed(true))
       .finally(() => setIsSending(false))
@@ -33,36 +37,39 @@ export function MobileAiPanel({
 
   return (
     <View style={styles.properties}>
-      <AiToolbar onClose={onClose} />
-      <ScrollView contentContainerStyle={styles.aiContent}>
-        <Text style={styles.propertyGroupTitle}>Model</Text>
-        <AiModelFields
-          apiKey={apiKey}
-          baseUrl={baseUrl}
-          model={model}
-          onChangeApiKey={setApiKey}
-          onChangeBaseUrl={setBaseUrl}
-          onChangeModel={setModel}
-        />
-        <AiPromptComposer
-          canSend={canSend}
+      <AiToolbar onClose={onClose} onOpenSettings={onOpenSettings} />
+      {provider ? (
+        <AiChatSurface
+          failed={failed}
           isSending={isSending}
           note={note}
           onChangePrompt={setPrompt}
           onSend={sendPrompt}
           prompt={prompt}
+          provider={provider}
+          response={response}
         />
-        <AiResult failed={failed} response={response} />
-      </ScrollView>
+      ) : (
+        <AiEmptyState onOpenSettings={onOpenSettings} />
+      )}
     </View>
   )
 }
 
-function AiToolbar({ onClose }: { onClose?: () => void }) {
+function AiToolbar({
+  onClose,
+  onOpenSettings,
+}: {
+  onClose?: () => void
+  onOpenSettings: () => void
+}) {
   return (
     <View style={styles.toolbar}>
       <Text style={styles.propertiesTitle}>AI</Text>
       <View style={styles.toolbarSpacer} />
+      <Pressable onPress={onOpenSettings} style={({ pressed }) => [styles.iconButton, pressed ? styles.pressed : null]}>
+        <GearSix size={23} color={colors.textSoft} />
+      </Pressable>
       {onClose ? (
         <Pressable onPress={onClose} style={({ pressed }) => [styles.iconButton, pressed ? styles.pressed : null]}>
           <CaretLeft size={23} color={colors.textSoft} />
@@ -72,48 +79,49 @@ function AiToolbar({ onClose }: { onClose?: () => void }) {
   )
 }
 
-function AiModelFields({
-  apiKey,
-  baseUrl,
-  model,
-  onChangeApiKey,
-  onChangeBaseUrl,
-  onChangeModel,
-}: {
-  apiKey: string
-  baseUrl: string
-  model: string
-  onChangeApiKey: (value: string) => void
-  onChangeBaseUrl: (value: string) => void
-  onChangeModel: (value: string) => void
-}) {
+function AiEmptyState({ onOpenSettings }: { onOpenSettings: () => void }) {
   return (
-    <>
-      <AiInput onChangeText={onChangeBaseUrl} placeholder="Base URL" value={baseUrl} />
-      <AiInput onChangeText={onChangeModel} placeholder="Model" value={model} />
-      <AiInput onChangeText={onChangeApiKey} placeholder="API key" secureTextEntry value={apiKey} />
-    </>
+    <View style={styles.aiEmptyState}>
+      <Robot color={colors.iconMuted} size={26} />
+      <Text style={styles.aiEmptyTitle}>No API model configured</Text>
+      <Text style={styles.aiEmptyDescription}>Add an API model in Settings before using the AI panel.</Text>
+      <Pressable onPress={onOpenSettings} style={({ pressed }) => [styles.aiSettingsButton, pressed ? styles.pressed : null]}>
+        <GearSix color="#ffffff" size={17} />
+        <Text style={styles.aiSettingsButtonText}>Open Settings</Text>
+      </Pressable>
+    </View>
   )
 }
 
-function AiPromptComposer({
-  canSend,
+function AiChatSurface({
+  failed,
   isSending,
   note,
   onChangePrompt,
   onSend,
   prompt,
+  provider,
+  response,
 }: {
-  canSend: boolean
+  failed: boolean
   isSending: boolean
   note: MobileNote
   onChangePrompt: (value: string) => void
   onSend: () => void
   prompt: string
+  provider: MobileAiProvider
+  response: string
 }) {
+  const canSend = prompt.trim().length > 0 && !isSending
+
   return (
-    <>
-      <Text style={styles.propertyGroupTitle}>Prompt</Text>
+    <ScrollView contentContainerStyle={styles.aiContent}>
+      <View style={styles.aiContextCard}>
+        <Text style={styles.aiContextTitle}>{provider.name} · {provider.modelId}</Text>
+        <Text numberOfLines={2} style={styles.aiContextDetail}>{note.title}</Text>
+      </View>
+      {response ? <Text style={styles.aiResponse}>{response}</Text> : <Text style={styles.aiEmptyDescription}>Ask about the active note. API models run in chat mode only.</Text>}
+      {failed ? <Text style={styles.propertyError}>AI request failed.</Text> : null}
       <TextInput
         multiline
         onChangeText={onChangePrompt}
@@ -123,72 +131,18 @@ function AiPromptComposer({
         textAlignVertical="top"
         value={prompt}
       />
-      <AiSendButton canSend={canSend} isSending={isSending} onSend={onSend} />
-    </>
-  )
-}
-
-function AiInput({
-  onChangeText,
-  placeholder,
-  secureTextEntry = false,
-  value,
-}: {
-  onChangeText: (value: string) => void
-  placeholder: string
-  secureTextEntry?: boolean
-  value: string
-}) {
-  return (
-    <TextInput
-      autoCapitalize="none"
-      autoCorrect={false}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor={colors.mutedText}
-      secureTextEntry={secureTextEntry}
-      style={styles.aiInput}
-      value={value}
-    />
-  )
-}
-
-function AiSendButton({
-  canSend,
-  isSending,
-  onSend,
-}: {
-  canSend: boolean
-  isSending: boolean
-  onSend: () => void
-}) {
-  return (
-    <Pressable
-      disabled={!canSend || isSending}
-      onPress={onSend}
-      style={({ pressed }) => [
-        styles.aiSendButton,
-        !canSend || isSending ? styles.composeButtonDisabled : null,
-        pressed ? styles.pressed : null,
-      ]}
-    >
-      <PaperPlaneTilt color="#ffffff" size={18} weight="fill" />
-      <Text style={styles.aiSendButtonText}>{isSending ? 'Sending' : 'Send'}</Text>
-    </Pressable>
-  )
-}
-
-function AiResult({
-  failed,
-  response,
-}: {
-  failed: boolean
-  response: string
-}) {
-  return (
-    <>
-      {failed ? <Text style={styles.propertyError}>AI request failed.</Text> : null}
-      {response ? <Text style={styles.aiResponse}>{response}</Text> : null}
-    </>
+      <Pressable
+        disabled={!canSend}
+        onPress={onSend}
+        style={({ pressed }) => [
+          styles.aiSendButton,
+          !canSend ? styles.composeButtonDisabled : null,
+          pressed ? styles.pressed : null,
+        ]}
+      >
+        <PaperPlaneTilt color="#ffffff" size={18} weight="fill" />
+        <Text style={styles.aiSendButtonText}>{isSending ? 'Sending' : 'Send'}</Text>
+      </Pressable>
+    </ScrollView>
   )
 }

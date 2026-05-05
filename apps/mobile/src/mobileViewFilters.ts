@@ -29,7 +29,7 @@ export type MobileViewDefinition = {
   name: string
 }
 
-export const mobileViewDefinitions: MobileViewDefinition[] = [
+export const mobileFixtureViewDefinitions: MobileViewDefinition[] = [
   {
     color: '#3f7f5f',
     filters: {

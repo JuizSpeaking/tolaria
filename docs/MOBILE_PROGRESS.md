@@ -8,7 +8,7 @@ This file is the resumable working log for Tolaria mobile. The strategy and road
 
 - Branch: `codex/mobile`
 - Active phase: Phase 4 - Editor V1
-- Active slice: Local workflow parity, relationships, views, favorites, and AI panel
+- Active slice: Mobile quality remediation before new feature work
 - Push policy: commit locally; do not push unless explicitly requested
 - Validation target: iPad/iOS simulator first
 
@@ -119,16 +119,20 @@ This file is the resumable working log for Tolaria mobile. The strategy and road
 - Added mobile saved views with nested `all` / `any` filter groups and desktop-like relationship/wikilink comparison semantics.
 - Added desktop-inspired type/relationship chip coloring for the mobile note list and properties panel.
 - Added an API-key-only AI side panel using an OpenAI-compatible `/chat/completions` request path, with no agents and no local models.
+- Recorded `docs/MOBILE_QUALITY_AUDIT.md` after product review found the mobile implementation had drifted into prototype-grade feature coverage. The audit is now the quality gate for existing mobile surfaces before new feature work resumes.
+- Corrected the AI product boundary: provider/model/API-key setup now lives in a mobile Settings surface, provider config persists as app-local settings, API keys go through SecureStore, and `MobileAiPanel` only consumes a configured API model target.
+- Tightened relationship writes so mobile relationship additions save canonical wikilink refs, dedupe by canonical target, resolve aliases/plain titles for chip display/opening, and avoid introducing new loose id/string values from the properties UI.
+- Demoted saved views from the primary mobile sidebar until real persisted view definitions exist; fixture nested-view definitions remain available to tests but are no longer exposed as if they were desktop-equivalent saved views.
 - Set the booted iPad simulator keyboard preferences to Italian (`it_IT@sw=QWERTY;hw=Automatic`).
 
 ## Next Action
 
-Continue Phase 4 with local workflow parity and native QA:
+Continue Phase 4 as a quality remediation pass before new feature work:
 
-1. Install a simulator runtime matching the active Xcode SDK, or switch Xcode to one matching the installed iOS 17.5/18.6 runtimes, then retry the iOS development-client build.
-2. Run iPad simulator QA over sidebar filters, favorites, editable properties, relationship add/remove, raw wikilink autocomplete, saved views, and AI panel input states.
-3. Continue TenTap Markdown serialization coverage for any editor output observed in simulator QA.
-4. Implement the native Git module behind `createNativeMobileGitTransport`, preferably Rust/libgit2 unless Expo native-module constraints block it.
+1. Finish the properties panel quality pass: inverse relationships, suggested slots, clearer grouping, and demotion/removal of weak custom-property editing if it cannot match desktop semantics.
+2. Add real persisted view definition loading before re-exposing Views in the sidebar.
+3. Run iPad simulator QA over sidebar filters, favorites, editable properties, relationship add/remove, raw wikilink autocomplete, and AI/settings input states.
+4. Install a simulator runtime matching the active Xcode SDK, or switch Xcode to one matching the installed iOS 17.5/18.6 runtimes, then retry the iOS development-client build.
 
 ## Verification Log
 
@@ -194,6 +198,10 @@ Continue Phase 4 with local workflow parity and native QA:
 - CodeScene pre-commit safeguard passed for the current local change set.
 - iPad simulator keyboard preference now reads `KeyboardsCurrentAndNext = (it_IT@sw=QWERTY;hw=Automatic, it_IT@sw=QWERTY;hw=Automatic)`.
 - Native simulator QA is currently blocked by local platform tooling: Xcode has only the iOS 26.2 SDK installed, while CoreSimulator has iOS 17.5 and 18.6 runtimes, so `expo run:ios --device "iPad Pro 13-inch (M4)"` fails with xcodebuild error 70 because no matching destination is eligible.
+- `pnpm --filter @tolaria/mobile typecheck` passed after the mobile quality remediation pass.
+- `VITEST_MAX_THREADS=1 VITEST_MIN_THREADS=1 pnpm --filter @tolaria/mobile test` passed after the mobile quality remediation pass: 56 files / 183 tests.
+- `pnpm --filter @tolaria/mobile exec expo export --platform ios --output-dir /tmp/tolaria-mobile-export-quality-pass` passed after the mobile quality remediation pass.
+- CodeScene touched-file checks and pre-commit safeguard passed after AI settings separation, relationship ref canonicalization, and saved-view demotion.
 - `pnpm --filter @tolaria/mobile test` passed after adding gesture support: 5 files / 15 tests.
 - `pnpm --filter @tolaria/mobile typecheck` passed after adding gesture support.
 - CodeScene after gesture support: `apps/mobile/src/compactGestures.ts`, `apps/mobile/src/compactGestures.test.ts`, `apps/mobile/src/SwipeSurface.tsx`, touched app/root files, and touched style module scored `10`; `apps/mobile/index.ts` returned no scorable code.

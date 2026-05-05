@@ -15,10 +15,15 @@ describe('mobile AI client', () => {
 
     await expect(sendMobileAiRequest({
       apiKey: 'key',
-      baseUrl: 'https://api.example.com/v1/',
-      model: 'model',
       note: note(),
       prompt: 'Summarize',
+      provider: {
+        baseUrl: 'https://api.example.com/v1/',
+        id: 'provider',
+        kind: 'open_ai_compatible',
+        modelId: 'model',
+        name: 'Provider',
+      },
     })).resolves.toBe('Answer')
 
     expect(fetchMock).toHaveBeenCalledWith('https://api.example.com/v1/chat/completions', expect.objectContaining({

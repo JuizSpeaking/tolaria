@@ -5,6 +5,14 @@ import type { MobileNote } from './demoData'
 import { MobileEditablePropertyPickers } from './MobileEditablePropertyPickers'
 import type { MobileNotePropertyPatch } from './mobileNoteProperties'
 import { nextMobilePropertyPicker, type MobilePropertyPickerKey } from './mobilePropertyPicker'
+import {
+  canonicalMobileRelationshipRef,
+  filterMobileRelationshipRef,
+  hasMobileRelationshipRef,
+  mobileRelationshipDisplayLabel,
+  resolveMobileRelationshipNote,
+  uniqueMobileRelationshipRefs,
+} from './mobileRelationshipRefs'
 import { mobileNoteSuggestions } from './mobileWikilinkAutocomplete'
 import { mobileRelationshipAppearance } from './mobileTypeAppearance'
 import { styles } from './styles'
@@ -112,10 +120,13 @@ function RelationshipGroup({
 }) {
   const [query, setQuery] = useState('')
   const [isAdding, setIsAdding] = useState(false)
-  const uniqueTargets = [...new Set(targets)]
+  const uniqueTargets = uniqueMobileRelationshipRefs(targets)
   const suggestions = isAdding ? mobileNoteSuggestions({ notes, query }) : []
-  const addTarget = (target: string) => {
-    onChangeTargets?.([...writableTargets, target])
+  const addTarget = (value: string) => {
+    const target = canonicalMobileRelationshipRef({ notes, value })
+    if (!target) return
+
+    onChangeTargets?.(uniqueMobileRelationshipRefs([...writableTargets, target]))
     setQuery('')
     setIsAdding(false)
   }
@@ -127,8 +138,10 @@ function RelationshipGroup({
         {uniqueTargets.map((target) => (
           <RelationshipChip
             key={target}
-            note={findRelationshipNote({ notes, target })}
-            onRemove={writableTargets.includes(target) && onChangeTargets ? () => onChangeTargets(writableTargets.filter((item) => item !== target)) : undefined}
+            note={resolveMobileRelationshipNote({ notes, target })}
+            onRemove={hasMobileRelationshipRef({ target, values: writableTargets }) && onChangeTargets
+              ? () => onChangeTargets(filterMobileRelationshipRef({ target, values: writableTargets }))
+              : undefined}
             target={target}
             onOpenNote={onOpenNote}
           />
@@ -190,7 +203,7 @@ function RelationshipAddBox({
       {suggestions.map((suggestion) => (
         <Pressable
           key={suggestion.id}
-          onPress={() => onAddTarget(suggestion.id)}
+          onPress={() => onAddTarget(suggestion.title)}
           style={({ pressed }) => [styles.relationshipSuggestion, pressed ? styles.pressed : null]}
         >
           <Text style={styles.relationshipSuggestionText}>{suggestion.title}</Text>
@@ -334,7 +347,7 @@ function RelationshipChip({
   target: string
 }) {
   const appearance = mobileRelationshipAppearance(note?.type)
-  const chip = <Text style={styles.relationshipChipText}>{note?.title ?? target}</Text>
+  const chip = <Text style={styles.relationshipChipText}>{note?.title ?? mobileRelationshipDisplayLabel(target)}</Text>
 
   const content = (
     <>
@@ -361,21 +374,6 @@ function RelationshipChip({
   ) : (
     <View style={[styles.relationshipChip, { backgroundColor: appearance.backgroundColor, borderColor: appearance.borderColor }]}>{content}</View>
   )
-}
-
-function findRelationshipNote({
-  notes,
-  target,
-}: {
-  notes: MobileNote[]
-  target: string
-}) {
-  const normalizedTarget = normalizeRelationshipTarget(target)
-  return notes.find((note) => normalizeRelationshipTarget(note.id) === normalizedTarget || normalizeRelationshipTarget(note.title) === normalizedTarget)
-}
-
-function normalizeRelationshipTarget(target: string) {
-  return target.trim().toLowerCase()
 }
 
 function formatRelationshipLabel(key: string) {

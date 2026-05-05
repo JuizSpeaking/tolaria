@@ -1,4 +1,7 @@
+import { aiControlStyles } from './styles/aiControlStyles'
+import { aiProviderKindStyles } from './styles/aiProviderKindStyles'
 import { aiStyles } from './styles/aiStyles'
+import { aiSettingsStyles } from './styles/aiSettingsStyles'
 import { breadcrumbStyles } from './styles/breadcrumbStyles'
 import { commonStyles } from './styles/commonStyles'
 import { customPropertyStyles } from './styles/customPropertyStyles'
@@ -17,7 +20,10 @@ import { vaultManagementStyles } from './styles/vaultManagementStyles'
 import { vaultLoadStyles } from './styles/vaultLoadStyles'
 
 export const styles = {
+  ...aiControlStyles,
+  ...aiProviderKindStyles,
   ...aiStyles,
+  ...aiSettingsStyles,
   ...breadcrumbStyles,
   ...commonStyles,
   ...customPropertyStyles,

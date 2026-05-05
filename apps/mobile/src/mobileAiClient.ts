@@ -1,15 +1,15 @@
 import type { MobileNote } from './mobileNoteProjection'
+import type { MobileAiProvider } from './mobileAiSettings'
 
 export type MobileAiRequest = {
   apiKey: string
-  baseUrl: string
-  model: string
   note: MobileNote
   prompt: string
+  provider: MobileAiProvider
 }
 
 export async function sendMobileAiRequest(request: MobileAiRequest) {
-  const response = await fetch(`${request.baseUrl.replace(/\/$/, '')}/chat/completions`, {
+  const response = await fetch(`${request.provider.baseUrl.replace(/\/$/, '')}/chat/completions`, {
     body: JSON.stringify({
       messages: [
         {
@@ -23,7 +23,7 @@ export async function sendMobileAiRequest(request: MobileAiRequest) {
         },
         { content: request.prompt, role: 'user' },
       ],
-      model: request.model,
+      model: request.provider.modelId,
     }),
     headers: {
       Authorization: `Bearer ${request.apiKey}`,

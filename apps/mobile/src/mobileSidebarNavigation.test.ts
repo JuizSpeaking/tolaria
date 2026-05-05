@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createMobileSidebarSections, filterNotesForSidebarSelection, mobileSidebarTitle } from './mobileSidebarNavigation'
 import type { MobileNote } from './mobileNoteProjection'
+import { mobileFixtureViewDefinitions } from './mobileViewFilters'
 
 describe('mobile sidebar navigation', () => {
   it('filters inbox, all notes, archive, and type selections', () => {
@@ -24,7 +25,11 @@ describe('mobile sidebar navigation', () => {
     ]
 
     expect(filterNotesForSidebarSelection({ notes, selection: { kind: 'library', id: 'favorites' } }).map((item) => item.id)).toEqual(['essay'])
-    expect(filterNotesForSidebarSelection({ notes, selection: { kind: 'view', id: 'active-drafts' } }).map((item) => item.id)).toEqual(['draft'])
+    expect(filterNotesForSidebarSelection({
+      notes,
+      selection: { kind: 'view', id: 'active-drafts' },
+      views: mobileFixtureViewDefinitions,
+    }).map((item) => item.id)).toEqual(['draft'])
   })
 
   it('builds sidebar sections from current local notes', () => {
@@ -40,7 +45,14 @@ describe('mobile sidebar navigation', () => {
       ['Archive', 1],
       ['Favorites', 0],
     ])
-    expect(sections[2].items.map((item) => item.label)).toEqual(['Essays', 'Projects'])
+    expect(sections[1].items.map((item) => item.label)).toEqual(['Essays', 'Projects'])
+  })
+
+  it('does not expose fixture views unless persisted view definitions are supplied', () => {
+    expect(createMobileSidebarSections([note({ id: 'draft', status: 'Draft', type: 'Essay' })]).map((section) => section.title)).toEqual(['Library', 'Types'])
+    expect(createMobileSidebarSections([
+      note({ id: 'draft', status: 'Draft', type: 'Essay' }),
+    ], mobileFixtureViewDefinitions).map((section) => section.title)).toEqual(['Library', 'Views', 'Types'])
   })
 
   it('formats list titles for library and type selections', () => {

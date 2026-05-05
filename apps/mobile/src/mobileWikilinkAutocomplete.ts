@@ -1,4 +1,5 @@
 import type { MobileNote } from './mobileNoteProjection'
+import { mobileWikilinkForNote } from './mobileRelationshipRefs'
 
 export type MobileWikilinkQuery = {
   end: number
@@ -50,7 +51,7 @@ export function insertMobileWikilink({
   note: MobileNote
   query: MobileWikilinkQuery
 }) {
-  const wikilink = `[[${note.id}|${note.title}]]`
+  const wikilink = mobileWikilinkForNote(note)
   return `${markdown.slice(0, query.start)}${wikilink}${markdown.slice(query.end)}`
 }
 

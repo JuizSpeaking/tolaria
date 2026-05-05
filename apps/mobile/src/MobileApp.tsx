@@ -51,6 +51,7 @@ import { colors } from './theme'
 import { MobileEditorBreadcrumb } from './MobileEditorBreadcrumb'
 import { MobilePropertiesPanel } from './MobilePropertiesPanel'
 import { MobileAiPanel } from './MobileAiPanel'
+import { MobileAiSettingsPanel } from './MobileAiSettingsPanel'
 import { MobileVaultManagementCard } from './MobileVaultManagementCard'
 import { MobileVaultRemotePrompt } from './MobileVaultRemotePrompt'
 import { useMobileNoteCreateFlow } from './useMobileNoteCreateFlow'
@@ -58,6 +59,8 @@ import { useMobileNoteDeleteFlow } from './useMobileNoteDeleteFlow'
 import { useMobileNotePropertiesFlow } from './useMobileNotePropertiesFlow'
 import { useMobileVaultRemoteSetupFlow } from './useMobileVaultRemoteSetupFlow'
 import { createNativeMobileAppStateStorage } from './mobileNativeAppStateStorage'
+import { createNativeMobileAiProviderSecretStorage } from './mobileNativeAiProviderSecretStorage'
+import { createNativeMobileAiSettingsStorage } from './mobileNativeAiSettingsStorage'
 import { createNativeMobileVaultMetadataStorage } from './mobileNativeVaultMetadataStorage'
 import { createNativeMobileGitCredentialStorage } from './mobileNativeGitCredentialStorage'
 import {
@@ -70,6 +73,7 @@ import type { MobileVaultRuntime } from './mobileVaultRuntime'
 import { useMobileVaultRuntimeLoader } from './useMobileVaultRuntimeLoader'
 import type { MobileNotePropertyPatch } from './mobileNoteProperties'
 import { useMobileGitSyncFlow } from './useMobileGitSyncFlow'
+import { useMobileAiSettingsFlow } from './useMobileAiSettingsFlow'
 import { createNativeMobileGitTransport } from './mobileNativeGitTransport'
 import { loadExpoMobileGitNativeModule } from './mobileExpoNativeGitModule'
 import { applyMobileRawNoteContent } from './mobileRawNoteProjection'
@@ -82,11 +86,14 @@ import {
   type MobileSidebarSelection,
 } from './mobileSidebarNavigation'
 import { mobileTypeAppearance } from './mobileTypeAppearance'
+import type { MobileAiProvider, MobileAiProviderDraft, MobileAiSettings } from './mobileAiSettings'
 
 export function MobileApp() {
   const { width } = useWindowDimensions()
   const isTablet = width >= 820
   const showsProperties = width >= 1000
+  const aiProviderSecretStorage = useMemo(() => createNativeMobileAiProviderSecretStorage(), [])
+  const aiSettingsStorage = useMemo(() => createNativeMobileAiSettingsStorage(), [])
   const appStateStorage = useMemo(() => createNativeMobileAppStateStorage(), [])
   const gitCredentialStorage = useMemo(() => createNativeMobileGitCredentialStorage(), [])
   const gitTransport = useMemo(() => createNativeMobileGitTransport(loadExpoMobileGitNativeModule()), [])
@@ -96,7 +103,7 @@ export function MobileApp() {
   const [availableNotes, setAvailableNotes] = useState(fallbackNotes)
   const [compactNavigation, setCompactNavigation] = useState(() => createCompactNavigationState(fallbackNotes[0].id))
   const [editorModeByNoteId, setEditorModeByNoteId] = useState<Record<string, 'raw' | 'rich'>>({})
-  const [rightPanel, setRightPanel] = useState<'ai' | 'properties'>('properties')
+  const [rightPanel, setRightPanel] = useState<'ai' | 'properties' | 'settings'>('properties')
   const [sidebarSelection, setSidebarSelection] = useState<MobileSidebarSelection>(defaultMobileSidebarSelection)
   const [saveStateByNoteId, setSaveStateByNoteId] = useState<Record<string, MobileEditorSaveState>>({})
   const sidebarSections = useMemo(() => createMobileSidebarSections(availableNotes), [availableNotes])
@@ -116,6 +123,10 @@ export function MobileApp() {
     credentialStorage: gitCredentialStorage,
     gitTransport,
     vault: activeVaultMetadata,
+  })
+  const aiSettingsFlow = useMobileAiSettingsFlow({
+    secretStorage: aiProviderSecretStorage,
+    settingsStorage: aiSettingsStorage,
   })
   const autosaveQueue = useMemo(
     () =>
@@ -227,105 +238,266 @@ export function MobileApp() {
     propertiesFlow.saveProperties({ favorite, favoriteIndex })
   }, [availableNotes, propertiesFlow, selectedNote.favorite, selectedNote.id])
 
+  const appShellProps: MobileAppShellProps = {
+    activeVault: activeVaultMetadata,
+    aiFailed: aiSettingsFlow.failed,
+    aiSettings: aiSettingsFlow.settings,
+    allNotes: availableNotes,
+    compactNavigation,
+    createNoteFailed: createFlow.failed,
+    editorMode: selectedEditorMode,
+    gitHubOAuthClientIdState: gitHubOAuthClientIdState.state,
+    gitSyncPlan: gitSyncFlow.gitSyncPlan,
+    isCreatingNote: createFlow.isCreating,
+    isSavingAiSettings: aiSettingsFlow.isSaving,
+    isSavingProperties: propertiesFlow.isSaving,
+    isTablet,
+    listTitle,
+    notes: visibleNotes,
+    propertiesFailed: propertiesFlow.failed,
+    rightPanel,
+    runtimeLoadFailed: runtimeLoader.failed,
+    saveState: selectedSaveState,
+    selectedNote,
+    selectedNoteId: compactNavigation.selectedNoteId,
+    selectedProvider: aiSettingsFlow.selectedProvider,
+    showsProperties,
+    sidebarSections,
+    sidebarSelection,
+    isRemoteSetupOpen: remoteSetupFlow.isOpen,
+    remoteSetupFailed: remoteSetupFlow.failed,
+    remoteSetupIsSaving: remoteSetupFlow.isSaving,
+    remoteSetupUrl: remoteSetupFlow.remoteUrl,
+    onAddAiProvider: aiSettingsFlow.addProvider,
+    onCancelRemoteSetup: remoteSetupFlow.cancel,
+    onChangeProperties: propertiesFlow.saveProperties,
+    onChangeRemoteUrl: remoteSetupFlow.setRemoteUrl,
+    onCreateNote: createFlow.create,
+    onDeleteNote: deleteFlow.canDelete ? deleteFlow.deleteSelectedNote : undefined,
+    onDraftChange: saveDraft,
+    onGitSyncAction: gitSyncFlow.runPrimaryAction,
+    onNavigate: (event) => setCompactNavigation((state) => transitionCompactNavigation(state, event)),
+    onOpenAi: () => setRightPanel('ai'),
+    onOpenAiSettings: () => setRightPanel('settings'),
+    onOpenProperties: () => setRightPanel('properties'),
+    onOpenRemoteSetup: remoteSetupFlow.open,
+    onRawMarkdownChange: saveRawMarkdown,
+    onRemoveAiProvider: aiSettingsFlow.removeProvider,
+    onRetryRuntimeLoad: runtimeLoader.retry,
+    onSelectNote: selectNote,
+    onSelectNoteId: selectNoteId,
+    onSelectSidebar: selectSidebar,
+    onSendAiPrompt: (prompt, provider) => aiSettingsFlow.sendPrompt({ note: selectedNote, prompt, provider }),
+    onSubmitRemoteSetup: remoteSetupFlow.submit,
+    onToggleArchive: toggleSelectedArchive,
+    onToggleEditorMode: toggleEditorMode,
+    onToggleFavorite: toggleSelectedFavorite,
+  }
+
+  return <MobileAppShell {...appShellProps} />
+}
+
+type MobileRightPanel = 'ai' | 'properties' | 'settings'
+
+type MobileAppShellProps = {
+  activeVault: MobileVaultMetadata
+  aiFailed: boolean
+  aiSettings: MobileAiSettings
+  allNotes: MobileNote[]
+  compactNavigation: ReturnType<typeof createCompactNavigationState>
+  createNoteFailed: boolean
+  editorMode: 'raw' | 'rich'
+  gitHubOAuthClientIdState: 'configured' | 'missing'
+  gitSyncPlan: MobileGitSyncPlan
+  isCreatingNote: boolean
+  isRemoteSetupOpen: boolean
+  isSavingAiSettings: boolean
+  isSavingProperties: boolean
+  isTablet: boolean
+  listTitle: string
+  notes: MobileNote[]
+  propertiesFailed: boolean
+  remoteSetupFailed: boolean
+  remoteSetupIsSaving: boolean
+  remoteSetupUrl: string
+  rightPanel: MobileRightPanel
+  runtimeLoadFailed: boolean
+  saveState: MobileEditorSaveState
+  selectedNote: MobileNote
+  selectedNoteId: string
+  selectedProvider: MobileAiProvider | null
+  showsProperties: boolean
+  sidebarSections: ReturnType<typeof createMobileSidebarSections>
+  sidebarSelection: MobileSidebarSelection
+  onAddAiProvider: (draft: MobileAiProviderDraft) => Promise<boolean>
+  onCancelRemoteSetup: () => void
+  onChangeProperties: (patch: MobileNotePropertyPatch) => void
+  onChangeRemoteUrl: (remoteUrl: string) => void
+  onCreateNote: () => void
+  onDeleteNote?: () => void
+  onDraftChange: (draft: MobileEditorDraft) => void
+  onGitSyncAction: () => void
+  onNavigate: (event: CompactNavigationEvent) => void
+  onOpenAi: () => void
+  onOpenAiSettings: () => void
+  onOpenProperties: () => void
+  onOpenRemoteSetup: () => void
+  onRawMarkdownChange: (markdown: string) => void
+  onRemoveAiProvider: (providerId: string) => Promise<boolean>
+  onRetryRuntimeLoad: () => void
+  onSelectNote: (note: MobileNote) => void
+  onSelectNoteId: (noteId: string) => void
+  onSelectSidebar: (selection: MobileSidebarSelection) => void
+  onSendAiPrompt: (prompt: string, provider: MobileAiProvider) => Promise<string>
+  onSubmitRemoteSetup: () => void
+  onToggleArchive: () => void
+  onToggleEditorMode: () => void
+  onToggleFavorite: () => void
+}
+
+function MobileAppShell(props: MobileAppShellProps) {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
-        {isTablet ? (
-          <View style={styles.tabletShell}>
-            <SidebarPanel
-              activeVault={activeVaultMetadata}
-              activeSelection={sidebarSelection}
-              sections={sidebarSections}
-              onOpenRemoteSetup={remoteSetupFlow.open}
-              onSelect={selectSidebar}
-            />
-            <NoteListPanel
-              gitSyncPlan={gitSyncFlow.gitSyncPlan}
-              listTitle={listTitle}
-              notes={visibleNotes}
-              selectedNoteId={compactNavigation.selectedNoteId}
-              createNoteFailed={createFlow.failed}
-              isCreatingNote={createFlow.isCreating}
-              runtimeLoadFailed={runtimeLoader.failed}
-              onCreateNote={createFlow.create}
-              onGitSyncAction={gitSyncFlow.runPrimaryAction}
-              onRetryRuntimeLoad={runtimeLoader.retry}
-              onSelectNote={selectNote}
-            />
-            <EditorPanel
-              editorMode={selectedEditorMode}
-              notes={availableNotes}
-              note={selectedNote}
-              saveState={selectedSaveState}
-              onDeleteNote={deleteFlow.canDelete ? deleteFlow.deleteSelectedNote : undefined}
-              onDraftChange={saveDraft}
-              onOpenAi={() => setRightPanel('ai')}
-              onOpenProperties={() => setRightPanel('properties')}
-              onRawMarkdownChange={saveRawMarkdown}
-              onToggleArchive={toggleSelectedArchive}
-              onToggleEditorMode={toggleEditorMode}
-              onToggleFavorite={toggleSelectedFavorite}
-            />
-            {showsProperties && rightPanel === 'properties' ? (
-              <MobilePropertiesPanel
-                failed={propertiesFlow.failed}
-                isSaving={propertiesFlow.isSaving}
-                notes={availableNotes}
-                note={selectedNote}
-                onChangeProperties={propertiesFlow.saveProperties}
-                onOpenNote={selectNoteId}
-              />
-            ) : null}
-            {showsProperties && rightPanel === 'ai' ? <MobileAiPanel note={selectedNote} /> : null}
-          </View>
-        ) : (
-          <CompactShell
-            activePanel={compactNavigation.panel}
-            activeVault={activeVaultMetadata}
-            activeSidebarSelection={sidebarSelection}
-            allNotes={availableNotes}
-            editorMode={selectedEditorMode}
-            note={selectedNote}
-            gitSyncPlan={gitSyncFlow.gitSyncPlan}
-            listTitle={listTitle}
-            notes={visibleNotes}
-            saveState={selectedSaveState}
-            selectedNoteId={compactNavigation.selectedNoteId}
-            sidebarSections={sidebarSections}
-            onNavigate={(event) => setCompactNavigation((state) => transitionCompactNavigation(state, event))}
-            onDeleteNote={deleteFlow.canDelete ? deleteFlow.deleteSelectedNote : undefined}
-            onDraftChange={saveDraft}
-            onRawMarkdownChange={saveRawMarkdown}
-            onSelectSidebar={selectSidebar}
-            onToggleArchive={toggleSelectedArchive}
-            onToggleEditorMode={toggleEditorMode}
-            onToggleFavorite={toggleSelectedFavorite}
-            createNoteFailed={createFlow.failed}
-            isCreatingNote={createFlow.isCreating}
-            runtimeLoadFailed={runtimeLoader.failed}
-            onCreateNote={createFlow.create}
-            onGitSyncAction={gitSyncFlow.runPrimaryAction}
-            onRetryRuntimeLoad={runtimeLoader.retry}
-            onSelectNote={selectNote}
-            propertiesFailed={propertiesFlow.failed}
-            isSavingProperties={propertiesFlow.isSaving}
-            onChangeProperties={propertiesFlow.saveProperties}
-            onOpenRemoteSetup={remoteSetupFlow.open}
-          />
-        )}
-        {remoteSetupFlow.isOpen ? (
-          <MobileVaultRemotePrompt
-            failed={remoteSetupFlow.failed}
-            hasGitHubOAuthClientId={gitHubOAuthClientIdState.state === 'configured'}
-            isSaving={remoteSetupFlow.isSaving}
-            onCancel={remoteSetupFlow.cancel}
-            onChangeRemoteUrl={remoteSetupFlow.setRemoteUrl}
-            onSubmit={remoteSetupFlow.submit}
-            remoteUrl={remoteSetupFlow.remoteUrl}
-          />
-        ) : null}
+        {props.isTablet ? <TabletShell {...props} /> : <CompactAppShell {...props} />}
+        <RemoteSetupPrompt {...props} />
       </SafeAreaView>
     </SafeAreaProvider>
+  )
+}
+
+function TabletShell(props: MobileAppShellProps) {
+  return (
+    <View style={styles.tabletShell}>
+      <SidebarPanel
+        activeVault={props.activeVault}
+        activeSelection={props.sidebarSelection}
+        sections={props.sidebarSections}
+        onOpenRemoteSetup={props.onOpenRemoteSetup}
+        onSelect={props.onSelectSidebar}
+      />
+      <NoteListPanel
+        gitSyncPlan={props.gitSyncPlan}
+        listTitle={props.listTitle}
+        notes={props.notes}
+        selectedNoteId={props.selectedNoteId}
+        createNoteFailed={props.createNoteFailed}
+        isCreatingNote={props.isCreatingNote}
+        runtimeLoadFailed={props.runtimeLoadFailed}
+        onCreateNote={props.onCreateNote}
+        onGitSyncAction={props.onGitSyncAction}
+        onRetryRuntimeLoad={props.onRetryRuntimeLoad}
+        onSelectNote={props.onSelectNote}
+      />
+      <EditorPanel
+        editorMode={props.editorMode}
+        notes={props.allNotes}
+        note={props.selectedNote}
+        saveState={props.saveState}
+        onDeleteNote={props.onDeleteNote}
+        onDraftChange={props.onDraftChange}
+        onOpenAi={props.onOpenAi}
+        onOpenProperties={props.onOpenProperties}
+        onRawMarkdownChange={props.onRawMarkdownChange}
+        onToggleArchive={props.onToggleArchive}
+        onToggleEditorMode={props.onToggleEditorMode}
+        onToggleFavorite={props.onToggleFavorite}
+      />
+      <TabletRightPanel {...props} />
+    </View>
+  )
+}
+
+function TabletRightPanel(props: MobileAppShellProps) {
+  if (!props.showsProperties) return null
+
+  if (props.rightPanel === 'ai') {
+    return (
+      <MobileAiPanel
+        note={props.selectedNote}
+        provider={props.selectedProvider}
+        onOpenSettings={props.onOpenAiSettings}
+        onSendPrompt={props.onSendAiPrompt}
+      />
+    )
+  }
+
+  if (props.rightPanel === 'settings') {
+    return (
+      <MobileAiSettingsPanel
+        failed={props.aiFailed}
+        isSaving={props.isSavingAiSettings}
+        settings={props.aiSettings}
+        onAddProvider={props.onAddAiProvider}
+        onRemoveProvider={props.onRemoveAiProvider}
+        onClose={props.onOpenAi}
+      />
+    )
+  }
+
+  return (
+    <MobilePropertiesPanel
+      failed={props.propertiesFailed}
+      isSaving={props.isSavingProperties}
+      notes={props.allNotes}
+      note={props.selectedNote}
+      onChangeProperties={props.onChangeProperties}
+      onOpenNote={props.onSelectNoteId}
+    />
+  )
+}
+
+function CompactAppShell(props: MobileAppShellProps) {
+  return (
+    <CompactShell
+      activePanel={props.compactNavigation.panel}
+      activeVault={props.activeVault}
+      activeSidebarSelection={props.sidebarSelection}
+      allNotes={props.allNotes}
+      editorMode={props.editorMode}
+      note={props.selectedNote}
+      gitSyncPlan={props.gitSyncPlan}
+      listTitle={props.listTitle}
+      notes={props.notes}
+      saveState={props.saveState}
+      selectedNoteId={props.selectedNoteId}
+      sidebarSections={props.sidebarSections}
+      onNavigate={props.onNavigate}
+      onDeleteNote={props.onDeleteNote}
+      onDraftChange={props.onDraftChange}
+      onRawMarkdownChange={props.onRawMarkdownChange}
+      onSelectSidebar={props.onSelectSidebar}
+      onToggleArchive={props.onToggleArchive}
+      onToggleEditorMode={props.onToggleEditorMode}
+      onToggleFavorite={props.onToggleFavorite}
+      createNoteFailed={props.createNoteFailed}
+      isCreatingNote={props.isCreatingNote}
+      runtimeLoadFailed={props.runtimeLoadFailed}
+      onCreateNote={props.onCreateNote}
+      onGitSyncAction={props.onGitSyncAction}
+      onRetryRuntimeLoad={props.onRetryRuntimeLoad}
+      onSelectNote={props.onSelectNote}
+      propertiesFailed={props.propertiesFailed}
+      isSavingProperties={props.isSavingProperties}
+      onChangeProperties={props.onChangeProperties}
+      onOpenRemoteSetup={props.onOpenRemoteSetup}
+    />
+  )
+}
+
+function RemoteSetupPrompt(props: MobileAppShellProps) {
+  if (!props.isRemoteSetupOpen) return null
+
+  return (
+    <MobileVaultRemotePrompt
+      failed={props.remoteSetupFailed}
+      hasGitHubOAuthClientId={props.gitHubOAuthClientIdState === 'configured'}
+      isSaving={props.remoteSetupIsSaving}
+      onCancel={props.onCancelRemoteSetup}
+      onChangeRemoteUrl={props.onChangeRemoteUrl}
+      onSubmit={props.onSubmitRemoteSetup}
+      remoteUrl={props.remoteSetupUrl}
+    />
   )
 }
 

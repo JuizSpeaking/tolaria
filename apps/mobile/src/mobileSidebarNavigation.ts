@@ -1,6 +1,6 @@
 import type { IconName } from './NamedIcon'
 import type { MobileNote } from './mobileNoteProjection'
-import { evaluateMobileView, mobileViewDefinitions } from './mobileViewFilters'
+import { evaluateMobileView, type MobileViewDefinition } from './mobileViewFilters'
 
 export type MobileSidebarSelection =
   | { kind: 'library'; id: 'all' | 'archive' | 'favorites' | 'inbox' }
@@ -21,7 +21,10 @@ export type MobileSidebarSection = {
 
 export const defaultMobileSidebarSelection: MobileSidebarSelection = { kind: 'library', id: 'inbox' }
 
-export function createMobileSidebarSections(notes: MobileNote[]): MobileSidebarSection[] {
+export function createMobileSidebarSections(
+  notes: MobileNote[],
+  views: MobileViewDefinition[] = [],
+): MobileSidebarSection[] {
   return [
     {
       title: 'Library',
@@ -32,15 +35,7 @@ export function createMobileSidebarSections(notes: MobileNote[]): MobileSidebarS
         libraryItem({ count: favoriteNotes(notes).length, icon: 'star', id: 'favorites', label: 'Favorites' }),
       ],
     },
-    {
-      title: 'Views',
-      items: mobileViewDefinitions.map((view) => ({
-        count: evaluateMobileView({ notes: activeNotes(notes), view }).length,
-        icon: view.icon as IconName,
-        label: view.name,
-        selection: { kind: 'view', id: view.id },
-      })),
-    },
+    ...viewSections({ notes, views }),
     {
       title: 'Types',
       items: noteTypes(notes).map((type) => ({
@@ -56,16 +51,18 @@ export function createMobileSidebarSections(notes: MobileNote[]): MobileSidebarS
 export function filterNotesForSidebarSelection({
   notes,
   selection,
+  views = [],
 }: {
   notes: MobileNote[]
   selection: MobileSidebarSelection
+  views?: MobileViewDefinition[]
 }) {
   if (selection.kind === 'type') {
     return activeNotes(notes).filter((note) => note.type === selection.type)
   }
 
   if (selection.kind === 'view') {
-    const view = mobileViewDefinitions.find((definition) => definition.id === selection.id)
+    const view = views.find((definition) => definition.id === selection.id)
     return view ? evaluateMobileView({ notes: activeNotes(notes), view }) : []
   }
 
@@ -81,13 +78,13 @@ export function filterNotesForSidebarSelection({
   }
 }
 
-export function mobileSidebarTitle(selection: MobileSidebarSelection) {
+export function mobileSidebarTitle(selection: MobileSidebarSelection, views: MobileViewDefinition[] = []) {
   if (selection.kind === 'type') {
     return pluralTypeLabel(selection.type)
   }
 
   if (selection.kind === 'view') {
-    return mobileViewDefinitions.find((definition) => definition.id === selection.id)?.name ?? 'View'
+    return views.find((definition) => definition.id === selection.id)?.name ?? 'View'
   }
 
   return libraryTitle(selection.id)
@@ -121,6 +118,26 @@ function libraryItem({
     label,
     selection: { kind: 'library', id },
   }
+}
+
+function viewSections({
+  notes,
+  views,
+}: {
+  notes: MobileNote[]
+  views: MobileViewDefinition[]
+}): MobileSidebarSection[] {
+  return views.length > 0
+    ? [{
+        title: 'Views',
+        items: views.map((view) => ({
+          count: evaluateMobileView({ notes: activeNotes(notes), view }).length,
+          icon: view.icon as IconName,
+          label: view.name,
+          selection: { kind: 'view', id: view.id } as const,
+        })),
+      }]
+    : []
 }
 
 function inboxNotes(notes: MobileNote[]) {
