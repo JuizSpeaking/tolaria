@@ -9,7 +9,7 @@ import { mobileText } from '../i18n/mobileText'
 import { MobileChip } from '../ui/MobileChip'
 import { MobileIconButton } from '../ui/MobileIconButton'
 import { MobilePanel, MobileToolbar, MobileToolbarTitle } from '../ui/MobilePanel'
-import { desktopEditorParity } from '../ui/desktopParity'
+import { desktopEditorParity, desktopToolbarActionParity } from '../ui/desktopParity'
 import { mobileColors, mobileRadius, mobileSpace, mobileType } from '../ui/tokens'
 import type { MobileEditorBlock, MobileEditorInline, MobileNote } from '../workspace/mobileWorkspaceModel'
 
@@ -31,14 +31,14 @@ export function TabletEditorPanel({
   return (
     <MobilePanel style={panelStyles.panel} testID="editor-panel">
       <MobileToolbar>
-        <FileText color={mobileColors.textMuted} size={18} />
+        <FileText color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />
         <MobileToolbarTitle title={note.title} />
         <MobileChip label={note.workspace} tone="gray" />
-        <MobileIconButton accessibilityLabel={mobileText('command.note.addFavorite')}>
-          <Star color={note.favorite ? mobileColors.primary : mobileColors.textMuted} size={18} weight={note.favorite ? 'fill' : 'regular'} />
+        <MobileIconButton accessibilityLabel={mobileText('command.note.addFavorite')} testID="editor-favorite-action">
+          <Star color={note.favorite ? mobileColors.primary : mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} weight={note.favorite ? 'fill' : 'regular'} />
         </MobileIconButton>
-        <MobileIconButton accessibilityLabel={mobileText('command.group.note')}>
-          <DotsThree color={mobileColors.textMuted} size={20} weight="bold" />
+        <MobileIconButton accessibilityLabel={mobileText('command.group.note')} testID="editor-more-action">
+          <DotsThree color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} weight="bold" />
         </MobileIconButton>
       </MobileToolbar>
       <ScrollView contentContainerStyle={[panelStyles.content, compact ? panelStyles.contentCompact : null]} testID="editor-scroll">
@@ -55,7 +55,7 @@ function EmptyEditorPanel() {
   return (
     <MobilePanel style={panelStyles.panel} testID="editor-panel">
       <MobileToolbar>
-        <FileText color={mobileColors.textMuted} size={18} />
+        <FileText color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />
         <MobileToolbarTitle title={mobileText('inspector.empty.noNoteSelected')} />
       </MobileToolbar>
       <View style={panelStyles.emptyState}>

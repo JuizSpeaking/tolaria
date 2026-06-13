@@ -130,6 +130,14 @@ export const desktopPanelParity = {
   toolbarHeight: 52,
 } as const
 
+export const desktopToolbarActionParity = {
+  borderRadius: 4,
+  hitSlop: 8,
+  iconButtonSize: 24,
+  iconSize: 16,
+  pressedOpacity: 0.7,
+} as const
+
 export const desktopStatusBarParity = {
   actionHeight: 24,
   actionPaddingHorizontal: 4,

@@ -6,7 +6,7 @@ import { MobileChip } from '../../ui/MobileChip'
 import { MobileIconButton } from '../../ui/MobileIconButton'
 import { MobileListRow } from '../../ui/MobileListRow'
 import { MobilePanel, MobileToolbar, MobileToolbarSpacer, MobileToolbarTitle } from '../../ui/MobilePanel'
-import { desktopPanelParity } from '../../ui/desktopParity'
+import { desktopPanelParity, desktopToolbarActionParity } from '../../ui/desktopParity'
 import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
 import type { MobileNote } from '../../workspace/mobileWorkspaceModel'
 import { MobileTypeIcon } from './MobileWorkspaceIcons'
@@ -39,11 +39,11 @@ export function MobileNoteListPanel({
           <Text style={styles.toolbarSubtitle}>{subtitle}</Text>
         </View>
         <MobileToolbarSpacer />
-        <MobileIconButton accessibilityLabel={mobileCopy.searchNotes}>
-          <MagnifyingGlass color={mobileColors.textMuted} size={20} />
+        <MobileIconButton accessibilityLabel={mobileCopy.searchNotes} testID="note-list-search-action">
+          <MagnifyingGlass color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />
         </MobileIconButton>
-        <MobileIconButton accessibilityLabel={mobileCopy.createNote}>
-          <Plus color={mobileColors.textMuted} size={20} />
+        <MobileIconButton accessibilityLabel={mobileCopy.createNote} testID="note-list-create-action">
+          <Plus color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />
         </MobileIconButton>
       </MobileToolbar>
       {searchQuery ? <SearchPill searchQuery={searchQuery} /> : null}

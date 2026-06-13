@@ -17,7 +17,7 @@ import { Text } from '../ui/text'
 import { mobileCopy, mobileText } from '../../i18n/mobileText'
 import { MobileIconButton } from '../../ui/MobileIconButton'
 import { MobilePanel, MobileToolbar } from '../../ui/MobilePanel'
-import { desktopPanelParity, desktopSidebarParity } from '../../ui/desktopParity'
+import { desktopPanelParity, desktopSidebarParity, desktopToolbarActionParity } from '../../ui/desktopParity'
 import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
 import type {
   MobileNote,
@@ -57,8 +57,8 @@ export function MobileWorkspaceSidebar({
   return (
     <MobilePanel style={styles.panel} testID="workspace-sidebar-panel">
       <MobileToolbar>
-        <MobileIconButton accessibilityLabel={mobileText('sidebar.action.collapse')}>
-          <SidebarSimple color={mobileColors.textMuted} size={20} />
+        <MobileIconButton accessibilityLabel={mobileText('sidebar.action.collapse')} testID="sidebar-collapse-action">
+          <SidebarSimple color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />
         </MobileIconButton>
         <Text numberOfLines={1} style={styles.vaultTitle}>{title}</Text>
       </MobileToolbar>
