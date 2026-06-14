@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Pressable, StyleSheet, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '../components/ui/text'
 import { desktopNoteItemParity } from './desktopParity'
 import { mobileColors, mobileSpace, mobileType } from './tokens'
@@ -18,22 +18,40 @@ type MobileListRowProps = {
   trailing?: ReactNode
 }
 
+const nativeNoteRowPadding = {
+  bottom: desktopNoteItemParity.padding.bottom + 2,
+  left: desktopNoteItemParity.padding.left + 4,
+  right: desktopNoteItemParity.padding.right + 4,
+  top: desktopNoteItemParity.padding.top + 2,
+} as const
+
+const noteRowPadding = Platform.OS === 'web' ? desktopNoteItemParity.padding : nativeNoteRowPadding
+const selectedPaddingLeft = Platform.OS === 'web'
+  ? desktopNoteItemParity.selectedPaddingLeft
+  : nativeNoteRowPadding.left
+const baseContentStyle = {
+  paddingBottom: noteRowPadding.bottom,
+  paddingLeft: noteRowPadding.left,
+  paddingRight: noteRowPadding.right,
+  paddingTop: noteRowPadding.top,
+} as const
+
 export function MobileListRow(props: MobileListRowProps) {
   const selected = props.selected ?? false
+  const frameColors = selected ? {
+    backgroundColor: props.selectedBackgroundColor,
+    borderLeftColor: props.selectedBorderColor,
+  } : null
 
   return (
     <View
       testID={props.testID}
-      style={frameStyle({
-        selected,
-        selectedBackgroundColor: props.selectedBackgroundColor,
-        selectedBorderColor: props.selectedBorderColor,
-      })}
+      style={[styles.frame, selected ? styles.selected : null, frameColors]}
     >
       <Pressable
         accessibilityRole="button"
         onPress={props.onPress}
-        style={({ pressed }) => rowContentStyle({ pressed, selected })}
+        style={selected ? styles.baseSelected : styles.base}
       >
         <View style={styles.header}>
           {props.leading}
@@ -50,46 +68,11 @@ export function MobileListRow(props: MobileListRowProps) {
   )
 }
 
-function frameStyle({
-  selected,
-  selectedBackgroundColor,
-  selectedBorderColor,
-}: {
-  selected: boolean
-  selectedBackgroundColor?: string
-  selectedBorderColor?: string
-}) {
-  return [
-    styles.frame,
-    selected ? styles.selected : null,
-    selected && selectedBackgroundColor ? { backgroundColor: selectedBackgroundColor } : null,
-    selected && selectedBorderColor ? { borderLeftColor: selectedBorderColor } : null,
-  ]
-}
-
-function rowContentStyle({
-  pressed,
-  selected,
-}: {
-  pressed: boolean
-  selected: boolean
-}) {
-  return [
-    styles.base,
-    selected ? styles.baseSelected : null,
-    pressed ? styles.pressed : null,
-  ]
-}
-
 const styles = StyleSheet.create({
-  base: {
-    paddingBottom: desktopNoteItemParity.padding.bottom,
-    paddingLeft: desktopNoteItemParity.padding.left,
-    paddingRight: desktopNoteItemParity.padding.right,
-    paddingTop: desktopNoteItemParity.padding.top,
-  },
+  base: baseContentStyle,
   baseSelected: {
-    paddingLeft: desktopNoteItemParity.selectedPaddingLeft,
+    ...baseContentStyle,
+    paddingLeft: selectedPaddingLeft,
   },
   frame: {
     alignSelf: 'stretch',
@@ -115,9 +98,6 @@ const styles = StyleSheet.create({
   meta: {
     color: mobileColors.textMuted,
     fontSize: mobileType.caption,
-  },
-  pressed: {
-    backgroundColor: mobileColors.control,
   },
   selected: {
     borderLeftWidth: desktopNoteItemParity.borderLeftWidth,

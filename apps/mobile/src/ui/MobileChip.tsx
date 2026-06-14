@@ -1,4 +1,4 @@
-import { type StyleProp, type ViewStyle } from 'react-native'
+import { Platform, StyleSheet, type StyleProp, type ViewStyle } from 'react-native'
 import { Badge } from '../components/ui/badge'
 import { Text } from '../components/ui/text'
 import { cn } from '../components/ui/utils'
@@ -20,10 +20,13 @@ export function MobileChip({
   tone?: MobileChipTone
 }) {
   const chipStyle = density === 'list' ? listChipStyles[tone] : propertyChipStyles[tone]
-  const chipTextStyle = density === 'list' ? styles.listText : styles.propertyText
+  const badgeStyle = Platform.OS === 'web'
+    ? [chipStyle, style]
+    : [styles.base, nativeDensityStyles[density], chipStyle, style]
+  const chipTextStyle = density === 'list' ? textStyles.list : textStyles.property
 
   return (
-    <Badge className={cn('border-transparent', densityClassNames[density])} style={[chipStyle, style]} variant="secondary">
+    <Badge className={cn('border-transparent', densityClassNames[density])} style={badgeStyle} variant="secondary">
       <Text numberOfLines={1} style={[chipTextStyle, { color: chipTextColors[tone] }]}>{label}</Text>
     </Badge>
   )
@@ -70,13 +73,38 @@ const propertyChipStyles = Object.fromEntries(
   ]),
 ) as Record<MobileChipTone, ViewStyle>
 
-const styles = {
-  listText: {
+const styles = StyleSheet.create({
+  base: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: 'transparent',
+    borderWidth: 0,
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  list: {
+    minHeight: 18,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  property: {
+    borderRadius: desktopPropertyParity.chipRadius,
+  },
+})
+
+const nativeDensityStyles = {
+  list: styles.list,
+  property: styles.property,
+} as const
+
+const textStyles = {
+  list: {
     fontSize: 10,
     fontWeight: '400' as const,
     lineHeight: 14,
   },
-  propertyText: {
+  property: {
     fontSize: desktopPropertyParity.chipTextSize,
     fontWeight: '500' as const,
     lineHeight: desktopPropertyParity.chipHeight,

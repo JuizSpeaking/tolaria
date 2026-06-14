@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { copyFile, mkdir, unlink } from 'node:fs/promises'
+import { mkdir } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
@@ -16,8 +16,10 @@ Options:
   --device <udid>       Simulator UDID. Defaults to MOBILE_QA_SIMULATOR_UDID, then the booted iPad.
   --dir <path>          Output directory. Defaults to MOBILE_QA_SIMULATOR_SCREENSHOT_DIR or ${defaultOutputDir}.
   --out <path>          Output PNG path. Defaults to <dir>/ipad-landscape.png.
-  --landscape           Rotate the artifact to landscape when the simulator returns portrait pixels.
-  --open-url <url>      Open a URL in the simulator before capturing, useful for Mobile Safari QA.
+  --landscape           Set the Simulator device orientation to Landscape Right before capture.
+  --orientation <value> Set orientation: portrait, landscape-left, or landscape-right.
+  --framebuffer         Capture the raw simulator framebuffer instead of the visible Simulator window.
+  --open-url <url>      Open a simulator URL before capture. Use exp:// URLs for Expo Go native QA.
   --wait <ms>           Delay after opening a URL and before capture. Defaults to 3000.
   --help                Show this help.
 `)
@@ -44,6 +46,10 @@ function run(command, args) {
   return result.stdout
 }
 
+function hasFlag(args, name) {
+  return args.includes(name)
+}
+
 function listBootedDevices() {
   const json = run('xcrun', ['simctl', 'list', 'devices', 'booted', '--json'])
   const parsed = JSON.parse(json)
@@ -64,29 +70,49 @@ function selectDevice(requestedDevice) {
   return selected.udid
 }
 
-function imageDimensions(path) {
-  const output = run('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', path])
-  const width = Number(output.match(/pixelWidth:\s*(\d+)/)?.[1])
-  const height = Number(output.match(/pixelHeight:\s*(\d+)/)?.[1])
-  if (!width || !height) {
-    throw new Error(`Unable to read image dimensions for ${path}`)
-  }
-  return { height, width }
+function orientationMenuItem(value) {
+  if (value === 'portrait') return 'Portrait'
+  if (value === 'landscape-left') return 'Landscape Left'
+  if (value === 'landscape-right') return 'Landscape Right'
+  throw new Error(`Unsupported orientation: ${value}`)
 }
 
-async function normalizeLandscape(sourcePath, targetPath, shouldNormalize) {
-  if (!shouldNormalize) {
-    await copyFile(sourcePath, targetPath)
-    return
-  }
+function setSimulatorOrientation(value) {
+  const menuItem = orientationMenuItem(value)
+  run('osascript', [
+    '-e',
+    'tell application "Simulator" to activate',
+    '-e',
+    `tell application "System Events" to tell process "Simulator" to click menu item "${menuItem}" of menu 1 of menu item "Orientation" of menu "Device" of menu bar 1`,
+  ])
+}
 
-  const { height, width } = imageDimensions(sourcePath)
-  if (width >= height) {
-    await copyFile(sourcePath, targetPath)
-    return
+function simulatorWindowRect() {
+  const output = run('osascript', [
+    '-e',
+    'tell application "Simulator" to activate',
+    '-e',
+    `tell application "System Events"
+      tell process "Simulator"
+        set windowPosition to position of window 1
+        set windowSize to size of window 1
+        return ((item 1 of windowPosition) as text) & "," & ((item 2 of windowPosition) as text) & "," & ((item 1 of windowSize) as text) & "," & ((item 2 of windowSize) as text)
+      end tell
+    end tell`,
+  ])
+  const values = output.trim().split(',').map((value) => Number(value))
+  if (values.length !== 4 || values.some((value) => !Number.isFinite(value))) {
+    throw new Error(`Unable to read Simulator window bounds: ${output.trim()}`)
   }
+  return values.join(',')
+}
 
-  run('sips', ['-r', '90', sourcePath, '--out', targetPath])
+function captureSimulatorWindow(outputPath) {
+  run('screencapture', ['-x', `-R${simulatorWindowRect()}`, outputPath])
+}
+
+function captureSimulatorFramebuffer(device, outputPath) {
+  run('xcrun', ['simctl', 'io', device, 'screenshot', outputPath])
 }
 
 async function main() {
@@ -103,19 +129,25 @@ async function main() {
   const outputPath = resolve(readOption(args, '--out', join(outputDir, 'ipad-landscape.png')))
   const waitMs = Number(readOption(args, '--wait', '3000'))
   const url = readOption(args, '--open-url', undefined)
-  const landscape = args.includes('--landscape')
-  const rawPath = `${outputPath.replace(/\.png$/u, '')}.raw.png`
+  const requestedOrientation = readOption(args, '--orientation', hasFlag(args, '--landscape') ? 'landscape-right' : undefined)
 
   await mkdir(dirname(outputPath), { recursive: true })
+
+  if (requestedOrientation) {
+    setSimulatorOrientation(requestedOrientation)
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 1000))
+  }
 
   if (url) {
     run('xcrun', ['simctl', 'openurl', device, url])
     await new Promise((resolveDelay) => setTimeout(resolveDelay, waitMs))
   }
 
-  run('xcrun', ['simctl', 'io', device, 'screenshot', rawPath])
-  await normalizeLandscape(rawPath, outputPath, landscape)
-  await unlink(rawPath).catch(() => undefined)
+  if (hasFlag(args, '--framebuffer')) {
+    captureSimulatorFramebuffer(device, outputPath)
+  } else {
+    captureSimulatorWindow(outputPath)
+  }
 
   console.log(`Captured iOS Simulator screenshot: ${outputPath}`)
 }

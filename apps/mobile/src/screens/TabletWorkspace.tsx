@@ -4,9 +4,7 @@ import { MobileNoteListPanel } from '../components/workspace/MobileNoteListPanel
 import { MobilePropertiesPanel } from '../components/workspace/MobilePropertiesPanel'
 import { MobileSyncStatusBar } from '../components/workspace/MobileSyncStatusBar'
 import { MobileWorkspaceActionSheet, type MobileWorkspaceAction } from '../components/workspace/MobileWorkspaceActionSheet'
-import {
-  MobileWorkspaceSidebar,
-} from '../components/workspace/MobileWorkspaceSidebar'
+import { MobileWorkspaceSidebar } from '../components/workspace/MobileWorkspaceSidebar'
 import type { MobileWorkspaceSnapshot } from '../workspace/mobileWorkspaceModel'
 import { mobileColors } from '../ui/tokens'
 import { useHorizontalSwipe } from '../ui/useHorizontalSwipe'
@@ -52,8 +50,9 @@ export function TabletWorkspace({
   } = useTabletWorkspaceNavigation(workspaceSnapshot, searchQuery)
   const screen = Dimensions.get('screen')
   const nativeIpad = Platform.OS === 'ios' && Platform.isPad
+  const effectiveTabletWidth = nativeIpad ? Math.max(width, height, screen.width, screen.height) : width
   const compactTablet = !nativeIpad && width < 1080 && width < height && screen.width < screen.height
-  const defaultPropertiesVisible = !nativeIpad || width >= 1200
+  const defaultPropertiesVisible = nativeIpad ? effectiveTabletWidth >= 1200 : true
   const updateReadOnlyForm = useCallback(<Key extends keyof TabletReadOnlyForm,>(key: Key, value: TabletReadOnlyForm[Key]) => {
     setReadOnlyForm((current) => ({ ...current, [key]: value }))
   }, [])
@@ -219,21 +218,17 @@ function SwipeRail({
 }
 
 function useTabletPanelVisibility(defaultPropertiesVisible: boolean) {
-  const [visiblePanels, setVisiblePanels] = useState<Record<TabletPanel, boolean>>({
-    noteList: true,
-    properties: defaultPropertiesVisible,
-    sidebar: true,
-  })
+  const [panelOverrides, setPanelOverrides] = useState<Partial<Record<TabletPanel, boolean>>>({})
   const setPanelVisibility = useCallback((panel: TabletPanel, visible: boolean) => {
-    setVisiblePanels((current) => current[panel] === visible ? current : { ...current, [panel]: visible })
+    setPanelOverrides((current) => current[panel] === visible ? current : { ...current, [panel]: visible })
   }, [])
 
   return {
     hidePanel: useCallback((panel: TabletPanel) => setPanelVisibility(panel, false), [setPanelVisibility]),
-    noteListVisible: visiblePanels.noteList,
-    propertiesVisible: visiblePanels.properties,
+    noteListVisible: panelOverrides.noteList ?? true,
+    propertiesVisible: panelOverrides.properties ?? defaultPropertiesVisible,
     showPanel: useCallback((panel: TabletPanel) => setPanelVisibility(panel, true), [setPanelVisibility]),
-    sidebarVisible: visiblePanels.sidebar,
+    sidebarVisible: panelOverrides.sidebar ?? true,
   }
 }
 

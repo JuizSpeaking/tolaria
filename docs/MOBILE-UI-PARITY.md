@@ -84,13 +84,16 @@ The same Playwright suite also compares the primary tablet-landscape screen agai
 /tmp/tolaria-mobile-ui-simulator/ipad-landscape.png
 ```
 
-Use it after launching Expo on iOS with `pnpm mobile:ios`, or point the simulator browser at the live web build before capture:
+Use it after launching Expo on iOS with `pnpm mobile:ios`. The command sets the booted iPad Simulator to landscape and captures the visible Simulator window, so the artifact matches the native Expo Go surface rather than the Expo web build.
+
+If Expo Go is not already focused, open the running native bundle first:
 
 ```bash
-pnpm mobile:qa:ios-simulator -- --open-url http://127.0.0.1:8081
+pnpm mobile:ios
+pnpm mobile:qa:ios-simulator
 ```
 
-For tablet UI review, treat this simulator artifact as mandatory alongside Playwright screenshots. Playwright catches measurable parity regressions quickly; the simulator screenshot catches native or Mobile Safari rendering differences that browser automation can miss.
+For tablet UI review, treat this simulator artifact as mandatory alongside Playwright screenshots. Playwright catches measurable parity regressions quickly; the simulator screenshot catches native Expo Go rendering differences that browser automation can miss. Use `--open-url` only for native deep links such as `exp://...`; an `http://...` URL opens Mobile Safari and is not an acceptance target for the mobile app.
 
 The harness also exercises a read-only real-vault path. By default it looks for:
 

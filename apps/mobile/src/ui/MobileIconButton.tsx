@@ -39,14 +39,20 @@ export function MobileIconButton({
 
 const styles = StyleSheet.create({
   default: {
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 36,
     height: 36,
     borderRadius: 6,
+    flexDirection: 'row',
   },
   toolbar: {
+    alignItems: 'center',
+    justifyContent: 'center',
     width: desktopToolbarActionParity.iconButtonSize,
     height: desktopToolbarActionParity.iconButtonSize,
     borderRadius: desktopToolbarActionParity.borderRadius,
+    flexDirection: 'row',
   },
 })
 
