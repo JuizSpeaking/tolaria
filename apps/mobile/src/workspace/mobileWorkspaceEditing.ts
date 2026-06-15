@@ -31,9 +31,13 @@ import type {
 import {
   createMobileSavedViewFilename,
   mobileSavedViewId,
+  mobileSavedViewOrderUpdates,
   mobileSavedViewPath,
+  moveMobileSavedView,
+  nextMobileSavedViewOrder,
   orderedMobileSavedViews,
   serializeMobileSavedViewDefinition,
+  type MobileViewMoveDirection,
 } from './mobileSavedViews'
 import { buildMobileSidebarSections } from './mobileSidebarSections'
 import { normalizeRelationshipKey } from './mobileWorkspaceSuggestions'
@@ -67,7 +71,8 @@ export type MobileWorkspaceEdit =
   | { definition: MobileViewDefinition; type: 'createView' }
   | { definition: MobileViewDefinition; viewId: string; type: 'updateView' }
   | { viewId: string; type: 'deleteView' }
-type MobileViewEdit = Extract<MobileWorkspaceEdit, { type: 'createView' | 'deleteView' | 'updateView' }>
+  | { direction: MobileViewMoveDirection; viewId: string; type: 'moveView' }
+type MobileViewEdit = Extract<MobileWorkspaceEdit, { type: 'createView' | 'deleteView' | 'moveView' | 'updateView' }>
 type MobileSnapshotEdit = Extract<MobileWorkspaceEdit, { type: 'deleteNote' | 'moveNoteToFolder' | 'renameNoteFile' }>
 type MobileNoteEdit = Exclude<MobileWorkspaceEdit, MobileSnapshotEdit | MobileViewEdit | { type: 'createNote' }>
 type MobileWorkspaceResultHandlerMap = {
@@ -157,6 +162,7 @@ const mobileWorkspaceResultHandlers: MobileWorkspaceResultHandlerMap = {
   createView: (snapshot, edit) => createMobileView(snapshot, edit.definition),
   deleteNote: (snapshot, edit) => deleteMobileNote(snapshot, edit.noteId),
   deleteView: (snapshot, edit) => deleteMobileView(snapshot, edit.viewId),
+  moveView: (snapshot, edit) => moveMobileView(snapshot, edit.viewId, edit.direction),
   moveNoteToFolder: (snapshot, edit) => moveNoteToFolder(snapshot, edit),
   renameNoteFile: (snapshot, edit) => renameNoteFile(snapshot, edit),
   updateView: (snapshot, edit) => updateMobileView(snapshot, edit.viewId, edit.definition),
@@ -705,11 +711,14 @@ function createMobileView(
   const existingViews = snapshot.views ?? []
   const filename = createMobileSavedViewFilename(definition.name, existingViews.map((view) => view.filename))
   const view: MobileSavedView = {
-    definition,
+    definition: {
+      ...definition,
+      order: nextMobileSavedViewOrder(existingViews),
+    },
     filename,
     id: mobileSavedViewId(filename),
   }
-  const views = orderedMobileSavedViews([...existingViews, view])
+  const views = mobileSavedViewOrderUpdates([...existingViews, view])
   const nextSnapshot = {
     ...snapshot,
     sidebarSections: buildMobileSidebarSections({
@@ -723,11 +732,11 @@ function createMobileView(
 
   return {
     snapshot: nextSnapshot,
-    writes: [{
-      content: serializeMobileSavedViewDefinition(definition),
+    writes: views.map((savedView) => ({
+      content: serializeMobileSavedViewDefinition(savedView.definition),
       kind: 'saveView',
-      path: mobileSavedViewPath(filename),
-    }],
+      path: mobileSavedViewPath(savedView.filename),
+    })),
   }
 }
 
@@ -767,6 +776,25 @@ function deleteMobileView(
       kind: 'deleteView',
       path: mobileSavedViewPath(existingView.filename),
     }],
+  }
+}
+
+function moveMobileView(
+  snapshot: MobileWorkspaceSnapshot,
+  viewId: string,
+  direction: MobileViewMoveDirection,
+): MobileWorkspaceEditResult {
+  const views = moveMobileSavedView(snapshot.views ?? [], viewId, direction)
+  if (!views) return { snapshot, writes: [] }
+
+  const orderedViews = mobileSavedViewOrderUpdates(views)
+  return {
+    snapshot: snapshotWithViews(snapshot, orderedViews),
+    writes: orderedViews.map((view) => ({
+      content: serializeMobileSavedViewDefinition(view.definition),
+      kind: 'saveView',
+      path: mobileSavedViewPath(view.filename),
+    })),
   }
 }
 

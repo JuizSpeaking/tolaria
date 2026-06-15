@@ -41,6 +41,14 @@ test.describe('mobile UI lab interactions', () => {
     await editAndDeleteSavedView(page)
   })
 
+  test('reorders created saved views', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'tablet-landscape', 'Saved-view ordering is exercised in the full-width tablet layout.')
+
+    await page.goto('/')
+    await createSavedViewFromSidebar(page)
+    await moveCreatedSavedView(page)
+  })
+
   test('keeps large local-vault read-only interactions within tablet budgets', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'tablet-landscape', 'Large-vault performance checks run once on the primary tablet layout.')
 
@@ -164,6 +172,22 @@ async function editAndDeleteSavedView(page: PageLike) {
   await expect(page.getByTestId('note-list-toolbar-title')).toHaveText('Inbox')
 }
 
+async function moveCreatedSavedView(page: PageLike) {
+  const activeView = page.getByTestId('sidebar-item-view-active-procedures')
+  const mobileView = page.getByTestId('sidebar-item-view-mobile-inbox-view')
+  await expect(await rowY(mobileView)).toBeGreaterThan(await rowY(activeView))
+
+  await longPress(page, 'sidebar-item-view-mobile-inbox-view')
+  await expect(page.getByRole('button', { name: 'Move view up' })).toBeVisible()
+  await page.getByRole('button', { name: 'Move view up' }).click()
+  await expect(await rowY(mobileView)).toBeLessThan(await rowY(activeView))
+
+  await page.getByRole('button', { name: 'Move view down' }).click()
+  await expect(await rowY(mobileView)).toBeGreaterThan(await rowY(activeView))
+  await page.getByTestId('workspace-action-sheet-toolbar').getByRole('button', { name: 'Cancel' }).click()
+  await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
+}
+
 async function longPress(page: PageLike, testId: string) {
   const target = page.getByTestId(testId)
   const box = await target.boundingBox()
@@ -173,6 +197,12 @@ async function longPress(page: PageLike, testId: string) {
   await page.mouse.down()
   await page.waitForTimeout(360)
   await page.mouse.up()
+}
+
+async function rowY(locator: ReturnType<PageLike['getByTestId']>) {
+  const box = await locator.boundingBox()
+  if (!box) throw new Error('Cannot measure missing sidebar row.')
+  return box.y
 }
 
 async function addDatePropertyFromSuggestion(page: PageLike) {

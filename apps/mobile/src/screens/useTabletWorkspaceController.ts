@@ -20,6 +20,7 @@ import type {
 } from '../workspace/readOnlyWorkspaceRepository'
 import { writeMobileClipboardText } from '../workspace/mobileClipboard'
 import { buildMobileDeepLinkForNote } from '../workspace/mobileDeepLinks'
+import { canMoveMobileSavedView } from '../workspace/mobileSavedViews'
 import { useTabletWorkspaceNavigation } from './tabletWorkspaceNavigation'
 import type { TabletReadOnlyForm } from './tabletWorkspaceTypes'
 import type { TabletSidebarSelection } from './tabletWorkspaceNavigation'
@@ -384,6 +385,16 @@ function createWorkspaceActions({
       typeDefinitions: workspaceSnapshot.typeDefinitions,
     }),
     onDeleteView: () => deleteView({ applyEdit, closeAction, viewId: readOnlyForm.editingViewId }),
+    onMoveViewDown: () => moveView({
+      applyEdit,
+      direction: 'down',
+      viewId: readOnlyForm.editingViewId,
+    }),
+    onMoveViewUp: () => moveView({
+      applyEdit,
+      direction: 'up',
+      viewId: readOnlyForm.editingViewId,
+    }),
     onSaveView: () => updateView({
       applyEdit,
       closeAction,
@@ -392,6 +403,8 @@ function createWorkspaceActions({
       viewId: readOnlyForm.editingViewId,
       views: workspaceSnapshot.views ?? [],
     }),
+    canMoveViewDown: canMoveMobileSavedView(workspaceSnapshot.views ?? [], readOnlyForm.editingViewId, 'down'),
+    canMoveViewUp: canMoveMobileSavedView(workspaceSnapshot.views ?? [], readOnlyForm.editingViewId, 'up'),
     onViewFiltersChange: (value: MobileViewFilterGroup) => updateReadOnlyForm('viewFilters', value),
     onViewNameChange: (value: string) => updateReadOnlyForm('viewName', value),
   }
@@ -713,6 +726,19 @@ function updateView({
     viewId,
   })
   closeAction()
+}
+
+function moveView({
+  applyEdit,
+  direction,
+  viewId,
+}: {
+  applyEdit: (edit: MobileWorkspaceEdit) => void
+  direction: 'down' | 'up'
+  viewId: string
+}) {
+  if (!viewId) return
+  applyEdit({ direction, type: 'moveView', viewId })
 }
 
 function deleteView({

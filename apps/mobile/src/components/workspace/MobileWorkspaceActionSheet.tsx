@@ -38,6 +38,8 @@ export type MobileWorkspaceAction =
 
 type MobileWorkspaceActionSheetProps = {
   action: MobileWorkspaceAction
+  canMoveViewDown: boolean
+  canMoveViewUp: boolean
   createTitle: string
   filenameStem: string
   folderPath: string
@@ -56,6 +58,8 @@ type MobileWorkspaceActionSheetProps = {
   onFilenameStemChange: (value: string) => void
   onFolderPathChange: (value: string) => void
   onMoveNoteToFolder: () => void
+  onMoveViewDown: () => void
+  onMoveViewUp: () => void
   onOpenChangeNoteType: () => void
   onOpenMoveNoteToFolder: () => void
   onOpenRenameNoteFile: () => void
@@ -113,6 +117,8 @@ type RetargetNoteAction = 'changeType' | 'moveFolder'
 
 export function MobileWorkspaceActionSheet({
   action,
+  canMoveViewDown,
+  canMoveViewUp,
   createTitle,
   filenameStem,
   folderPath,
@@ -131,6 +137,8 @@ export function MobileWorkspaceActionSheet({
   onFilenameStemChange,
   onFolderPathChange,
   onMoveNoteToFolder,
+  onMoveViewDown,
+  onMoveViewUp,
   onOpenChangeNoteType,
   onOpenMoveNoteToFolder,
   onOpenRenameNoteFile,
@@ -168,6 +176,8 @@ export function MobileWorkspaceActionSheet({
         </MobileToolbar>
         <ActionContent
           action={action}
+          canMoveViewDown={canMoveViewDown}
+          canMoveViewUp={canMoveViewUp}
           createTitle={createTitle}
           filenameStem={filenameStem}
           folderPath={folderPath}
@@ -186,6 +196,8 @@ export function MobileWorkspaceActionSheet({
           onFilenameStemChange={onFilenameStemChange}
           onFolderPathChange={onFolderPathChange}
           onMoveNoteToFolder={onMoveNoteToFolder}
+          onMoveViewDown={onMoveViewDown}
+          onMoveViewUp={onMoveViewUp}
           onOpenChangeNoteType={onOpenChangeNoteType}
           onOpenMoveNoteToFolder={onOpenMoveNoteToFolder}
           onOpenRenameNoteFile={onOpenRenameNoteFile}
@@ -344,7 +356,7 @@ function singleTextFieldConfig(props: MobileWorkspaceActionSheetProps) {
       onCancel: props.onClose,
       onChangeText: props.onViewNameChange,
       onSubmit: props.onSaveView,
-      secondaryAction: <DeleteViewButton onPress={props.onDeleteView} />,
+      secondaryAction: <SavedViewActions {...props} />,
       submitLabel: mobileText('common.save'),
     }
   }
@@ -395,6 +407,62 @@ function viewFilterBuilder(props: MobileWorkspaceActionSheetProps) {
       notes={props.notes}
       onChange={props.onViewFiltersChange}
     />
+  )
+}
+
+function SavedViewActions({
+  canMoveViewDown,
+  canMoveViewUp,
+  onDeleteView,
+  onMoveViewDown,
+  onMoveViewUp,
+}: MobileWorkspaceActionSheetProps) {
+  return (
+    <View style={styles.viewActions}>
+      <MoveViewButton
+        disabled={!canMoveViewUp}
+        label={mobileText('sidebar.action.moveViewUp')}
+        testID="workspace-move-view-up-action"
+        onPress={onMoveViewUp}
+      />
+      <MoveViewButton
+        disabled={!canMoveViewDown}
+        label={mobileText('sidebar.action.moveViewDown')}
+        testID="workspace-move-view-down-action"
+        onPress={onMoveViewDown}
+      />
+      <DeleteViewButton onPress={onDeleteView} />
+    </View>
+  )
+}
+
+function MoveViewButton({
+  disabled,
+  label,
+  onPress,
+  testID,
+}: {
+  disabled: boolean
+  label: string
+  onPress: () => void
+  testID: string
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.moveViewButton,
+        disabled ? styles.moveViewButtonDisabled : null,
+        pressed && !disabled ? styles.suggestionRowPressed : null,
+      ]}
+      testID={testID}
+      onPress={() => {
+        if (!disabled) onPress()
+      }}
+    >
+      <Text style={[styles.moveViewText, disabled ? styles.moveViewTextDisabled : null]}>{label}</Text>
+    </Pressable>
   )
 }
 
@@ -922,7 +990,6 @@ const styles = StyleSheet.create({
     gap: mobileSpace.sm,
   },
   deleteViewButton: {
-    marginRight: 'auto',
     borderRadius: 6,
     paddingHorizontal: mobileSpace.sm,
     paddingVertical: mobileSpace.xs,
@@ -945,6 +1012,27 @@ const styles = StyleSheet.create({
   },
   suggestionList: {
     gap: mobileSpace.xs,
+  },
+  viewActions: {
+    flexDirection: 'row',
+    gap: mobileSpace.xs,
+    marginRight: 'auto',
+  },
+  moveViewButton: {
+    borderRadius: 6,
+    paddingHorizontal: mobileSpace.sm,
+    paddingVertical: mobileSpace.xs,
+  },
+  moveViewButtonDisabled: {
+    opacity: 0.45,
+  },
+  moveViewText: {
+    color: mobileColors.textMuted,
+    fontSize: mobileType.body,
+    fontWeight: '500',
+  },
+  moveViewTextDisabled: {
+    color: mobileColors.textFaint,
   },
   suggestionRow: {
     minHeight: 34,

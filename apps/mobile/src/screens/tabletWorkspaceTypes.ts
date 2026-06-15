@@ -39,6 +39,8 @@ export type TabletReadOnlyForm = {
 export type TabletWorkspaceChromeProps = {
   activeFolderId: string | null
   activeItemId: string | null
+  canMoveViewDown: boolean
+  canMoveViewUp: boolean
   compactTablet: boolean
   defaultPropertiesVisible: boolean
   editorBlocks: MobileEditorBlock[]
@@ -65,6 +67,8 @@ export type TabletWorkspaceChromeProps = {
   onFilenameStemChange: (value: ReadOnlyFormValue) => void
   onFolderPathChange: (value: ReadOnlyFormValue) => void
   onMoveNoteToFolder: () => void
+  onMoveViewDown: () => void
+  onMoveViewUp: () => void
   onOpenChangeNoteType: () => void
   onOpenCreateNote: () => void
   onOpenCreateView: () => void

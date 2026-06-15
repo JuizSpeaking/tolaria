@@ -119,6 +119,50 @@ export function orderedMobileSavedViews(views: MobileSavedView[]): MobileSavedVi
   return [...views].sort(compareSavedViews)
 }
 
+export type MobileViewMoveDirection = 'down' | 'up'
+
+export function nextMobileSavedViewOrder(views: MobileSavedView[]): number {
+  const explicitOrders = views
+    .map((view) => view.definition.order)
+    .filter((order): order is number => typeof order === 'number' && Number.isFinite(order))
+
+  return explicitOrders.length > 0 ? Math.max(...explicitOrders) + 1 : views.length
+}
+
+export function canMoveMobileSavedView(
+  views: MobileSavedView[],
+  viewId: string,
+  direction: MobileViewMoveDirection,
+): boolean {
+  const index = savedViewIndex(views, viewId)
+  if (index === -1) return false
+
+  const nextIndex = savedViewDestinationIndex(index, direction)
+  return nextIndex >= 0 && nextIndex < views.length
+}
+
+export function moveMobileSavedView(
+  views: MobileSavedView[],
+  viewId: string,
+  direction: MobileViewMoveDirection,
+): MobileSavedView[] | null {
+  if (!canMoveMobileSavedView(views, viewId, direction)) return null
+
+  const index = savedViewIndex(views, viewId)
+  const nextIndex = savedViewDestinationIndex(index, direction)
+  const reordered = [...views]
+  const [view] = reordered.splice(index, 1)
+  reordered.splice(nextIndex, 0, view)
+  return reordered
+}
+
+export function mobileSavedViewOrderUpdates(views: MobileSavedView[]): MobileSavedView[] {
+  return views.map((view, order) => ({
+    ...view,
+    definition: { ...view.definition, order },
+  }))
+}
+
 export function evaluateMobileSavedView(view: MobileSavedView, notes: MobileNote[]): MobileNote[] {
   const matchingNotes = notes.filter((note) => !note.archived && evaluateFilterGroup(view.definition.filters, note))
   return sortMobileNotesBySort(matchingNotes, view.definition.sort)
@@ -947,6 +991,14 @@ function compareSavedViews(left: MobileSavedView, right: MobileSavedView) {
   if (typeof leftOrder === 'number') return -1
   if (typeof rightOrder === 'number') return 1
   return left.definition.name.localeCompare(right.definition.name)
+}
+
+function savedViewIndex(views: MobileSavedView[], viewId: string): number {
+  return views.findIndex((view) => view.id === viewId || view.filename === viewId)
+}
+
+function savedViewDestinationIndex(index: number, direction: MobileViewMoveDirection): number {
+  return direction === 'up' ? index - 1 : index + 1
 }
 
 function slugify(value: YamlText) {

@@ -1,11 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   createMobileSavedViewFilename,
+  mobileSavedViewOrderUpdates,
+  moveMobileSavedView,
+  nextMobileSavedViewOrder,
   evaluateMobileSavedView,
   parseMobileSavedViewFile,
   serializeMobileSavedViewDefinition,
 } from './mobileSavedViews'
-import type { MobileNote } from './mobileWorkspaceModel'
+import type { MobileNote, MobileSavedView } from './mobileWorkspaceModel'
 
 describe('mobile saved views', () => {
   afterEach(() => {
@@ -268,6 +271,38 @@ filters:
     expect(createMobileSavedViewFilename('Active Procedures', ['active-procedures.yml'])).toBe('active-procedures-2.yml')
     expect(createMobileSavedViewFilename('CON', [])).toBe('con-view.yml')
   })
+
+  it('assigns new saved views after the highest desktop order', () => {
+    expect(nextMobileSavedViewOrder([
+      viewFixture('alpha.yml', 'Alpha', 0),
+      viewFixture('beta.yml', 'Beta', 4),
+      viewFixture('gamma.yml', 'Gamma', null),
+    ])).toBe(5)
+    expect(nextMobileSavedViewOrder([
+      viewFixture('alpha.yml', 'Alpha', null),
+      viewFixture('beta.yml', 'Beta', null),
+    ])).toBe(2)
+  })
+
+  it('moves saved views and builds dense desktop order updates', () => {
+    const views = [
+      viewFixture('alpha.yml', 'Alpha', 0),
+      viewFixture('beta.yml', 'Beta', 1),
+      viewFixture('gamma.yml', 'Gamma', 2),
+    ]
+    const moved = moveMobileSavedView(views, 'view-gamma', 'up')
+
+    expect(moved?.map((view) => view.filename)).toEqual(['alpha.yml', 'gamma.yml', 'beta.yml'])
+    expect(mobileSavedViewOrderUpdates(moved ?? []).map(({ filename, definition }) => ({
+      filename,
+      order: definition.order,
+    }))).toEqual([
+      { filename: 'alpha.yml', order: 0 },
+      { filename: 'gamma.yml', order: 1 },
+      { filename: 'beta.yml', order: 2 },
+    ])
+    expect(moveMobileSavedView(views, 'alpha.yml', 'up')).toBeNull()
+  })
 })
 
 function note(overrides: Partial<MobileNote>): MobileNote {
@@ -299,5 +334,20 @@ function relationship(key: string, values: Array<{ ref: string; title: string }>
       type: 'Note',
       typeTone: 'gray' as const,
     })),
+  }
+}
+
+function viewFixture(filename: string, name: string, order: number | null): MobileSavedView {
+  return {
+    definition: {
+      color: null,
+      filters: { all: [] },
+      icon: null,
+      name,
+      order,
+      sort: null,
+    },
+    filename,
+    id: `view-${filename.replace(/\.yml$/u, '')}`,
   }
 }

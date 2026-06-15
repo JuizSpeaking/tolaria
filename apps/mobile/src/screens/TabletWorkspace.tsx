@@ -170,6 +170,8 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
   const {
     onChangeNoteType,
     onChangeNoteTypeInputChange,
+    canMoveViewDown,
+    canMoveViewUp,
     onCloseAction,
     onCopyDeepLink,
     onCreateNote,
@@ -181,6 +183,8 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
     onFilenameStemChange,
     onFolderPathChange,
     onMoveNoteToFolder,
+    onMoveViewDown,
+    onMoveViewUp,
     onOpenChangeNoteType,
     onOpenMoveNoteToFolder,
     onOpenRenameNoteFile,
@@ -209,6 +213,8 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
   return (
     <MobileWorkspaceActionSheet
       action={openAction}
+      canMoveViewDown={canMoveViewDown}
+      canMoveViewUp={canMoveViewUp}
       createTitle={readOnlyForm.createTitle}
       filenameStem={readOnlyForm.filenameStem}
       folderPath={readOnlyForm.folderPath}
@@ -234,6 +240,8 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
       onFilenameStemChange={onFilenameStemChange}
       onFolderPathChange={onFolderPathChange}
       onMoveNoteToFolder={onMoveNoteToFolder}
+      onMoveViewDown={onMoveViewDown}
+      onMoveViewUp={onMoveViewUp}
       onOpenChangeNoteType={onOpenChangeNoteType}
       onOpenMoveNoteToFolder={onOpenMoveNoteToFolder}
       onOpenRenameNoteFile={onOpenRenameNoteFile}
