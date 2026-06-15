@@ -12,6 +12,10 @@ import type {
   MobileWorkspaceSnapshot,
 } from '../workspace/mobileWorkspaceModel'
 import type {
+  MobileTypeSchemaProperty,
+  MobileTypeSchemaRelationship,
+} from '../workspace/mobileTypeDefinitionSchema'
+import type {
   NoteCountText,
   NoteId,
   ReadOnlyFormValue,
@@ -36,6 +40,12 @@ export type TabletReadOnlyForm = {
   typeDisplayProperties: string[]
   typeName: ReadOnlyFormValue
   typePropertyQuery: ReadOnlyFormValue
+  typeSchemaProperties: MobileTypeSchemaProperty[]
+  typeSchemaPropertyName: ReadOnlyFormValue
+  typeSchemaPropertyValue: ReadOnlyFormValue
+  typeSchemaRelationships: MobileTypeSchemaRelationship[]
+  typeSchemaRelationshipName: ReadOnlyFormValue
+  typeSchemaRelationshipTarget: ReadOnlyFormValue
   typeSectionLabel: ReadOnlyFormValue
   typeSort: ReadOnlyFormValue
   typeTone: MobileTone
@@ -96,6 +106,14 @@ export type TabletWorkspaceChromeProps = {
   onUpdateNoteContent: (noteId: NoteId, content: string) => void
   onUpdateNoteTitle: (noteId: NoteId, title: string) => void
   onTypeDisplayPropertiesChange: (value: string[]) => void
+  onTypeSchemaPropertyAdd: () => void
+  onTypeSchemaPropertyNameChange: (value: ReadOnlyFormValue) => void
+  onTypeSchemaPropertyRemove: (index: number) => void
+  onTypeSchemaPropertyValueChange: (value: ReadOnlyFormValue) => void
+  onTypeSchemaRelationshipAdd: () => void
+  onTypeSchemaRelationshipNameChange: (value: ReadOnlyFormValue) => void
+  onTypeSchemaRelationshipRemove: (index: number) => void
+  onTypeSchemaRelationshipTargetChange: (value: ReadOnlyFormValue) => void
   onTypePropertyQueryChange: (value: ReadOnlyFormValue) => void
   onTypeSectionLabelChange: (value: ReadOnlyFormValue) => void
   onTypeSortChange: (value: ReadOnlyFormValue) => void
@@ -124,5 +142,6 @@ export type TabletWorkspaceChromeProps = {
   selectedNoteId: string | null
   snapshot: MobileWorkspaceSnapshot
   typePropertyOptions: string[]
+  typeRelationshipTargetOptions: string[]
   viewPropertyOptions: string[]
 }

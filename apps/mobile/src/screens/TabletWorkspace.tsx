@@ -184,7 +184,17 @@ function WorkspaceActionSheetHost(props: ActionSheetHostProps) {
 }
 
 function actionSheetValues(props: ActionSheetHostProps) {
-  const { canMoveViewDown, canMoveViewUp, readOnlyForm, searchQuery, selectedNote, suggestionNotes, typePropertyOptions, viewPropertyOptions } = props
+  const {
+    canMoveViewDown,
+    canMoveViewUp,
+    readOnlyForm,
+    searchQuery,
+    selectedNote,
+    suggestionNotes,
+    typePropertyOptions,
+    typeRelationshipTargetOptions,
+    viewPropertyOptions,
+  } = props
 
   return {
     canMoveViewDown,
@@ -204,6 +214,13 @@ function actionSheetValues(props: ActionSheetHostProps) {
     typeName: readOnlyForm.typeName,
     typePropertyOptions,
     typePropertyQuery: readOnlyForm.typePropertyQuery,
+    typeRelationshipTargetOptions,
+    typeSchemaProperties: readOnlyForm.typeSchemaProperties,
+    typeSchemaPropertyName: readOnlyForm.typeSchemaPropertyName,
+    typeSchemaPropertyValue: readOnlyForm.typeSchemaPropertyValue,
+    typeSchemaRelationships: readOnlyForm.typeSchemaRelationships,
+    typeSchemaRelationshipName: readOnlyForm.typeSchemaRelationshipName,
+    typeSchemaRelationshipTarget: readOnlyForm.typeSchemaRelationshipTarget,
     typeSectionLabel: readOnlyForm.typeSectionLabel,
     typeSort: readOnlyForm.typeSort,
     typeTone: readOnlyForm.typeTone,
@@ -251,6 +268,14 @@ function actionSheetHandlers(props: ActionSheetHostProps) {
     onSetOrganized: props.onSetOrganized,
     onTypeDisplayPropertiesChange: props.onTypeDisplayPropertiesChange,
     onTypePropertyQueryChange: props.onTypePropertyQueryChange,
+    onTypeSchemaPropertyAdd: props.onTypeSchemaPropertyAdd,
+    onTypeSchemaPropertyNameChange: props.onTypeSchemaPropertyNameChange,
+    onTypeSchemaPropertyRemove: props.onTypeSchemaPropertyRemove,
+    onTypeSchemaPropertyValueChange: props.onTypeSchemaPropertyValueChange,
+    onTypeSchemaRelationshipAdd: props.onTypeSchemaRelationshipAdd,
+    onTypeSchemaRelationshipNameChange: props.onTypeSchemaRelationshipNameChange,
+    onTypeSchemaRelationshipRemove: props.onTypeSchemaRelationshipRemove,
+    onTypeSchemaRelationshipTargetChange: props.onTypeSchemaRelationshipTargetChange,
     onTypeSectionLabelChange: props.onTypeSectionLabelChange,
     onTypeSortChange: props.onTypeSortChange,
     onTypeToneChange: props.onTypeToneChange,

@@ -1,10 +1,13 @@
 import {
+  frontmatterProperties,
+  frontmatterRelationships,
   parseLocalVaultDocument,
   type LocalVaultFrontmatter,
   type LocalVaultFrontmatterValue,
 } from './localVaultFrontmatter'
 import type {
   MobileTone,
+  MobilePropertyValue,
   MobileTypeDefinition,
   MobileTypeDefinitions,
 } from './mobileWorkspaceModel'
@@ -18,6 +21,8 @@ export type MobileTypeDefinitionPatch = {
   label?: string | null
   listPropertiesDisplay?: string[]
   order?: number | null
+  properties?: Record<string, MobilePropertyValue>
+  relationships?: Record<string, string[]>
   sort?: string | null
   template?: string | null
   tone?: MobileTone | null
@@ -77,6 +82,8 @@ function normalizedTypePatch(patch: MobileTypeDefinitionPatch): MobileTypeDefini
     ...patch,
     label: normalizedTextPatch(patch.label),
     listPropertiesDisplay: normalizedListPatch(patch.listPropertiesDisplay),
+    properties: normalizedPropertiesPatch(patch.properties),
+    relationships: normalizedRelationshipsPatch(patch.relationships),
     sort: normalizedTextPatch(patch.sort),
     template: normalizedTextPatch(patch.template),
   }
@@ -91,7 +98,10 @@ function normalizedTextPatch(value: string | null | undefined) {
 
 function normalizedListPatch(value: string[] | undefined) {
   if (value === undefined) return undefined
+  return normalizedStringList(value)
+}
 
+function normalizedStringList(value: string[]) {
   const seen = new Set<string>()
   return value
     .map((item) => item.trim())
@@ -101,6 +111,40 @@ function normalizedListPatch(value: string[] | undefined) {
       seen.add(normalized)
       return true
     })
+}
+
+function normalizedPropertiesPatch(
+  value: Record<string, MobilePropertyValue> | undefined,
+) {
+  if (value === undefined) return undefined
+
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([key, propertyValue]) => {
+      const normalizedKey = key.trim()
+      if (!normalizedKey) return []
+      return [[normalizedKey, normalizedPropertyValue(propertyValue)]]
+    }),
+  )
+}
+
+function normalizedRelationshipsPatch(
+  value: Record<string, string[]> | undefined,
+) {
+  if (value === undefined) return undefined
+
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([key, refs]) => {
+      const normalizedKey = key.trim()
+      const normalizedRefs = normalizedStringList(refs)
+      if (!normalizedKey || normalizedRefs.length === 0) return []
+      return [[normalizedKey, normalizedRefs]]
+    }),
+  )
+}
+
+function normalizedPropertyValue(value: MobilePropertyValue): MobilePropertyValue {
+  if (!Array.isArray(value)) return value
+  return normalizedStringList(value)
 }
 
 function patchedTypeFrontmatter(
@@ -121,7 +165,36 @@ function patchedTypeFrontmatter(
     writeFrontmatterValue(nextFrontmatter, 'visible', patch.visible === false ? false : null)
   }
 
+  if (patch.properties !== undefined || patch.relationships !== undefined) {
+    replaceTypeSchemaFrontmatter(nextFrontmatter, patch.properties ?? {}, patch.relationships ?? {})
+  }
+
   return nextFrontmatter
+}
+
+function replaceTypeSchemaFrontmatter(
+  frontmatter: LocalVaultFrontmatter,
+  properties: Record<string, MobilePropertyValue>,
+  relationships: Record<string, string[]>,
+) {
+  for (const key of typeSchemaFrontmatterKeys(frontmatter)) {
+    Reflect.deleteProperty(frontmatter, key)
+  }
+
+  for (const [key, value] of Object.entries(properties)) {
+    writeFrontmatterValue(frontmatter, key, value)
+  }
+
+  for (const [key, refs] of Object.entries(relationships)) {
+    writeFrontmatterValue(frontmatter, key, refs)
+  }
+}
+
+function typeSchemaFrontmatterKeys(frontmatter: LocalVaultFrontmatter): string[] {
+  return [
+    ...Object.keys(frontmatterProperties(frontmatter)),
+    ...Object.keys(frontmatterRelationships(frontmatter)),
+  ]
 }
 
 function writeOptionalFrontmatterValue(

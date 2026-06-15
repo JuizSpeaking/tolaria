@@ -16,6 +16,34 @@ describe('tablet workspace create-note defaults', () => {
     expect(createNoteDefaultsForSelection(selection, [])).toEqual({ type: 'Project' })
   })
 
+  it('copies valued Type document defaults when creating from a type section', () => {
+    const selection: TabletSidebarSelection = {
+      id: 'type-project',
+      kind: 'item',
+      label: 'Client Work',
+      sectionId: 'types',
+      typeName: 'Project',
+    }
+
+    expect(createNoteDefaultsForSelection(selection, [], {
+      Project: {
+        properties: {
+          Empty: '',
+          Priority: 'High',
+          has: 'Milestone',
+        },
+        relationships: {
+          belongs_to: ['[[Client Work]]'],
+          related_to: [],
+        },
+      },
+    })).toEqual({
+      properties: { Priority: 'High' },
+      relationships: { belongs_to: ['[[Client Work]]'] },
+      type: 'Project',
+    })
+  })
+
   it('uses folder selections as the new note folder path', () => {
     expect(createNoteDefaultsForSelection({
       id: 'Writing/Essays',

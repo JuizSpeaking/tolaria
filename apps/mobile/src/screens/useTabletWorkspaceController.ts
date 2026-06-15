@@ -24,6 +24,16 @@ import { writeMobileClipboardText } from '../workspace/mobileClipboard'
 import { buildMobileDeepLinkForNote } from '../workspace/mobileDeepLinks'
 import { canMoveMobileSavedView, evaluateMobileSavedView } from '../workspace/mobileSavedViews'
 import {
+  addTypeSchemaProperty,
+  addTypeSchemaRelationshipRef,
+  removeTypeSchemaPropertyAt,
+  removeTypeSchemaRelationshipAt,
+  typeDefinitionSchemaPatch,
+  typeSchemaPropertiesForForm,
+  typeSchemaRelationshipTargetSuggestions,
+  typeSchemaRelationshipsForForm,
+} from '../workspace/mobileTypeDefinitionSchema'
+import {
   mobileDefaultListPropertyDisplay,
   mobileListPropertySuggestions,
 } from '../workspace/mobileWorkspaceSuggestions'
@@ -47,6 +57,12 @@ const emptyReadOnlyForm: TabletReadOnlyForm = {
   typeDisplayProperties: [],
   typeName: '',
   typePropertyQuery: '',
+  typeSchemaProperties: [],
+  typeSchemaPropertyName: '',
+  typeSchemaPropertyValue: '',
+  typeSchemaRelationships: [],
+  typeSchemaRelationshipName: '',
+  typeSchemaRelationshipTarget: '',
   typeSectionLabel: '',
   typeSort: '',
   typeTone: 'gray',
@@ -393,7 +409,11 @@ function createWorkspaceActions({
     onCreateNote: () => createNote({
       applyEdit,
       closeAction,
-      defaults: createNoteDefaultsForSelection(navigation.sidebarSelection, workspaceSnapshot.views ?? []),
+      defaults: createNoteDefaultsForSelection(
+        navigation.sidebarSelection,
+        workspaceSnapshot.views ?? [],
+        workspaceSnapshot.typeDefinitions,
+      ),
       title: readOnlyForm.createTitle,
     }),
     onCreateTitleChange: (value: string) => updateReadOnlyForm('createTitle', value),
@@ -451,10 +471,20 @@ function typeSectionWorkspaceActions({
   updateReadOnlyForm,
   workspaceSnapshot,
 }: Pick<WorkspaceActionsContext, 'applyEdit' | 'closeAction' | 'readOnlyForm' | 'updateReadOnlyForm' | 'workspaceSnapshot'>) {
+  const notes = workspaceNotes(workspaceSnapshot)
+
   return {
     onSaveTypeDefinition: () => updateTypeDefinition({ applyEdit, closeAction, form: readOnlyForm }),
     onTypeDisplayPropertiesChange: (value: string[]) => updateReadOnlyForm('typeDisplayProperties', value),
     onTypePropertyQueryChange: (value: string) => updateReadOnlyForm('typePropertyQuery', value),
+    onTypeSchemaPropertyAdd: () => addTypeSchemaPropertyFormValue({ form: readOnlyForm, updateReadOnlyForm }),
+    onTypeSchemaPropertyNameChange: (value: string) => updateReadOnlyForm('typeSchemaPropertyName', value),
+    onTypeSchemaPropertyRemove: (index: number) => updateReadOnlyForm('typeSchemaProperties', removeTypeSchemaPropertyAt(readOnlyForm.typeSchemaProperties, index)),
+    onTypeSchemaPropertyValueChange: (value: string) => updateReadOnlyForm('typeSchemaPropertyValue', value),
+    onTypeSchemaRelationshipAdd: () => addTypeSchemaRelationshipFormValue({ form: readOnlyForm, notes, updateReadOnlyForm }),
+    onTypeSchemaRelationshipNameChange: (value: string) => updateReadOnlyForm('typeSchemaRelationshipName', value),
+    onTypeSchemaRelationshipRemove: (index: number) => updateReadOnlyForm('typeSchemaRelationships', removeTypeSchemaRelationshipAt(readOnlyForm.typeSchemaRelationships, index)),
+    onTypeSchemaRelationshipTargetChange: (value: string) => updateReadOnlyForm('typeSchemaRelationshipTarget', value),
     onTypeSectionLabelChange: (value: string) => updateReadOnlyForm('typeSectionLabel', value),
     onTypeSortChange: (value: string) => updateReadOnlyForm('typeSort', value),
     onTypeToneChange: (value: MobileTone) => updateReadOnlyForm('typeTone', value),
@@ -463,7 +493,43 @@ function typeSectionWorkspaceActions({
       editableTypePropertyNotes(readOnlyForm, workspaceSnapshot),
       readOnlyForm.typePropertyQuery,
     ),
+    typeRelationshipTargetOptions: typeSchemaRelationshipTargetSuggestions(notes, readOnlyForm.typeSchemaRelationshipTarget),
   }
+}
+
+function addTypeSchemaPropertyFormValue({
+  form,
+  updateReadOnlyForm,
+}: {
+  form: TabletReadOnlyForm
+  updateReadOnlyForm: ReadOnlyFormUpdater
+}) {
+  updateReadOnlyForm('typeSchemaProperties', addTypeSchemaProperty(
+    form.typeSchemaProperties,
+    form.typeSchemaPropertyName,
+    form.typeSchemaPropertyValue,
+  ))
+  updateReadOnlyForm('typeSchemaPropertyName', '')
+  updateReadOnlyForm('typeSchemaPropertyValue', '')
+}
+
+function addTypeSchemaRelationshipFormValue({
+  form,
+  notes,
+  updateReadOnlyForm,
+}: {
+  form: TabletReadOnlyForm
+  notes: MobileNote[]
+  updateReadOnlyForm: ReadOnlyFormUpdater
+}) {
+  updateReadOnlyForm('typeSchemaRelationships', addTypeSchemaRelationshipRef(
+    form.typeSchemaRelationships,
+    form.typeSchemaRelationshipName,
+    form.typeSchemaRelationshipTarget,
+    notes,
+  ))
+  updateReadOnlyForm('typeSchemaRelationshipName', '')
+  updateReadOnlyForm('typeSchemaRelationshipTarget', '')
 }
 
 function propertyWorkspaceActions({
@@ -731,6 +797,12 @@ function typeDefinitionFields({
     { key: 'typeDisplayProperties', value: definition?.listPropertiesDisplay ?? [] },
     { key: 'typeName', value: typeName },
     { key: 'typePropertyQuery', value: '' },
+    { key: 'typeSchemaProperties', value: typeSchemaPropertiesForForm(definition) },
+    { key: 'typeSchemaPropertyName', value: '' },
+    { key: 'typeSchemaPropertyValue', value: '' },
+    { key: 'typeSchemaRelationships', value: typeSchemaRelationshipsForForm(definition) },
+    { key: 'typeSchemaRelationshipName', value: '' },
+    { key: 'typeSchemaRelationshipTarget', value: '' },
     { key: 'typeSectionLabel', value: definition?.label ?? label },
     { key: 'typeSort', value: definition?.sort ?? '' },
     { key: 'typeTone', value: definition?.tone ?? 'gray' },
@@ -857,6 +929,7 @@ function updateTypeDefinition({
     patch: {
       label: form.typeSectionLabel,
       listPropertiesDisplay: normalizedListPropertiesDisplay(form.typeDisplayProperties),
+      ...typeDefinitionSchemaPatch(form.typeSchemaProperties, form.typeSchemaRelationships),
       sort: form.typeSort,
       tone: form.typeTone,
       visible: form.typeVisible ? null : false,

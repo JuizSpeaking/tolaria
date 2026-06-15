@@ -8,6 +8,23 @@ import {
 } from './mobileWorkspaceEditing'
 import type { MobileNote, MobileSidebarFolder, MobileWorkspaceSnapshot } from './mobileWorkspaceModel'
 
+const typeSchemaDefaultsPatch = {
+  properties: {
+    Priority: 'High',
+    has: 'Milestone',
+  },
+  relationships: {
+    belongs_to: ['[[Tolaria MVP]]'],
+    depends_on: ['[[Project Board]]'],
+  },
+}
+
+type MarkdownContent = string
+type NoteId = string
+type NotePath = string
+type SidebarSectionId = string
+type WikilinkTarget = string
+
 describe('applyMobileWorkspaceEdit', () => {
   it('creates a selected editable note with markdown content', () => {
     const snapshot = applyMobileWorkspaceEdit(workspaceScenarioForId('default'), {
@@ -198,6 +215,17 @@ describe('applyMobileWorkspaceEdit', () => {
     expect(typeWrite?.content).toContain('_list_properties_display:\n  - status\n  - belongs_to')
   })
 
+  it('updates type definition schema defaults through the Type markdown document contract', () => {
+    const result = applyMobileWorkspaceEditWithWrites(workspaceScenarioForId('default'), {
+      patch: typeSchemaDefaultsPatch,
+      type: 'updateTypeDefinition',
+      typeName: 'Procedure',
+    })
+
+    expectProcedureSchemaDefaults(result)
+    expectTypeSchemaDefaultWrite(result)
+  })
+
   it('moves notes to another folder by changing the relative path and planning delete plus save writes', () => {
     const base = workspaceScenarioForId('default')
     const editableNote = {
@@ -321,7 +349,7 @@ describe('applyMobileWorkspaceEdit', () => {
 
   it.each([
     {
-      edit: (noteId: string) => ({
+      edit: (noteId: NoteId) => ({
         folderPath: '/Writing/Essays/',
         noteId,
         type: 'moveNoteToFolder' as const,
@@ -333,7 +361,7 @@ describe('applyMobileWorkspaceEdit', () => {
       label: 'moves folders',
     },
     {
-      edit: (noteId: string) => ({
+      edit: (noteId: NoteId) => ({
         filenameStem: 'manual-name',
         noteId,
         type: 'renameNoteFile' as const,
@@ -747,7 +775,7 @@ describe('mobile wikilink editing helpers', () => {
   })
 })
 
-function sidebarItems(snapshot: MobileWorkspaceSnapshot, sectionId: string) {
+function sidebarItems(snapshot: MobileWorkspaceSnapshot, sectionId: SidebarSectionId) {
   return snapshot.sidebarSections.find((section) => section.id === sectionId)?.items ?? []
 }
 
@@ -784,7 +812,7 @@ function workspaceMoveLinkScenario() {
   }
 }
 
-function movedReferenceContent() {
+function movedReferenceContent(): MarkdownContent {
   return [
     '---',
     'related_to:',
@@ -799,13 +827,34 @@ function movedReferenceContent() {
   ].join('\n')
 }
 
-function noteById(snapshot: MobileWorkspaceSnapshot, noteId: string): MobileNote {
+function expectProcedureSchemaDefaults(
+  result: ReturnType<typeof applyMobileWorkspaceEditWithWrites>,
+) {
+  const procedure = result.snapshot.typeDefinitions?.Procedure
+
+  expect(procedure?.properties).toMatchObject(typeSchemaDefaultsPatch.properties)
+  expect(procedure?.relationships).toMatchObject(typeSchemaDefaultsPatch.relationships)
+}
+
+function expectTypeSchemaDefaultWrite(
+  result: ReturnType<typeof applyMobileWorkspaceEditWithWrites>,
+) {
+  const typeWrite = result.writes.find((write) => write.kind === 'saveNote')
+
+  expect(typeWrite?.path).toBe('procedure.md')
+  expect(typeWrite?.content).toContain('Priority: High')
+  expect(typeWrite?.content).toContain('has: Milestone')
+  expect(typeWrite?.content).toContain('belongs_to:\n  - [[Tolaria MVP]]')
+  expect(typeWrite?.content).toContain('depends_on:\n  - [[Project Board]]')
+}
+
+function noteById(snapshot: MobileWorkspaceSnapshot, noteId: NoteId): MobileNote {
   const note = snapshot.allNotes?.find((candidate) => candidate.id === noteId)
   if (!note) throw new Error(`Missing note ${noteId}`)
   return note
 }
 
-function expectRetargetedWikilinks(note: MobileNote, movedNoteId: string, target: string) {
+function expectRetargetedWikilinks(note: MobileNote, movedNoteId: NoteId, target: WikilinkTarget) {
   const content = note.rawContent ?? ''
   expect(content).toContain(`[[${target}]]`)
   expect(content).toContain(`[[${target}|Workflow]]`)
@@ -824,8 +873,8 @@ function expectRetargetedWikilinkWrites(
     destinationPath,
     refContent,
   }: {
-    destinationPath: string
-    refContent: string
+    destinationPath: NotePath
+    refContent: MarkdownContent
   },
 ) {
   expect(writes).toEqual([

@@ -218,20 +218,36 @@ async function customizeCreatedSavedViewColumns(page: PageLike) {
 
 async function customizeProcedureTypeSection(page: PageLike) {
   await longPress(page, 'sidebar-item-procedures')
-  await expect(page.getByTestId('workspace-action-sheet-editTypeSection')).toBeVisible()
+  const sheet = page.getByTestId('workspace-action-sheet-editTypeSection')
+  await expect(sheet).toBeVisible()
   await expect(page.getByTestId('workspace-type-section-label-input')).toHaveValue('Procedures')
   await page.getByTestId('workspace-type-section-label-input').fill('Runbooks')
   await page.getByTestId('workspace-type-tone-green').click()
   await page.getByTestId('workspace-type-sort-title-asc').click()
   await page.getByTestId('workspace-type-property-search-input').fill('bel')
   await page.getByTestId('workspace-type-property-option-belongs-to').click()
-  await page.getByTestId('workspace-action-sheet-editTypeSection').getByRole('button', { name: 'Save' }).click()
+  await page.getByTestId('workspace-type-schema-property-name-input').scrollIntoViewIfNeeded()
+  await page.getByTestId('workspace-type-schema-property-name-input').fill('Priority')
+  await page.getByTestId('workspace-type-schema-property-value-input').fill('High')
+  await sheet.getByRole('button', { name: 'Add property' }).click()
+  await expect(page.getByTestId('workspace-type-schema-property-priority')).toContainText('High')
+  await page.getByTestId('workspace-type-schema-relationship-name-input').fill('belongs_to')
+  await page.getByTestId('workspace-type-schema-relationship-target-input').fill('Workflow Orchestration Essay')
+  await sheet.getByRole('button', { name: 'Add relationship' }).click()
+  await expect(page.getByTestId('workspace-type-schema-relationship-belongs-to')).toContainText('Workflow Orchestration Essay')
+  await sheet.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
   await expect(page.getByRole('button', { name: 'Runbooks' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Runbooks' }).click()
   await expect(page.getByTestId('note-list-toolbar-title')).toHaveText('Runbooks')
   await expect(page.getByTestId('note-row-open-source-project').getByText('Project Board')).toBeVisible()
+  await page.getByTestId('note-list-create-action').click()
+  await page.getByTestId('workspace-create-note-title-input').fill('Runbook From Type Defaults')
+  await page.getByTestId('workspace-action-sheet-createNote').getByRole('button', { name: 'Create' }).click()
+  await expect(page.getByTestId('note-row-runbook-from-type-defaults.md')).toBeVisible()
+  await expect(page.getByTestId('property-row-priority')).toContainText('High')
+  await expect(page.getByTestId('relationship-row-workflow-orchestration-essay')).toBeVisible()
 }
 
 async function longPress(page: PageLike, testId: string) {

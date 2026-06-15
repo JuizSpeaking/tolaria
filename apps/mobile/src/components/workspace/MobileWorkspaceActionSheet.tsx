@@ -11,6 +11,10 @@ import { MobileTextInput } from '../../ui/MobileTextInput'
 import { desktopPanelParity, desktopToolbarActionParity } from '../../ui/desktopParity'
 import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
 import type { MobileNote, MobileTone, MobileViewFilterGroup } from '../../workspace/mobileWorkspaceModel'
+import type {
+  MobileTypeSchemaProperty,
+  MobileTypeSchemaRelationship,
+} from '../../workspace/mobileTypeDefinitionSchema'
 import {
   mobilePropertyKeySuggestions,
   mobilePropertyValueSuggestions,
@@ -93,6 +97,13 @@ type MobileWorkspaceActionSheetProps = {
   typeName: string
   typePropertyOptions: string[]
   typePropertyQuery: string
+  typeRelationshipTargetOptions: string[]
+  typeSchemaProperties: MobileTypeSchemaProperty[]
+  typeSchemaPropertyName: string
+  typeSchemaPropertyValue: string
+  typeSchemaRelationships: MobileTypeSchemaRelationship[]
+  typeSchemaRelationshipName: string
+  typeSchemaRelationshipTarget: string
   typeSectionLabel: string
   typeSort: string
   typeTone: MobileTone
@@ -104,6 +115,14 @@ type MobileWorkspaceActionSheetProps = {
   viewPropertyQuery: string
   onTypeDisplayPropertiesChange: (value: string[]) => void
   onTypePropertyQueryChange: (value: string) => void
+  onTypeSchemaPropertyAdd: () => void
+  onTypeSchemaPropertyNameChange: (value: string) => void
+  onTypeSchemaPropertyRemove: (index: number) => void
+  onTypeSchemaPropertyValueChange: (value: string) => void
+  onTypeSchemaRelationshipAdd: () => void
+  onTypeSchemaRelationshipNameChange: (value: string) => void
+  onTypeSchemaRelationshipRemove: (index: number) => void
+  onTypeSchemaRelationshipTargetChange: (value: string) => void
   onTypeSectionLabelChange: (value: string) => void
   onTypeSortChange: (value: string) => void
   onTypeToneChange: (value: MobileTone) => void
@@ -347,11 +366,19 @@ function editViewContent(props: MobileWorkspaceActionSheetProps) {
 
 function TypeSectionContent(props: MobileWorkspaceActionSheetProps) {
   return (
-    <View style={styles.content}>
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <MobileTypeSectionEditor
         displayProperties={props.typeDisplayProperties}
+        notes={props.notes}
         propertyOptions={props.typePropertyOptions}
         propertyQuery={props.typePropertyQuery}
+        relationshipTargetOptions={props.typeRelationshipTargetOptions}
+        schemaProperties={props.typeSchemaProperties}
+        schemaPropertyName={props.typeSchemaPropertyName}
+        schemaPropertyValue={props.typeSchemaPropertyValue}
+        schemaRelationships={props.typeSchemaRelationships}
+        schemaRelationshipName={props.typeSchemaRelationshipName}
+        schemaRelationshipTarget={props.typeSchemaRelationshipTarget}
         sectionLabel={props.typeSectionLabel}
         sort={props.typeSort}
         tone={props.typeTone}
@@ -359,6 +386,14 @@ function TypeSectionContent(props: MobileWorkspaceActionSheetProps) {
         visible={props.typeVisible}
         onDisplayPropertiesChange={props.onTypeDisplayPropertiesChange}
         onPropertyQueryChange={props.onTypePropertyQueryChange}
+        onSchemaPropertyAdd={props.onTypeSchemaPropertyAdd}
+        onSchemaPropertyNameChange={props.onTypeSchemaPropertyNameChange}
+        onSchemaPropertyRemove={props.onTypeSchemaPropertyRemove}
+        onSchemaPropertyValueChange={props.onTypeSchemaPropertyValueChange}
+        onSchemaRelationshipAdd={props.onTypeSchemaRelationshipAdd}
+        onSchemaRelationshipNameChange={props.onTypeSchemaRelationshipNameChange}
+        onSchemaRelationshipRemove={props.onTypeSchemaRelationshipRemove}
+        onSchemaRelationshipTargetChange={props.onTypeSchemaRelationshipTargetChange}
         onSectionLabelChange={props.onTypeSectionLabelChange}
         onSortChange={props.onTypeSortChange}
         onToneChange={props.onTypeToneChange}
@@ -368,7 +403,7 @@ function TypeSectionContent(props: MobileWorkspaceActionSheetProps) {
         <MobileButton label={mobileText('common.cancel')} variant="ghost" onPress={props.onClose} />
         <MobileButton disabled={props.typeSectionLabel.trim().length === 0} label={mobileText('common.save')} variant="primary" onPress={props.onSaveTypeDefinition} />
       </SheetFooter>
-    </View>
+    </ScrollView>
   )
 }
 

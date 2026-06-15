@@ -2,16 +2,32 @@ import { CheckCircle } from 'phosphor-react-native'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '../ui/text'
 import { mobileText } from '../../i18n/mobileText'
+import { MobileButton } from '../../ui/MobileButton'
 import { MobileTextInput } from '../../ui/MobileTextInput'
 import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
-import type { MobileTone } from '../../workspace/mobileWorkspaceModel'
+import type { MobileNote, MobileTone } from '../../workspace/mobileWorkspaceModel'
+import {
+  mobileTypeSchemaPropertyValueText,
+  mobileTypeSchemaRelationshipValueText,
+  type MobileTypeSchemaProperty,
+  type MobileTypeSchemaRelationship,
+} from '../../workspace/mobileTypeDefinitionSchema'
 import { noteTypeColor, noteTypeSoftColor } from './mobileWorkspaceTone'
 import { MobileViewDisplayPropertiesPicker } from './MobileViewDisplayPropertiesPicker'
+import { MobileWorkspaceSuggestionList } from './MobileWorkspaceSuggestionList'
 
 type MobileTypeSectionEditorProps = {
   displayProperties: string[]
+  notes: MobileNote[]
   propertyOptions: string[]
   propertyQuery: string
+  relationshipTargetOptions: string[]
+  schemaProperties: MobileTypeSchemaProperty[]
+  schemaPropertyName: string
+  schemaPropertyValue: string
+  schemaRelationships: MobileTypeSchemaRelationship[]
+  schemaRelationshipName: string
+  schemaRelationshipTarget: string
   sectionLabel: string
   sort: string
   tone: MobileTone
@@ -19,6 +35,14 @@ type MobileTypeSectionEditorProps = {
   visible: boolean
   onDisplayPropertiesChange: (value: string[]) => void
   onPropertyQueryChange: (value: string) => void
+  onSchemaPropertyAdd: () => void
+  onSchemaPropertyNameChange: (value: string) => void
+  onSchemaPropertyRemove: (index: number) => void
+  onSchemaPropertyValueChange: (value: string) => void
+  onSchemaRelationshipAdd: () => void
+  onSchemaRelationshipNameChange: (value: string) => void
+  onSchemaRelationshipRemove: (index: number) => void
+  onSchemaRelationshipTargetChange: (value: string) => void
   onSectionLabelChange: (value: string) => void
   onSortChange: (value: string) => void
   onToneChange: (value: MobileTone) => void
@@ -58,6 +82,114 @@ export function MobileTypeSectionEditor(props: MobileTypeSectionEditorProps) {
         onQueryChange={props.onPropertyQueryChange}
         onSelectedPropertiesChange={props.onDisplayPropertiesChange}
       />
+      <TypeSchemaPropertiesEditor {...props} />
+      <TypeSchemaRelationshipsEditor {...props} />
+    </View>
+  )
+}
+
+function TypeSchemaPropertiesEditor(props: MobileTypeSectionEditorProps) {
+  return (
+    <View style={styles.section} testID="workspace-type-schema-properties">
+      <SectionLabel label={mobileText('inspector.title.properties')} />
+      {props.schemaProperties.map((property, index) => (
+        <SchemaRow
+          key={`${property.key}-${index}`}
+          label={property.key}
+          testID={`workspace-type-schema-property-${schemaSlug(property.key)}`}
+          value={mobileTypeSchemaPropertyValueText(property.value)}
+          onRemove={() => props.onSchemaPropertyRemove(index)}
+        />
+      ))}
+      <View style={styles.schemaInputs}>
+        <MobileTextInput
+          label={mobileText('inspector.properties.propertyName')}
+          placeholder={mobileText('inspector.properties.propertyName')}
+          testID="workspace-type-schema-property-name-input"
+          value={props.schemaPropertyName}
+          onChangeText={props.onSchemaPropertyNameChange}
+        />
+        <MobileTextInput
+          label={mobileText('inspector.properties.valuePlaceholder')}
+          placeholder={mobileText('inspector.properties.valuePlaceholder')}
+          testID="workspace-type-schema-property-value-input"
+          value={props.schemaPropertyValue}
+          onChangeText={props.onSchemaPropertyValueChange}
+        />
+        <MobileButton
+          disabled={props.schemaPropertyName.trim().length === 0}
+          label={mobileText('inspector.properties.addProperty')}
+          onPress={props.onSchemaPropertyAdd}
+        />
+      </View>
+    </View>
+  )
+}
+
+function TypeSchemaRelationshipsEditor(props: MobileTypeSectionEditorProps) {
+  return (
+    <View style={styles.section} testID="workspace-type-schema-relationships">
+      <SectionLabel label={mobileText('inspector.relationship.addRelationship').replace(/^\+\s*/, '')} />
+      {props.schemaRelationships.map((relationship, index) => (
+        <SchemaRow
+          key={`${relationship.key}-${index}`}
+          label={relationship.key}
+          testID={`workspace-type-schema-relationship-${schemaSlug(relationship.key)}`}
+          value={mobileTypeSchemaRelationshipValueText(relationship, props.notes)}
+          onRemove={() => props.onSchemaRelationshipRemove(index)}
+        />
+      ))}
+      <View style={styles.schemaInputs}>
+        <MobileTextInput
+          label={mobileText('inspector.relationship.name')}
+          placeholder={mobileText('inspector.relationship.name')}
+          testID="workspace-type-schema-relationship-name-input"
+          value={props.schemaRelationshipName}
+          onChangeText={props.onSchemaRelationshipNameChange}
+        />
+        <MobileTextInput
+          label={mobileText('inspector.relationship.noteTitle')}
+          placeholder={mobileText('inspector.relationship.noteTitle')}
+          testID="workspace-type-schema-relationship-target-input"
+          value={props.schemaRelationshipTarget}
+          onChangeText={props.onSchemaRelationshipTargetChange}
+        />
+        <MobileWorkspaceSuggestionList
+          labels={props.relationshipTargetOptions}
+          testID="workspace-type-schema-relationship-target-suggestions"
+          testIDPrefix="workspace-type-schema-relationship-target-suggestion"
+          onSelect={props.onSchemaRelationshipTargetChange}
+        />
+        <MobileButton
+          disabled={props.schemaRelationshipName.trim().length === 0}
+          label={mobileText('inspector.relationship.addRelationship').replace(/^\+\s*/, '')}
+          onPress={props.onSchemaRelationshipAdd}
+        />
+      </View>
+    </View>
+  )
+}
+
+function SectionLabel({ label }: { label: string }) {
+  return <Text style={styles.label}>{label}</Text>
+}
+
+function SchemaRow({
+  label,
+  onRemove,
+  testID,
+  value,
+}: {
+  label: string
+  onRemove: () => void
+  testID: string
+  value: string
+}) {
+  return (
+    <View style={styles.schemaRow} testID={testID}>
+      <Text numberOfLines={1} style={styles.schemaKey}>{label}</Text>
+      <Text numberOfLines={1} style={styles.schemaValue}>{value || mobileText('inspector.properties.none')}</Text>
+      <MobileButton density="status" label={mobileText('common.remove')} variant="ghost" onPress={onRemove} />
     </View>
   )
 }
@@ -170,6 +302,32 @@ const styles = StyleSheet.create({
   section: {
     gap: mobileSpace.xs,
   },
+  schemaInputs: {
+    gap: mobileSpace.sm,
+  },
+  schemaKey: {
+    minWidth: 0,
+    flex: 1,
+    color: mobileColors.text,
+    fontSize: mobileType.body,
+    fontWeight: '500',
+  },
+  schemaRow: {
+    minHeight: 34,
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: mobileSpace.sm,
+    borderRadius: 6,
+    backgroundColor: mobileColors.graySoft,
+    paddingHorizontal: mobileSpace.sm,
+    paddingVertical: mobileSpace.xs,
+  },
+  schemaValue: {
+    minWidth: 0,
+    flex: 1,
+    color: mobileColors.textMuted,
+    fontSize: mobileType.caption,
+  },
   selectedText: {
     color: mobileColors.primary,
     fontWeight: '600',
@@ -214,3 +372,7 @@ const styles = StyleSheet.create({
     fontSize: mobileType.caption,
   },
 })
+
+function schemaSlug(value: string) {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/gu, '-').replace(/^-|-$/gu, '') || 'field'
+}

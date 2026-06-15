@@ -2,6 +2,8 @@ import type {
   MobileCreateNoteDefaults,
   MobilePropertyValue,
   MobileSavedView,
+  MobileTypeDefinition,
+  MobileTypeDefinitions,
   MobileViewFilterCondition,
   MobileViewFilterGroup,
   MobileViewFilterNode,
@@ -41,14 +43,58 @@ const builtInDefaultWriters: Record<string, DefaultWriter> = {
 export function createNoteDefaultsForSelection(
   selection: TabletSidebarSelection,
   views: MobileSavedView[],
+  typeDefinitions?: MobileTypeDefinitions,
 ): MobileCreateNoteDefaults {
   if (selection.kind === 'folder') return { folderPath: selection.id }
-  if (selection.sectionId === 'types') return { type: selection.typeName ?? singularLabel(selection.label) }
+  if (selection.sectionId === 'types') return defaultsForTypeSection(selection, typeDefinitions)
   if (selection.sectionId === 'views') return defaultsForSavedView(selection, views)
   if (selection.sectionId === 'primary' && selection.id === 'archive') return { archived: true }
   if (selection.sectionId === 'favorites') return { favorite: true }
 
   return {}
+}
+
+function defaultsForTypeSection(
+  selection: Extract<TabletSidebarSelection, { kind: 'item' }>,
+  typeDefinitions: MobileTypeDefinitions | undefined,
+): MobileCreateNoteDefaults {
+  const type = selection.typeName ?? singularLabel(selection.label)
+  const defaults = emptyDefaults()
+  defaults.type = type
+  applyTypeDefinitionDefaults(defaults, typeDefinitions?.[type])
+  return compactDefaults(defaults)
+}
+
+function applyTypeDefinitionDefaults(
+  defaults: MutableCreateDefaults,
+  definition: MobileTypeDefinition | undefined,
+) {
+  if (!definition) return
+
+  Object.assign(defaults.properties, valuedProperties(definition.properties ?? {}))
+  Object.assign(defaults.relationships, valuedRelationships(definition.relationships ?? {}))
+}
+
+function valuedProperties(properties: Record<string, MobilePropertyValue>) {
+  return Object.fromEntries(
+    Object.entries(properties).filter(([key, value]) => {
+      return hasValuedPropertyDefault(value) && !isRelationshipDefaultField(normalizedFieldKey(key))
+    }),
+  )
+}
+
+function valuedRelationships(relationships: Record<string, string[]>) {
+  return Object.fromEntries(
+    Object.entries(relationships).flatMap(([key, refs]) => {
+      const values = refs.map((ref) => ref.trim()).filter(Boolean)
+      return values.length > 0 ? [[normalizeRelationshipKey(key), values]] : []
+    }),
+  )
+}
+
+function hasValuedPropertyDefault(value: MobilePropertyValue): boolean {
+  if (Array.isArray(value)) return value.length > 0
+  return value !== ''
 }
 
 function defaultsForSavedView(
