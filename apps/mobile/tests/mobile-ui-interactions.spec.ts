@@ -23,6 +23,7 @@ test.describe('mobile UI lab interactions', () => {
     await addRelationshipFromSuggestion(page)
     await editMarkdownWithWikilink(page)
     await archiveAndUnarchiveSelectedNote(page)
+    await organizeUnorganizeAndDeleteSelectedDraft(page)
   })
 
 
@@ -252,6 +253,32 @@ async function archiveAndUnarchiveSelectedNote(page: PageLike) {
   await page.getByRole('button', { name: 'Mobile Inbox View' }).click()
   await expect(page.getByTestId('note-list-toolbar-title')).toHaveText('Mobile Inbox View')
   await expect(page.getByTestId('note-row-mobile-qa-draft.md')).toBeVisible()
+}
+
+async function organizeUnorganizeAndDeleteSelectedDraft(page: PageLike) {
+  await page.getByTestId('editor-more-action').click()
+  await expect(page.getByText('Mark as Organized')).toBeVisible()
+  await page.getByTestId('workspace-action-organize-note').click()
+  await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
+  await expect(page.getByTestId('note-row-mobile-qa-draft.md')).toBeHidden()
+
+  await page.getByTestId('sidebar-item-all-notes').click()
+  await expect(page.getByTestId('note-row-mobile-qa-draft.md')).toBeVisible()
+  await page.getByTestId('note-row-mobile-qa-draft.md').click()
+  await expect(page.getByTestId('editor-title')).toHaveText('Mobile QA Draft Revised')
+
+  await page.getByTestId('editor-more-action').click()
+  await expect(page.getByText('Mark as Unorganized')).toBeVisible()
+  await page.getByTestId('workspace-action-organize-note').click()
+  await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
+  await page.getByRole('button', { name: 'Mobile Inbox View' }).click()
+  await expect(page.getByTestId('note-row-mobile-qa-draft.md')).toBeVisible()
+
+  await page.getByTestId('editor-more-action').click()
+  await expect(page.getByText('Delete Note')).toBeVisible()
+  await page.getByTestId('workspace-action-delete-note').click()
+  await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
+  await expect(page.getByTestId('note-row-mobile-qa-draft.md')).toBeHidden()
 }
 
 async function installRequiredLocalVaultSnapshot(page: PageLike): Promise<LocalVaultSnapshotState> {

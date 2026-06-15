@@ -48,6 +48,7 @@ export type MobileWorkspaceEdit =
   | { content: MarkdownContent; noteId: NoteId; type: 'updateNoteContent' }
   | { noteId: NoteId; title: NoteTitle; type: 'renameNoteTitle' }
   | { title: NoteTitle; type: 'createNote' }
+  | { noteId: NoteId; type: 'deleteNote' }
   | { noteId: NoteId; rawContent: MarkdownContent; type: 'hydrateNoteContent' }
   | { key: FrontmatterKey; noteId: NoteId; value: MobilePropertyValue; type: 'updateProperty' }
   | { key: FrontmatterKey; noteId: NoteId; type: 'deleteProperty' }
@@ -57,11 +58,12 @@ export type MobileWorkspaceEdit =
   | { folderPath: FolderPath; noteId: NoteId; type: 'moveNoteToFolder' }
   | { noteId: NoteId; type: 'toggleFavorite' }
   | { archived: boolean; noteId: NoteId; type: 'setArchived' }
+  | { noteId: NoteId; organized: boolean; type: 'setOrganized' }
   | { definition: MobileViewDefinition; type: 'createView' }
   | { definition: MobileViewDefinition; viewId: string; type: 'updateView' }
   | { viewId: string; type: 'deleteView' }
 type MobileViewEdit = Extract<MobileWorkspaceEdit, { type: 'createView' | 'deleteView' | 'updateView' }>
-type MobileSnapshotEdit = Extract<MobileWorkspaceEdit, { type: 'moveNoteToFolder' }>
+type MobileSnapshotEdit = Extract<MobileWorkspaceEdit, { type: 'deleteNote' | 'moveNoteToFolder' }>
 type MobileNoteEdit = Exclude<MobileWorkspaceEdit, MobileSnapshotEdit | MobileViewEdit | { type: 'createNote' }>
 
 export type MobileWorkspaceWrite =
@@ -117,6 +119,10 @@ const mobileNoteEditHandlers: Record<MobileNoteEdit['type'], MobileNoteEditHandl
     if (edit.type !== 'setArchived') return editableNote
     return deriveEditedNote(editableNote, writeFrontmatterValue(editableNote.rawContent, '_archived', edit.archived))
   },
+  setOrganized: ({ editableNote }, edit) => {
+    if (edit.type !== 'setOrganized') return editableNote
+    return deriveEditedNote(editableNote, writeFrontmatterValue(editableNote.rawContent, '_organized', edit.organized))
+  },
   toggleFavorite: ({ editableNote, note }, edit) => {
     if (edit.type !== 'toggleFavorite') return editableNote
     return deriveEditedNote(editableNote, writeFrontmatterValue(editableNote.rawContent, '_favorite', !note.favorite))
@@ -154,6 +160,9 @@ export function applyMobileWorkspaceEditWithWrites(
   }
   if (edit.type === 'deleteView') {
     return deleteMobileView(snapshot, edit.viewId)
+  }
+  if (edit.type === 'deleteNote') {
+    return deleteMobileNote(snapshot, edit.noteId)
   }
   if (edit.type === 'moveNoteToFolder') {
     return moveNoteToFolder(snapshot, edit)
@@ -289,6 +298,20 @@ function changeNoteType(note: EditableNoteInput, value: NoteTitle): MobileNote {
   if (!nextType || nextType === note.type) return note
 
   return deriveEditedNote(note, writeFrontmatterValue(note.rawContent, 'type', nextType))
+}
+
+function deleteMobileNote(snapshot: MobileWorkspaceSnapshot, noteId: NoteId): MobileWorkspaceEditResult {
+  const previousNote = workspaceNoteById(snapshot, noteId)
+  if (!previousNote) return { snapshot, writes: [] }
+
+  const notes = snapshot.notes.filter((note) => note.id !== previousNote.id)
+  const allNotes = snapshot.allNotes?.filter((note) => note.id !== previousNote.id)
+  const nextSnapshot = rebuildSnapshot({ ...snapshot, allNotes }, notes, allNotes)
+
+  return {
+    snapshot: nextSnapshot,
+    writes: [{ kind: 'deleteNote', path: noteWritePath(previousNote) }],
+  }
 }
 
 function moveNoteToFolder(

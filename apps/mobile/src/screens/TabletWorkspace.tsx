@@ -171,6 +171,7 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
     onCreateNote,
     onCreateTitleChange,
     onCreateView,
+    onDeleteNote,
     onDeleteView,
     onFolderPathChange,
     onMoveNoteToFolder,
@@ -186,6 +187,7 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
     onSearchQueryChange,
     onSelectNote,
     onSetArchived,
+    onSetOrganized,
     onViewFiltersChange,
     onViewNameChange,
     openAction,
@@ -218,6 +220,7 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
       onCreateTitleChange={onCreateTitleChange}
       onCreateView={onCreateView}
       onDeleteView={onDeleteView}
+      onDeleteNote={onDeleteNote}
       onFolderPathChange={onFolderPathChange}
       onMoveNoteToFolder={onMoveNoteToFolder}
       onOpenChangeNoteType={onOpenChangeNoteType}
@@ -232,6 +235,7 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
       onSearchQueryChange={onSearchQueryChange}
       onSelectNote={onSelectNote}
       onSetArchived={onSetArchived}
+      onSetOrganized={onSetOrganized}
       onViewFiltersChange={onViewFiltersChange}
       onViewNameChange={onViewNameChange}
       viewName={readOnlyForm.viewName}

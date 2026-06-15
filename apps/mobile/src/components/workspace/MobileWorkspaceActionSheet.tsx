@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
-import { Archive, FilePlus, FolderOpen, LinkSimple, Star, Tag } from 'phosphor-react-native'
+import { Archive, CheckCircle, FilePlus, FolderOpen, LinkSimple, Star, Tag, Trash } from 'phosphor-react-native'
 import { Text } from '../ui/text'
 import { mobileText } from '../../i18n/mobileText'
 import { MobileButton } from '../../ui/MobileButton'
@@ -48,6 +48,7 @@ type MobileWorkspaceActionSheetProps = {
   onCreateTitleChange: (value: string) => void
   onCopyDeepLink: () => void
   onCreateView: () => void
+  onDeleteNote: () => void
   onDeleteView: () => void
   onFolderPathChange: (value: string) => void
   onMoveNoteToFolder: () => void
@@ -63,6 +64,7 @@ type MobileWorkspaceActionSheetProps = {
   onSearchQueryChange: (value: string) => void
   onSelectNote: (noteId: string) => void
   onSetArchived: (archived: boolean) => void
+  onSetOrganized: (organized: boolean) => void
   onViewFiltersChange: (value: MobileViewFilterGroup) => void
   onViewNameChange: (value: string) => void
   propertyName: string
@@ -88,6 +90,21 @@ type SingleTextFieldConfig = {
   secondaryAction?: ReactNode
 }
 
+type SuggestionInputActionConfig = {
+  inputLabel: string
+  inputPlaceholder: string
+  inputTestId: string
+  inputValue: string
+  onCancel: () => void
+  onChangeText: (value: string) => void
+  onSubmit: () => void
+  submitLabel: string
+  suggestionTestId: string
+  suggestionTestIdPrefix: string
+  suggestions: string[]
+}
+type RetargetNoteAction = 'changeType' | 'moveFolder'
+
 export function MobileWorkspaceActionSheet({
   action,
   createTitle,
@@ -101,6 +118,7 @@ export function MobileWorkspaceActionSheet({
   onCreateTitleChange,
   onCopyDeepLink,
   onCreateView,
+  onDeleteNote,
   onDeleteView,
   onFolderPathChange,
   onMoveNoteToFolder,
@@ -116,6 +134,7 @@ export function MobileWorkspaceActionSheet({
   onSearchQueryChange,
   onSelectNote,
   onSetArchived,
+  onSetOrganized,
   onViewFiltersChange,
   onViewNameChange,
   propertyName,
@@ -149,6 +168,7 @@ export function MobileWorkspaceActionSheet({
           onCreateTitleChange={onCreateTitleChange}
           onCopyDeepLink={onCopyDeepLink}
           onCreateView={onCreateView}
+          onDeleteNote={onDeleteNote}
           onDeleteView={onDeleteView}
           onFolderPathChange={onFolderPathChange}
           onMoveNoteToFolder={onMoveNoteToFolder}
@@ -164,6 +184,7 @@ export function MobileWorkspaceActionSheet({
           onSearchQueryChange={onSearchQueryChange}
           onSelectNote={onSelectNote}
           onSetArchived={onSetArchived}
+          onSetOrganized={onSetOrganized}
           onViewFiltersChange={onViewFiltersChange}
           onViewNameChange={onViewNameChange}
           propertyName={propertyName}
@@ -187,7 +208,7 @@ function ActionContent(props: MobileWorkspaceActionSheetProps) {
 const actionContentByAction: Record<MobileWorkspaceAction, (props: MobileWorkspaceActionSheetProps) => ReactNode> = {
   addProperty: (props) => <AddPropertyContent {...props} />,
   addRelationship: (props) => <AddRelationshipContent {...props} />,
-  changeNoteType: (props) => <ChangeNoteTypeContent {...props} />,
+  changeNoteType: (props) => <RetargetNoteContent {...props} retargetAction="changeType" />,
   createNote: (props) => <SingleTextFieldContent config={singleTextFieldConfig(props)} />,
   createView: (props) => <SingleTextFieldContent config={singleTextFieldConfig(props)} />,
   editProperty: (props) => <AddPropertyContent {...props} />,
@@ -200,9 +221,11 @@ const actionContentByAction: Record<MobileWorkspaceAction, (props: MobileWorkspa
       onOpenChangeNoteType={props.onOpenChangeNoteType}
       onOpenMoveNoteToFolder={props.onOpenMoveNoteToFolder}
       onSetArchived={props.onSetArchived}
+      onSetOrganized={props.onSetOrganized}
+      onDeleteNote={props.onDeleteNote}
     />
   ),
-  moveNoteToFolder: (props) => <MoveNoteToFolderContent {...props} />,
+  moveNoteToFolder: (props) => <RetargetNoteContent {...props} retargetAction="moveFolder" />,
   search: (props) => <SearchContent {...props} />,
 }
 
@@ -474,69 +497,64 @@ function AddRelationshipContent({
   )
 }
 
-function ChangeNoteTypeContent({
-  noteType,
-  notes,
-  onChangeNoteType,
-  onChangeNoteTypeInputChange,
-  onClose,
-  selectedNote,
-}: MobileWorkspaceActionSheetProps) {
-  const suggestions = mobileTypeSuggestions(notes, selectedNote, noteType)
-
+function RetargetNoteContent(props: MobileWorkspaceActionSheetProps & { retargetAction: RetargetNoteAction }) {
   return (
-    <View style={styles.content}>
-      <MobileTextInput
-        autoFocus
-        label={mobileText('command.note.changeType')}
-        placeholder={mobileText('inspector.properties.searchTypes')}
-        testID="workspace-change-type-input"
-        value={noteType}
-        onChangeText={onChangeNoteTypeInputChange}
-      />
-      <MobileWorkspaceSuggestionList
-        labels={suggestions}
-        testID="workspace-change-type-suggestions"
-        testIDPrefix="workspace-change-type-suggestion"
-        onSelect={onChangeNoteTypeInputChange}
-      />
-      <SheetFooter>
-        <MobileButton label={mobileText('common.cancel')} variant="ghost" onPress={onClose} />
-        <MobileButton disabled={noteType.trim().length === 0} label={mobileText('common.save')} variant="primary" onPress={onChangeNoteType} />
-      </SheetFooter>
-    </View>
+    <SuggestionInputActionContent config={retargetNoteInputConfig(props)} />
   )
 }
 
-function MoveNoteToFolderContent({
-  folderPath,
-  notes,
-  onClose,
-  onFolderPathChange,
-  onMoveNoteToFolder,
-  selectedNote,
-}: MobileWorkspaceActionSheetProps) {
-  const suggestions = mobileFolderSuggestions(notes, selectedNote, folderPath)
+function retargetNoteInputConfig(props: MobileWorkspaceActionSheetProps & { retargetAction: RetargetNoteAction }): SuggestionInputActionConfig {
+  if (props.retargetAction === 'changeType') {
+    return {
+      inputLabel: mobileText('command.note.changeType'),
+      inputPlaceholder: mobileText('inspector.properties.searchTypes'),
+      inputTestId: 'workspace-change-type-input',
+      inputValue: props.noteType,
+      onCancel: props.onClose,
+      onChangeText: props.onChangeNoteTypeInputChange,
+      onSubmit: props.onChangeNoteType,
+      submitLabel: mobileText('common.save'),
+      suggestionTestId: 'workspace-change-type-suggestions',
+      suggestionTestIdPrefix: 'workspace-change-type-suggestion',
+      suggestions: mobileTypeSuggestions(props.notes, props.selectedNote, props.noteType),
+    }
+  }
 
+  return {
+    inputLabel: mobileText('command.note.moveToFolder'),
+    inputPlaceholder: mobileText('sidebar.folder.name'),
+    inputTestId: 'workspace-move-folder-input',
+    inputValue: props.folderPath,
+    onCancel: props.onClose,
+    onChangeText: props.onFolderPathChange,
+    onSubmit: props.onMoveNoteToFolder,
+    submitLabel: mobileText('common.save'),
+    suggestionTestId: 'workspace-move-folder-suggestions',
+    suggestionTestIdPrefix: 'workspace-move-folder-suggestion',
+    suggestions: mobileFolderSuggestions(props.notes, props.selectedNote, props.folderPath),
+  }
+}
+
+function SuggestionInputActionContent({ config }: { config: SuggestionInputActionConfig }) {
   return (
     <View style={styles.content}>
       <MobileTextInput
         autoFocus
-        label={mobileText('command.note.moveToFolder')}
-        placeholder={mobileText('sidebar.folder.name')}
-        testID="workspace-move-folder-input"
-        value={folderPath}
-        onChangeText={onFolderPathChange}
+        label={config.inputLabel}
+        placeholder={config.inputPlaceholder}
+        testID={config.inputTestId}
+        value={config.inputValue}
+        onChangeText={config.onChangeText}
       />
       <MobileWorkspaceSuggestionList
-        labels={suggestions}
-        testID="workspace-move-folder-suggestions"
-        testIDPrefix="workspace-move-folder-suggestion"
-        onSelect={onFolderPathChange}
+        labels={config.suggestions}
+        testID={config.suggestionTestId}
+        testIDPrefix={config.suggestionTestIdPrefix}
+        onSelect={config.onChangeText}
       />
       <SheetFooter>
-        <MobileButton label={mobileText('common.cancel')} variant="ghost" onPress={onClose} />
-        <MobileButton disabled={folderPath.trim().length === 0} label={mobileText('common.save')} variant="primary" onPress={onMoveNoteToFolder} />
+        <MobileButton label={mobileText('common.cancel')} variant="ghost" onPress={config.onCancel} />
+        <MobileButton disabled={config.inputValue.trim().length === 0} label={config.submitLabel} variant="primary" onPress={config.onSubmit} />
       </SheetFooter>
     </View>
   )
@@ -546,9 +564,11 @@ function MoreActionsContent({
   note,
   onClose,
   onCopyDeepLink,
+  onDeleteNote,
   onOpenChangeNoteType,
   onOpenMoveNoteToFolder,
   onSetArchived,
+  onSetOrganized,
 }: {
   note: MobileNote | null
   onClose: () => void
@@ -556,37 +576,21 @@ function MoreActionsContent({
   onOpenChangeNoteType: () => void
   onOpenMoveNoteToFolder: () => void
   onSetArchived: (archived: boolean) => void
+  onSetOrganized: (organized: boolean) => void
+  onDeleteNote: () => void
 }) {
-  const archiveLabel = mobileText(note?.archived ? 'command.note.unarchiveNote' : 'command.note.archiveNote')
-
   return (
     <View style={styles.content}>
       {note ? <SelectedNoteSummary note={note} /> : null}
       {note ? (
-        <ActionRow
-          icon={<Archive color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
-          label={archiveLabel}
-          testID="workspace-action-archive-note"
-          onPress={() => {
-            onSetArchived(!note.archived)
-            onClose()
-          }}
-        />
-      ) : null}
-      {note ? (
-        <ActionRow
-          icon={<Tag color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
-          label={mobileText('command.note.changeType')}
-          testID="workspace-action-change-note-type"
-          onPress={onOpenChangeNoteType}
-        />
-      ) : null}
-      {note ? (
-        <ActionRow
-          icon={<FolderOpen color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
-          label={mobileText('command.note.moveToFolder')}
-          testID="workspace-action-move-note-folder"
-          onPress={onOpenMoveNoteToFolder}
+        <NoteMoreActionRows
+          note={note}
+          onClose={onClose}
+          onDeleteNote={onDeleteNote}
+          onOpenChangeNoteType={onOpenChangeNoteType}
+          onOpenMoveNoteToFolder={onOpenMoveNoteToFolder}
+          onSetArchived={onSetArchived}
+          onSetOrganized={onSetOrganized}
         />
       ) : null}
       <ActionRow
@@ -603,11 +607,115 @@ function MoreActionsContent({
   )
 }
 
+function NoteMoreActionRows({
+  note,
+  onClose,
+  onDeleteNote,
+  onOpenChangeNoteType,
+  onOpenMoveNoteToFolder,
+  onSetArchived,
+  onSetOrganized,
+}: {
+  note: MobileNote
+  onClose: () => void
+  onDeleteNote: () => void
+  onOpenChangeNoteType: () => void
+  onOpenMoveNoteToFolder: () => void
+  onSetArchived: (archived: boolean) => void
+  onSetOrganized: (organized: boolean) => void
+}) {
+  return (
+    <>
+      <NoteFlagActionRow
+        active={note.organized === true}
+        activeLabelKey="command.note.markUnorganized"
+        icon={<CheckCircle color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} weight={note.organized ? 'fill' : 'regular'} />}
+        inactiveLabelKey="command.note.markOrganized"
+        testID="workspace-action-organize-note"
+        onPress={() => {
+          onSetOrganized(!note.organized)
+          onClose()
+        }}
+      />
+      <NoteFlagActionRow
+        active={note.archived === true}
+        activeLabelKey="command.note.unarchiveNote"
+        icon={<Archive color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
+        inactiveLabelKey="command.note.archiveNote"
+        testID="workspace-action-archive-note"
+        onPress={() => {
+          onSetArchived(!note.archived)
+          onClose()
+        }}
+      />
+      <ActionRow
+        icon={<Tag color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
+        label={mobileText('command.note.changeType')}
+        testID="workspace-action-change-note-type"
+        onPress={onOpenChangeNoteType}
+      />
+      <ActionRow
+        icon={<FolderOpen color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
+        label={mobileText('command.note.moveToFolder')}
+        testID="workspace-action-move-note-folder"
+        onPress={onOpenMoveNoteToFolder}
+      />
+      <DeleteActionRow onClose={onClose} onDeleteNote={onDeleteNote} />
+    </>
+  )
+}
+
+function NoteFlagActionRow({
+  active,
+  activeLabelKey,
+  icon,
+  inactiveLabelKey,
+  onPress,
+  testID,
+}: {
+  active: boolean
+  activeLabelKey: Parameters<typeof mobileText>[0]
+  icon: ReactNode
+  inactiveLabelKey: Parameters<typeof mobileText>[0]
+  onPress: () => void
+  testID: string
+}) {
+  return (
+    <ActionRow
+      icon={icon}
+      label={mobileText(active ? activeLabelKey : inactiveLabelKey)}
+      testID={testID}
+      onPress={onPress}
+    />
+  )
+}
+
+function DeleteActionRow({
+  onClose,
+  onDeleteNote,
+}: {
+  onClose: () => void
+  onDeleteNote: () => void
+}) {
+  return (
+    <ActionRow
+      destructive
+      icon={<Trash color={mobileColors.red} size={desktopToolbarActionParity.iconSize} />}
+      label={mobileText('command.note.deleteNote')}
+      testID="workspace-action-delete-note"
+      onPress={() => {
+        onDeleteNote()
+        onClose()
+      }}
+    />
+  )
+}
+
 function SelectedNoteSummary({ note }: { note: MobileNote }) {
   return (
-    <View style={styles.summary} testID="workspace-action-sheet-note-summary">
+    <View style={actionStyles.summary} testID="workspace-action-sheet-note-summary">
       <MobileTypeIcon size={desktopToolbarActionParity.iconSize} tone={note.typeTone} type={note.type} />
-      <Text numberOfLines={1} style={styles.summaryTitle}>{note.title}</Text>
+      <Text numberOfLines={1} style={actionStyles.summaryTitle}>{note.title}</Text>
       {note.favorite ? <Star color={mobileColors.primary} size={desktopToolbarActionParity.iconSize} weight="fill" /> : null}
       <MobileChip label={note.type} tone={chipTone(note.typeTone)} />
     </View>
@@ -616,19 +724,21 @@ function SelectedNoteSummary({ note }: { note: MobileNote }) {
 
 function ActionRow({
   icon,
+  destructive = false,
   label,
   onPress,
   testID,
 }: {
+  destructive?: boolean
   icon: ReactNode
   label: string
   onPress: () => void
   testID?: string
 }) {
   return (
-    <Pressable accessibilityLabel={label} accessibilityRole="button" style={({ pressed }) => [styles.actionRow, pressed ? styles.actionRowPressed : null]} testID={testID} onPress={onPress}>
+    <Pressable accessibilityLabel={label} accessibilityRole="button" style={({ pressed }) => [actionStyles.actionRow, pressed ? actionStyles.actionRowPressed : null]} testID={testID} onPress={onPress}>
       {icon}
-      <Text numberOfLines={1} style={styles.actionText}>{label}</Text>
+      <Text numberOfLines={1} style={[actionStyles.actionText, destructive ? actionStyles.actionTextDestructive : null]}>{label}</Text>
     </Pressable>
   )
 }
@@ -697,24 +807,6 @@ const actionTitleByAction: Record<MobileWorkspaceAction, () => string> = {
 }
 
 const styles = StyleSheet.create({
-  actionRow: {
-    minWidth: 0,
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mobileSpace.sm,
-    borderRadius: 4,
-    paddingHorizontal: mobileSpace.sm,
-    paddingVertical: mobileSpace.sm,
-  },
-  actionRowPressed: {
-    backgroundColor: mobileColors.control,
-  },
-  actionText: {
-    minWidth: 0,
-    flex: 1,
-    color: mobileColors.text,
-    fontSize: mobileType.body,
-  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(55, 53, 47, 0.14)',
@@ -797,6 +889,30 @@ const styles = StyleSheet.create({
     shadowOffset: { height: 10, width: 0 },
     shadowOpacity: 0.14,
     shadowRadius: 28,
+  },
+})
+
+const actionStyles = StyleSheet.create({
+  actionRow: {
+    minWidth: 0,
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: mobileSpace.sm,
+    borderRadius: 4,
+    paddingHorizontal: mobileSpace.sm,
+    paddingVertical: mobileSpace.sm,
+  },
+  actionRowPressed: {
+    backgroundColor: mobileColors.control,
+  },
+  actionText: {
+    minWidth: 0,
+    flex: 1,
+    color: mobileColors.text,
+    fontSize: mobileType.body,
+  },
+  actionTextDestructive: {
+    color: mobileColors.red,
   },
   summary: {
     minWidth: 0,

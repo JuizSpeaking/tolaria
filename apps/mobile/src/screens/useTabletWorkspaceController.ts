@@ -459,6 +459,12 @@ function editorWorkspaceActions({
     onSetArchived: (archived: boolean) => {
       if (selectedNote) applyEdit({ archived, noteId: selectedNote.id, type: 'setArchived' })
     },
+    onDeleteNote: () => {
+      if (selectedNote) applyEdit({ noteId: selectedNote.id, type: 'deleteNote' })
+    },
+    onSetOrganized: (organized: boolean) => {
+      if (selectedNote) applyEdit({ noteId: selectedNote.id, organized, type: 'setOrganized' })
+    },
     onToggleFavorite: () => {
       if (selectedNote) applyEdit({ noteId: selectedNote.id, type: 'toggleFavorite' })
     },

@@ -275,6 +275,49 @@ describe('applyMobileWorkspaceEdit', () => {
     }])
   })
 
+  it('marks notes organized through frontmatter and updates inbox counts', () => {
+    const base = workspaceScenarioForId('default')
+    const editableNote = {
+      ...base.notes[0],
+      rawContent: '# Workflow Orchestration Essay\n\nOrganize me.\n',
+    }
+    const result = applyMobileWorkspaceEditWithWrites({ ...base, notes: [editableNote, ...base.notes.slice(1)] }, {
+      noteId: editableNote.id,
+      organized: true,
+      type: 'setOrganized',
+    })
+    const organizedNote = result.snapshot.notes.find((note) => note.id === editableNote.id)
+
+    expect(organizedNote).toMatchObject({ organized: true })
+    expect(organizedNote?.rawContent).toContain('_organized: true')
+    expect(sidebarItems(result.snapshot, 'primary')).toEqual([
+      expect.objectContaining({ count: '2', id: 'inbox' }),
+      expect.objectContaining({ count: '3', id: 'all-notes' }),
+      expect.objectContaining({ count: '0', id: 'archive' }),
+    ])
+    expect(result.writes).toEqual([{
+      content: expect.stringContaining('_organized: true'),
+      kind: 'saveNote',
+      path: organizedNote?.path,
+    }])
+  })
+
+  it('deletes notes from the visible and complete note pools with a delete write', () => {
+    const base = workspaceScenarioForId('default')
+    const result = applyMobileWorkspaceEditWithWrites({ ...base, allNotes: base.notes }, {
+      noteId: 'workflow-orchestration',
+      type: 'deleteNote',
+    })
+
+    expect(result.snapshot.notes.some((candidate) => candidate.id === 'workflow-orchestration')).toBe(false)
+    expect(result.snapshot.allNotes?.some((candidate) => candidate.id === 'workflow-orchestration')).toBe(false)
+    expect(result.snapshot.selectedNoteId).not.toBe('workflow-orchestration')
+    expect(result.writes).toEqual([{
+      kind: 'deleteNote',
+      path: 'Tolaria/Mobile UI/Workflow Orchestration Essay.md',
+    }])
+  })
+
   it('hydrates metadata-only notes without creating a persistence write', () => {
     const base = workspaceScenarioForId('default')
     const metadataOnlyNote = {

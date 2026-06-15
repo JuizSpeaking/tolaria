@@ -56,6 +56,7 @@ export type TabletWorkspaceChromeProps = {
   onCreateTitleChange: (value: ReadOnlyFormValue) => void
   onCreateView: () => void
   onDeleteView: () => void
+  onDeleteNote: () => void
   onDeleteProperty: (noteId: NoteId, key: string) => void
   onEditProperty: (noteId: NoteId, key: string, value: MobilePropertyValue) => void
   onFolderPathChange: (value: ReadOnlyFormValue) => void
@@ -84,6 +85,7 @@ export type TabletWorkspaceChromeProps = {
   onSelectNote: (noteId: NoteId) => void
   onSelectSidebarItem: (selection: MobileSidebarItemSelection) => void
   onSetArchived: (archived: boolean) => void
+  onSetOrganized: (organized: boolean) => void
   onToggleFavorite: () => void
   openAction: MobileWorkspaceAction | null
   readOnlyForm: TabletReadOnlyForm
