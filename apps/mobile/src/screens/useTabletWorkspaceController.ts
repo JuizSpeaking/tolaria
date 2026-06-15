@@ -85,7 +85,14 @@ export function useTabletWorkspaceController({
     setOpenAction,
     updateReadOnlyForm,
   })
-  const relationshipActions = relationshipWorkspaceActions({ applyEdit, readOnlyForm, saveSelectedEdit, updateReadOnlyForm })
+  const relationshipActions = relationshipWorkspaceActions({
+    applyEdit,
+    closeAction,
+    readOnlyForm,
+    saveSelectedEdit,
+    selectedNote,
+    updateReadOnlyForm,
+  })
   const retargetActions = retargetWorkspaceActions({ readOnlyForm, saveSelectedEdit, updateReadOnlyForm })
   const editorActions = editorWorkspaceActions({
     applyEdit,
@@ -420,16 +427,26 @@ function propertyWorkspaceActions({
 
 function relationshipWorkspaceActions({
   applyEdit,
+  closeAction,
   readOnlyForm,
   saveSelectedEdit,
+  selectedNote,
   updateReadOnlyForm,
 }: {
   applyEdit: ApplyWorkspaceEdit
+  closeAction: () => void
   readOnlyForm: TabletReadOnlyForm
   saveSelectedEdit: SaveSelectedEdit
+  selectedNote: MobileNote | null
   updateReadOnlyForm: ReadOnlyFormUpdater
 }) {
   return {
+    onCreateRelationshipTarget: () => createRelationshipTarget({
+      applyEdit,
+      closeAction,
+      form: readOnlyForm,
+      selectedNote,
+    }),
     onRelationshipNameChange: (value: string) => updateReadOnlyForm('relationshipName', value),
     onRelationshipNoteTitleChange: (value: string) => updateReadOnlyForm('relationshipNoteTitle', value),
     onRemoveRelationship: (noteId: string, key: string, ref: string) => applyEdit({ key, noteId, ref, type: 'removeRelationship' }),
@@ -617,6 +634,27 @@ function createNote({
   title: string
 }) {
   applyEdit({ defaults, title, type: 'createNote' })
+  closeAction()
+}
+
+function createRelationshipTarget({
+  applyEdit,
+  closeAction,
+  form,
+  selectedNote,
+}: {
+  applyEdit: ApplyWorkspaceEdit
+  closeAction: () => void
+  form: TabletReadOnlyForm
+  selectedNote: MobileNote | null
+}) {
+  const key = form.relationshipName.trim()
+  const title = form.relationshipNoteTitle.trim()
+  if (!selectedNote || !key || !title) return
+
+  const sourceNoteId = selectedNote.id
+  applyEdit({ title, type: 'createNote' })
+  applyEdit({ key, noteId: sourceNoteId, targetTitle: title, type: 'addRelationship' })
   closeAction()
 }
 

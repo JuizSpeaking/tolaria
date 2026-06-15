@@ -213,6 +213,20 @@ async function addRelationshipFromSuggestion(page: PageLike) {
   await expect(page.getByTestId('editor-title')).toHaveText('Mobile QA Draft')
   await page.getByTestId('relationship-row-how-i-run-an-open-source-project').getByLabel('Remove').click()
   await expect(page.getByTestId('relationship-row-how-i-run-an-open-source-project')).toBeHidden()
+
+  await page.getByTestId('property-action-add-relationship').click()
+  await page.getByTestId('workspace-relationship-key-suggestion-related-to').click()
+  await page.getByTestId('workspace-relationship-note-title-input').fill('Brand New Target')
+  await expect(page.getByTestId('workspace-relationship-create-target')).toContainText('Brand New Target')
+  await page.getByTestId('workspace-relationship-create-target').click()
+  await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
+  await expect(page.getByTestId('editor-title')).toHaveText('Brand New Target')
+  await page.getByTestId('note-row-mobile-qa-draft.md').click()
+  await expect(page.getByTestId('relationship-row-brand-new-target')).toBeVisible()
+  await page.getByTestId('relationship-row-brand-new-target-open').click()
+  await expect(page.getByTestId('editor-title')).toHaveText('Brand New Target')
+  await page.getByTestId('note-row-mobile-qa-draft.md').click()
+  await expect(page.getByTestId('editor-title')).toHaveText('Mobile QA Draft')
 }
 
 async function editMarkdownWithWikilink(page: PageLike) {
@@ -262,6 +276,8 @@ async function archiveAndUnarchiveSelectedNote(page: PageLike) {
   await page.getByRole('button', { name: 'Mobile Inbox View' }).click()
   await expect(page.getByTestId('note-list-toolbar-title')).toHaveText('Mobile Inbox View')
   await expect(page.getByTestId('note-row-mobile-qa-draft.md')).toBeVisible()
+  await page.getByTestId('note-row-mobile-qa-draft.md').click()
+  await expect(page.getByTestId('editor-title')).toHaveText('Mobile QA Draft Revised')
 }
 
 async function organizeUnorganizeAndDeleteSelectedDraft(page: PageLike) {
@@ -282,6 +298,8 @@ async function organizeUnorganizeAndDeleteSelectedDraft(page: PageLike) {
   await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
   await page.getByRole('button', { name: 'Mobile Inbox View' }).click()
   await expect(page.getByTestId('note-row-mobile-qa-draft.md')).toBeVisible()
+  await page.getByTestId('note-row-mobile-qa-draft.md').click()
+  await expect(page.getByTestId('editor-title')).toHaveText('Mobile QA Draft Revised')
 
   await page.getByTestId('editor-more-action').click()
   await expect(page.getByText('Delete Note')).toBeVisible()

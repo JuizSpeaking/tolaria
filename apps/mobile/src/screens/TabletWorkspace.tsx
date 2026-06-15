@@ -171,6 +171,7 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
     onCloseAction,
     onCopyDeepLink,
     onCreateNote,
+    onCreateRelationshipTarget,
     onCreateTitleChange,
     onCreateView,
     onDeleteNote,
@@ -223,6 +224,7 @@ function WorkspaceActionSheetHost(props: TabletWorkspaceChromeProps & { suggesti
       onClose={onCloseAction}
       onCopyDeepLink={onCopyDeepLink}
       onCreateNote={onCreateNote}
+      onCreateRelationshipTarget={onCreateRelationshipTarget}
       onCreateTitleChange={onCreateTitleChange}
       onCreateView={onCreateView}
       onDeleteView={onDeleteView}

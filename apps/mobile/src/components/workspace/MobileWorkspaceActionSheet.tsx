@@ -47,6 +47,7 @@ type MobileWorkspaceActionSheetProps = {
   onChangeNoteTypeInputChange: (value: string) => void
   onClose: () => void
   onCreateNote: () => void
+  onCreateRelationshipTarget: () => void
   onCreateTitleChange: (value: string) => void
   onCopyDeepLink: () => void
   onCreateView: () => void
@@ -121,6 +122,7 @@ export function MobileWorkspaceActionSheet({
   onChangeNoteTypeInputChange,
   onClose,
   onCreateNote,
+  onCreateRelationshipTarget,
   onCreateTitleChange,
   onCopyDeepLink,
   onCreateView,
@@ -175,6 +177,7 @@ export function MobileWorkspaceActionSheet({
           onChangeNoteTypeInputChange={onChangeNoteTypeInputChange}
           onClose={onClose}
           onCreateNote={onCreateNote}
+          onCreateRelationshipTarget={onCreateRelationshipTarget}
           onCreateTitleChange={onCreateTitleChange}
           onCopyDeepLink={onCopyDeepLink}
           onCreateView={onCreateView}
@@ -467,6 +470,7 @@ function AddPropertyContent({
 function AddRelationshipContent({
   notes,
   onClose,
+  onCreateRelationshipTarget,
   onRelationshipNameChange,
   onRelationshipNoteTitleChange,
   onSaveRelationship,
@@ -475,6 +479,8 @@ function AddRelationshipContent({
 }: MobileWorkspaceActionSheetProps) {
   const keySuggestions = mobileRelationshipKeySuggestions(notes, relationshipName)
   const suggestions = relationshipSuggestions(notes, relationshipNoteTitle)
+  const createTargetTitle = relationshipNoteTitle.trim()
+  const showCreateTarget = shouldShowRelationshipCreateTarget(notes, createTargetTitle)
 
   return (
     <View style={styles.content}>
@@ -517,11 +523,37 @@ function AddRelationshipContent({
           ))}
         </View>
       ) : null}
+      {showCreateTarget ? (
+        <CreateRelationshipTargetRow title={createTargetTitle} onPress={onCreateRelationshipTarget} />
+      ) : null}
       <SheetFooter>
         <MobileButton label={mobileText('common.cancel')} variant="ghost" onPress={onClose} />
         <MobileButton disabled={relationshipName.trim().length === 0 || relationshipNoteTitle.trim().length === 0} label={mobileText('inspector.relationship.add')} variant="primary" onPress={onSaveRelationship} />
       </SheetFooter>
     </View>
+  )
+}
+
+function CreateRelationshipTargetRow({
+  onPress,
+  title,
+}: {
+  onPress: () => void
+  title: string
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={`${mobileText('inspector.relationship.createAndOpen')} ${title}`}
+      accessibilityRole="button"
+      style={({ pressed }) => [styles.suggestionRow, pressed ? styles.suggestionRowPressed : null]}
+      testID="workspace-relationship-create-target"
+      onPress={onPress}
+    >
+      <FilePlus color={mobileColors.textMuted} size={16} />
+      <Text numberOfLines={1} style={styles.suggestionTitle}>
+        {mobileText('inspector.relationship.createAndOpen')} {title}
+      </Text>
+    </Pressable>
   )
 }
 
@@ -822,6 +854,13 @@ function relationshipSuggestions(notes: MobileNote[], query: string) {
       note.tags.join(' '),
     ].join(' ').toLowerCase().includes(normalized))
     .slice(0, 6)
+}
+
+function shouldShowRelationshipCreateTarget(notes: MobileNote[], title: string) {
+  const normalized = title.trim().toLowerCase()
+  if (!normalized) return false
+
+  return !notes.some((note) => !note.archived && note.title.trim().toLowerCase() === normalized)
 }
 
 function propertySuggestionValue(propertyName: string, propertyValue: string, suggestion: string) {
