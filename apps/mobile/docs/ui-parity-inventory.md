@@ -64,7 +64,7 @@ The tablet landscape parity test now checks these computed-style contracts:
 | Toolbar actions | 24px transparent action boxes, 4px radius, no card-like background |
 | Sync footer | 30px height, sidebar background, 8px horizontal padding, 12px muted status text |
 
-The same Playwright suite also runs a source-drift check against desktop `src/index.css` and `src/theme.json`, plus a tablet-landscape pixel baseline for the primary iPad reference screen. The native iPad simulator metric gate also checks sidebar row insets, row heights, content heights, text line boxes, text vertical centering, folder indentation, section title height, count-pill text centering, note-list selected-row width, and note-row content padding so RN Web cannot hide device-only spacing regressions.
+The same Playwright suite also runs a source-drift check against desktop `src/index.css` and `src/theme.json`, plus a tablet-landscape pixel baseline for the primary iPad reference screen. The native iPad simulator metric gate checks every visible default sidebar row class for desktop-derived row insets, row heights, content heights, text line boxes, text vertical centering, contiguous row sequencing, folder indentation, section title height, count-pill text centering, note-list selected-row width, and note-row content padding so RN Web cannot hide device-only spacing regressions.
 
 Quick-open/search is covered as behavior, not just presentation: empty queries expose active notes, no-result queries show the sheet empty state, the search input receives focus, Enter selects the active result, and ArrowUp/ArrowDown are clamped to desktop quick-open semantics.
 

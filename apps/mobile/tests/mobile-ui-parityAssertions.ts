@@ -55,12 +55,25 @@ export async function assertSidebarRuntimeLayoutProbe(page: Page) {
     return target.__TOLARIA_MOBILE_LAYOUT_METRICS__ ?? {}
   })
 
-  assertSidebarItemLayout(metrics, 'sidebar.item.inbox', desktopSidebarParity.itemPadding.withCount)
-  assertSidebarItemLayout(metrics, 'sidebar.item.all-notes', desktopSidebarParity.itemPadding.withCount)
-  assertSidebarItemLayout(metrics, 'sidebar.item.personal-journal', desktopSidebarParity.itemPadding.regular)
-  assertSidebarItemLayout(metrics, 'sidebar.item.essays', desktopSidebarParity.itemPadding.withCount)
-  assertFolderLayout(metrics, 'sidebar.folder.writing', desktopSidebarParity.folderRowContentInset)
-  assertFolderLayout(metrics, 'sidebar.folder.tolaria-mobile', desktopSidebarParity.folderRowContentInset + desktopSidebarParity.folderRowIndent)
+  for (const id of ['sidebar.item.inbox', 'sidebar.item.all-notes', 'sidebar.item.archive', 'sidebar.item.view-active-procedures', 'sidebar.item.essays', 'sidebar.item.procedures', 'sidebar.item.responsibilities']) {
+    assertSidebarItemLayout(metrics, id, desktopSidebarParity.itemPadding.withCount)
+  }
+
+  for (const id of ['sidebar.item.personal-journal', 'sidebar.item.tolaria-mvp']) {
+    assertSidebarItemLayout(metrics, id, desktopSidebarParity.itemPadding.regular)
+  }
+
+  assertSidebarRowsAreContiguous(metrics, ['sidebar.item.inbox', 'sidebar.item.all-notes', 'sidebar.item.archive'])
+  assertSidebarRowsAreContiguous(metrics, ['sidebar.item.personal-journal', 'sidebar.item.tolaria-mvp'])
+  assertSidebarRowsAreContiguous(metrics, ['sidebar.item.essays', 'sidebar.item.procedures', 'sidebar.item.responsibilities'])
+
+  for (const id of ['sidebar.folder.writing', 'sidebar.folder.tolaria']) {
+    assertFolderLayout(metrics, id, desktopSidebarParity.folderRowContentInset)
+  }
+
+  for (const id of ['sidebar.folder.writing-essays', 'sidebar.folder.writing-drafts', 'sidebar.folder.tolaria-mobile', 'sidebar.folder.tolaria-releases']) {
+    assertFolderLayout(metrics, id, desktopSidebarParity.folderRowContentInset + desktopSidebarParity.folderRowIndent)
+  }
 }
 
 async function assertPanelChromeParity(page: Page) {
@@ -288,9 +301,23 @@ function assertSidebarItemLayout(metrics: Record<string, LayoutMetric>, id: stri
   const row = requiredMetric(metrics, `${id}.row`)
   const content = requiredMetric(metrics, `${id}.content`)
 
+  expectClose({ actual: row.x, expected: desktopSidebarParity.sectionHorizontalPadding, message: `${id} keeps desktop section inset` })
   expectClose({ actual: content.x, expected: padding.left, message: `${id} has desktop left padding` })
   expectClose({ actual: row.width - content.x - content.width, expected: padding.right, message: `${id} has desktop right padding` })
   expectClose({ actual: row.height - content.height, expected: padding.top + padding.bottom, message: `${id} has desktop vertical padding` })
+}
+
+function assertSidebarRowsAreContiguous(metrics: Record<string, LayoutMetric>, ids: string[]) {
+  for (let index = 1; index < ids.length; index += 1) {
+    const previous = requiredMetric(metrics, `${ids[index - 1]}.row`)
+    const current = requiredMetric(metrics, `${ids[index]}.row`)
+
+    expectClose({
+      actual: current.y - previous.y - previous.height,
+      expected: 0,
+      message: `${ids[index]} starts exactly after ${ids[index - 1]}`,
+    })
+  }
 }
 
 function assertFolderLayout(metrics: Record<string, LayoutMetric>, id: string, expectedLeftInset: number) {

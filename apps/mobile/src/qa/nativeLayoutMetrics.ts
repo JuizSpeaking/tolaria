@@ -123,8 +123,37 @@ const sidebarItemMetricSpecs: SidebarItemMetricSpec[] = [
   { contentHeight: nativeSidebarMetricContract.itemContentHeight.withCount, id: 'sidebar.item.all-notes', padding: nativeSidebarMetricContract.itemPadding.withCount },
   { contentHeight: nativeSidebarMetricContract.itemContentHeight.withCount, id: 'sidebar.item.archive', padding: nativeSidebarMetricContract.itemPadding.withCount },
   { contentHeight: nativeSidebarMetricContract.itemContentHeight.regular, id: 'sidebar.item.personal-journal', padding: nativeSidebarMetricContract.itemPadding.regular },
+  { contentHeight: nativeSidebarMetricContract.itemContentHeight.regular, id: 'sidebar.item.tolaria-mvp', padding: nativeSidebarMetricContract.itemPadding.regular },
   { contentHeight: nativeSidebarMetricContract.itemContentHeight.withCount, id: 'sidebar.item.view-active-procedures', padding: nativeSidebarMetricContract.itemPadding.withCount },
   { contentHeight: nativeSidebarMetricContract.itemContentHeight.withCount, id: 'sidebar.item.essays', padding: nativeSidebarMetricContract.itemPadding.withCount },
+  { contentHeight: nativeSidebarMetricContract.itemContentHeight.withCount, id: 'sidebar.item.procedures', padding: nativeSidebarMetricContract.itemPadding.withCount },
+  { contentHeight: nativeSidebarMetricContract.itemContentHeight.withCount, id: 'sidebar.item.responsibilities', padding: nativeSidebarMetricContract.itemPadding.withCount },
+]
+
+const sidebarItemRowOrder = [
+  ['sidebar.item.inbox', 'sidebar.item.all-notes', 'sidebar.item.archive'],
+  ['sidebar.item.personal-journal', 'sidebar.item.tolaria-mvp'],
+  ['sidebar.item.essays', 'sidebar.item.procedures', 'sidebar.item.responsibilities'],
+] as const
+
+const folderMetricSpecs = [
+  { expectedLeftInset: nativeSidebarMetricContract.folderRowContentInset, id: 'sidebar.folder.writing' },
+  { expectedLeftInset: nativeSidebarMetricContract.folderRowContentInset + nativeSidebarMetricContract.folderRowIndent, id: 'sidebar.folder.writing-essays' },
+  { expectedLeftInset: nativeSidebarMetricContract.folderRowContentInset + nativeSidebarMetricContract.folderRowIndent, id: 'sidebar.folder.writing-drafts' },
+  { expectedLeftInset: nativeSidebarMetricContract.folderRowContentInset, id: 'sidebar.folder.tolaria' },
+  { expectedLeftInset: nativeSidebarMetricContract.folderRowContentInset + nativeSidebarMetricContract.folderRowIndent, id: 'sidebar.folder.tolaria-mobile' },
+  { expectedLeftInset: nativeSidebarMetricContract.folderRowContentInset + nativeSidebarMetricContract.folderRowIndent, id: 'sidebar.folder.tolaria-releases' },
+] as const
+
+const countPillMetricSpecs: CountPillLayout[] = [
+  { id: 'sidebar.item.inbox.count' },
+  { id: 'sidebar.item.all-notes.count' },
+  { id: 'sidebar.item.archive.count' },
+  { id: 'sidebar.item.view-active-procedures.count' },
+  { id: 'sidebar.item.essays.count' },
+  { id: 'sidebar.item.procedures.count' },
+  { id: 'sidebar.item.responsibilities.count' },
+  { compact: true, id: 'sidebar.section.types.count' },
 ]
 
 const noteListItemMetricSpecs: NoteListItemMetricSpec[] = [
@@ -193,7 +222,7 @@ function assertSidebarSectionLayouts(metrics: NativeLayoutMetricMap): NativeLayo
 function assertSidebarItemLayouts(metrics: NativeLayoutMetricMap): NativeLayoutAssertionFailure[] {
   return [
     ...sidebarItemMetricSpecs.flatMap((spec) => assertSidebarItemLayout({ ...spec, metrics })),
-    ...assertStackedRows(metrics, ['sidebar.item.inbox', 'sidebar.item.all-notes', 'sidebar.item.archive']),
+    ...sidebarItemRowOrder.flatMap((ids) => assertStackedRows(metrics, ids)),
   ]
 }
 
@@ -202,18 +231,7 @@ function assertSectionTitleLayouts(metrics: NativeLayoutMetricMap): NativeLayout
 }
 
 function assertFolderLayouts(metrics: NativeLayoutMetricMap): NativeLayoutAssertionFailure[] {
-  return [
-    ...assertFolderLayout({
-      expectedLeftInset: nativeSidebarMetricContract.folderRowContentInset,
-      id: 'sidebar.folder.writing',
-      metrics,
-    }),
-    ...assertFolderLayout({
-      expectedLeftInset: nativeSidebarMetricContract.folderRowContentInset + nativeSidebarMetricContract.folderRowIndent,
-      id: 'sidebar.folder.tolaria-mobile',
-      metrics,
-    }),
-  ]
+  return folderMetricSpecs.flatMap((spec) => assertFolderLayout({ ...spec, metrics }))
 }
 
 function assertPrimarySectionLayout(metrics: NativeLayoutMetricMap): NativeLayoutAssertionFailure[] {
@@ -265,17 +283,17 @@ function assertStackedSections(metrics: NativeLayoutMetricMap, ids: string[]): N
         message: 'sidebar section is captured before checking section stacking',
         metric: current,
       }),
-      ...expectAtLeast({
+      ...expectClose({
         actual: previous && current ? current.y - previous.y - previous.height : null,
         expected: 0,
         id,
-        message: 'section starts after the previous sidebar section',
+        message: 'section starts exactly after the previous sidebar section',
       }),
     ]
   })
 }
 
-function assertStackedRows(metrics: NativeLayoutMetricMap, ids: string[]): NativeLayoutAssertionFailure[] {
+function assertStackedRows(metrics: NativeLayoutMetricMap, ids: readonly string[]): NativeLayoutAssertionFailure[] {
   return ids.slice(1).flatMap((id, index) => {
     const previous = metrics[`${ids[index]}.row`]
     const current = metrics[`${id}.row`]
@@ -291,11 +309,11 @@ function assertStackedRows(metrics: NativeLayoutMetricMap, ids: string[]): Nativ
         message: 'row is captured before checking sidebar row stacking',
         metric: current,
       }),
-      ...expectAtLeast({
+      ...expectClose({
         actual: previous && current ? current.y - previous.y - previous.height : null,
         expected: 0,
         id,
-        message: 'row starts after the previous sidebar row',
+        message: 'row starts exactly after the previous sidebar row',
       }),
     ]
   })
@@ -357,11 +375,11 @@ function assertSectionTitleLayout({
       id,
       message: 'section title label keeps desktop vertical placement',
     }),
-    ...expectAtLeast({
+    ...expectClose({
       actual: titleRow && firstContent ? firstContent.y - titleRow.y - titleRow.height : null,
       expected: 0,
       id: firstContentMetricId,
-      message: 'first row starts after the sidebar section title',
+      message: 'first row starts exactly after the sidebar section title',
     }),
   ]
 }
@@ -779,12 +797,7 @@ function assertFolderLayout({
 }
 
 function assertCountPillLayouts(metrics: NativeLayoutMetricMap): NativeLayoutAssertionFailure[] {
-  return [
-    ...assertCountPillLayout(metrics, { id: 'sidebar.item.inbox.count' }),
-    ...assertCountPillLayout(metrics, { id: 'sidebar.item.all-notes.count' }),
-    ...assertCountPillLayout(metrics, { id: 'sidebar.item.essays.count' }),
-    ...assertCountPillLayout(metrics, { compact: true, id: 'sidebar.section.types.count' }),
-  ]
+  return countPillMetricSpecs.flatMap((spec) => assertCountPillLayout(metrics, spec))
 }
 
 function assertCountPillLayout(

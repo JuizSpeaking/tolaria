@@ -67,14 +67,19 @@ describe('native layout metrics', () => {
       containerMetric({ height: 90, id: 'sidebar.section.favorites.container', width: 259.5, y: 104 }),
       sectionMetric('favorites'),
       itemMetric('sidebar.item.personal-journal', { hasCount: false, y: 30 }),
+      itemMetric('sidebar.item.tolaria-mvp', { hasCount: false, y: 60 }),
       containerMetric({ height: 72, id: 'sidebar.section.views.container', width: 259.5, y: 194 }),
       sectionMetric('views', 40),
       itemMetric('sidebar.item.view-active-procedures', { hasCount: true, y: 40 }),
       containerMetric({ height: 130, id: 'sidebar.section.types.container', width: 259.5, y: 266 }),
       sectionMetric('types'),
       itemMetric('sidebar.item.essays', { hasCount: true, y: 30 }),
+      itemMetric('sidebar.item.procedures', { hasCount: true, y: 62 }),
+      itemMetric('sidebar.item.responsibilities', { hasCount: true, y: 94 }),
       containerMetric({ height: 220, id: 'sidebar.section.folders.container', width: 259.5, y: 396 }),
       sectionMetric('folders'),
+      countPillMetric('sidebar.item.archive.count'),
+      countPillMetric('sidebar.item.view-active-procedures.count'),
       countPillMetric('sidebar.section.types.count', { compact: true }),
       folderTreeRootMetric(30, { height: 190, x: 6 }),
       containerMetric({ height: 90, id: 'sidebar.folder.writing.container' }),
@@ -106,13 +111,18 @@ describe('native layout metrics', () => {
       containerMetric({ height: 76, id: 'sidebar.section.favorites.container', width: 259.5, y: 80 }),
       sectionMetric('favorites', 18),
       itemMetric('sidebar.item.personal-journal', { hasCount: false, y: 16 }),
+      itemMetric('sidebar.item.tolaria-mvp', { hasCount: false, y: 46 }),
       containerMetric({ height: 72, id: 'sidebar.section.views.container', width: 259.5, y: 156 }),
       sectionMetric('views', 40),
       itemMetric('sidebar.item.view-active-procedures', { hasCount: true, y: 40 }),
       containerMetric({ height: 130, id: 'sidebar.section.types.container', width: 259.5, y: 220 }),
       sectionMetric('types'),
       itemMetric('sidebar.item.essays', { hasCount: true, y: 30 }),
+      itemMetric('sidebar.item.procedures', { hasCount: true, y: 62 }),
+      itemMetric('sidebar.item.responsibilities', { hasCount: true, y: 94 }),
       countPillMetric('sidebar.item.essays.count', { textY: 0 }),
+      countPillMetric('sidebar.item.archive.count'),
+      countPillMetric('sidebar.item.view-active-procedures.count'),
       containerMetric({ height: 180, id: 'sidebar.section.folders.container', width: 259.5, y: 350 }),
       sectionMetric('folders'),
       countPillMetric('sidebar.section.types.count', { compact: true }),
@@ -151,8 +161,8 @@ describe('native layout metrics', () => {
     expect(formatted).toContain('sidebar.item.inbox: row keeps desktop vertical padding')
     expect(formatted).toContain('sidebar.folder.writing: folder content keeps desktop indentation')
     expect(formatted).toContain('sidebar.section.favorites: section title keeps desktop header height')
-    expect(formatted).toContain('sidebar.item.personal-journal.row: first row starts after the sidebar section title')
-    expect(formatted).toContain('sidebar.item.all-notes: row starts after the previous sidebar row')
+    expect(formatted).toContain('sidebar.item.personal-journal.row: first row starts exactly after the sidebar section title')
+    expect(formatted).toContain('sidebar.item.all-notes: row starts exactly after the previous sidebar row')
     expect(formatted).toContain('sidebar.item.essays.count: count text is vertically centered inside native pill')
     expect(formatted).toContain('sidebar.section.primary: primary section keeps desktop top padding')
     expect(formatted).toContain('sidebar.folderTree.root: folder tree keeps desktop section inset')
