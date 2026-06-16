@@ -108,17 +108,15 @@ describe('mobile workspace suggestions', () => {
   it('suggests desktop saved-view fields and values from notes', () => {
     const notes = workspaceScenarioForId('default').notes
 
-    expect(mobileViewFieldSuggestions(notes, '').slice(0, 8)).toEqual([
+    expect(mobileViewFieldSuggestions(notes, '').slice(0, 5)).toEqual([
       'type',
-      'isa',
       'status',
       'title',
-      'filename',
-      'archived',
       'favorite',
       'body',
     ])
     expect(mobileViewFieldSuggestions(notes, 'bel')).toContain('belongs_to')
+    expect(mobileViewFieldSuggestions(notes, 'isa')).toEqual([])
     expect(mobileViewValueSuggestions(notes, 'type', 'ess')).toEqual(['Essay'])
     expect(mobileViewValueSuggestions(notes, 'isa', 'pro')).toEqual(['Procedure'])
     expect(mobileViewValueSuggestions(notes, 'filename', 'workflow')).toEqual(['Workflow Orchestration Essay.md'])

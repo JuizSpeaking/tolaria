@@ -20,7 +20,7 @@ type FolderPath = string
 
 const DESKTOP_SUGGESTED_PROPERTY_KEYS = ['Status', 'Date', 'URL'] as const
 const DESKTOP_SUGGESTED_RELATIONSHIP_KEYS = ['belongs_to', 'related_to', 'has'] as const
-const DESKTOP_VIEW_BUILT_IN_FIELDS = ['type', 'isa', 'status', 'title', 'filename', 'archived', 'favorite', 'body'] as const
+const DESKTOP_VIEW_BUILT_IN_FIELDS = ['type', 'status', 'title', 'favorite', 'body'] as const
 const BUILT_IN_VIEW_VALUE_RESOLVERS: Record<string, ViewValueResolver> = {
   archived: (note) => [String(note.archived === true)],
   body: (note) => note.snippet ? [note.snippet] : [],
