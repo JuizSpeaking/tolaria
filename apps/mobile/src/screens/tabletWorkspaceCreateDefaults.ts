@@ -20,6 +20,7 @@ type DefaultWriter = (defaults: MutableCreateDefaults, values: unknown[]) => voi
 type ScalarDefaultKey = keyof Pick<MobileCreateNoteDefaults, 'archived' | 'favorite' | 'folderPath' | 'organized' | 'status' | 'template' | 'type'>
 
 const ignoredDefaultFields = new Set(['created', 'date', 'links', 'modified', 'title'])
+const ignoredTypePropertyDefaultFields = new Set(['is_a', 'title', 'type'])
 const relationshipDefaultFields = new Set(['belongs_to', 'related_to', 'has'])
 const scalarDefaultKeys: ScalarDefaultKey[] = ['type', 'status', 'folderPath', 'archived', 'favorite', 'organized', 'template']
 const builtInDefaultWriters: Record<string, DefaultWriter> = {
@@ -79,7 +80,10 @@ function applyTypeDefinitionDefaults(
 function valuedProperties(properties: Record<string, MobilePropertyValue>) {
   return Object.fromEntries(
     Object.entries(properties).filter(([key, value]) => {
-      return hasValuedPropertyDefault(value) && !isRelationshipDefaultField(normalizedFieldKey(key))
+      const normalizedKey = normalizedFieldKey(key)
+      return isDefaultablePropertyValue(value)
+        && !ignoredTypePropertyDefaultFields.has(normalizedKey)
+        && !isRelationshipDefaultField(normalizedKey)
     }),
   )
 }
@@ -93,9 +97,9 @@ function valuedRelationships(relationships: Record<string, string[]>) {
   )
 }
 
-function hasValuedPropertyDefault(value: MobilePropertyValue): boolean {
-  if (Array.isArray(value)) return value.length > 0
-  return value !== ''
+function isDefaultablePropertyValue(value: MobilePropertyValue): value is string | number | boolean {
+  if (typeof value === 'string') return value.trim().length > 0
+  return typeof value === 'number' || typeof value === 'boolean'
 }
 
 function defaultsForSavedView(

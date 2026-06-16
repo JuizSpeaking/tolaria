@@ -29,8 +29,15 @@ describe('tablet workspace create-note defaults', () => {
       Project: {
         properties: {
           Empty: '',
+          Estimate: 5,
+          'Is A': 'Injected Type',
+          Milestones: ['Alpha'],
+          Optional: false,
           Priority: 'High',
+          title: 'Injected Title',
+          type: 'Injected Type',
           has: 'Milestone',
+          Whitespace: '   ',
         },
         relationships: {
           belongs_to: ['[[Client Work]]'],
@@ -39,7 +46,11 @@ describe('tablet workspace create-note defaults', () => {
         template: '## Objective\n\n',
       },
     })).toEqual({
-      properties: { Priority: 'High' },
+      properties: {
+        Estimate: 5,
+        Optional: false,
+        Priority: 'High',
+      },
       relationships: { belongs_to: ['[[Client Work]]'] },
       template: '## Objective\n\n',
       type: 'Project',
