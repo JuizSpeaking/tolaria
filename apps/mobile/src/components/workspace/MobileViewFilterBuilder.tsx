@@ -33,8 +33,6 @@ const operators: MobileViewFilterOp[] = [
   'not_equals',
   'contains',
   'not_contains',
-  'any_of',
-  'none_of',
   'is_empty',
   'is_not_empty',
   'before',
