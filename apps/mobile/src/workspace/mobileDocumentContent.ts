@@ -25,6 +25,7 @@ type NoteTitleText = string
 type PlainText = string
 type ReadHtmlBlockResult = { html: HtmlSnippet; nextIndex: number }
 type ReadParagraphResult = { lines: MarkdownLines; nextIndex: number }
+type ReadQuoteResult = { paragraphs: MarkdownLines[]; nextIndex: number }
 type UrlText = string
 type WikilinkTarget = string
 
@@ -249,21 +250,40 @@ function readHeading(lines: MarkdownLines, startIndex: number): ReadHtmlBlockRes
 }
 
 function readQuote(lines: MarkdownLines, startIndex: number): ReadHtmlBlockResult | null {
-  const quoteLines: string[] = []
+  const quote = readQuoteParagraphs(lines, startIndex)
+  return quote ? { html: blockquoteHtml(quote.paragraphs), nextIndex: quote.nextIndex } : null
+}
+
+function readQuoteParagraphs(lines: MarkdownLines, startIndex: number): ReadQuoteResult | null {
+  const paragraphs: MarkdownLines[] = [[]]
   let index = startIndex
 
   while (index < lines.length) {
     const match = lines[index]?.match(/^>\s?(.*)$/)
     if (!match) break
-    quoteLines.push(match[1])
+
+    appendQuoteLine(paragraphs, match[1])
     index += 1
   }
 
-  if (quoteLines.length === 0) return null
-  return {
-    html: `<blockquote><p>${inlineMarkdownToHtml(quoteLines.join(' '))}</p></blockquote>`,
-    nextIndex: index,
+  const nonEmptyParagraphs = paragraphs.filter((paragraph) => paragraph.length > 0)
+  return nonEmptyParagraphs.length > 0 ? { paragraphs: nonEmptyParagraphs, nextIndex: index } : null
+}
+
+function appendQuoteLine(paragraphs: MarkdownLines[], line: MarkdownLine): void {
+  if (line.trim()) {
+    paragraphs[paragraphs.length - 1]?.push(line)
+  } else if (paragraphs[paragraphs.length - 1]?.length) {
+    paragraphs.push([])
   }
+}
+
+function blockquoteHtml(paragraphs: MarkdownLines[]): HtmlSnippet {
+  return `<blockquote>${paragraphs.map(quoteParagraphHtml).join('')}</blockquote>`
+}
+
+function quoteParagraphHtml(lines: MarkdownLines): HtmlSnippet {
+  return `<p>${paragraphLinesToHtml(lines)}</p>`
 }
 
 function readIndentedListSourceBlock(lines: MarkdownLines, startIndex: number): ReadHtmlBlockResult | null {

@@ -132,6 +132,12 @@ Updated body.
     expect(html).toBe('<p>Intro</p>\n<p>$$<br>\\int_0^1 x\\,dx<br>$$</p>\n<p>Done</p>')
   })
 
+  it('hydrates blockquotes without collapsing explicit breaks or quoted paragraphs', () => {
+    const html = mobileMarkdownBodyToTentapHtml('> First quote line  \n> Second line\n> \n> Follow-up paragraph\n\nDone\n')
+
+    expect(html).toBe('<blockquote><p>First quote line<br>Second line</p><p>Follow-up paragraph</p></blockquote>\n<p>Done</p>')
+  })
+
   it('keeps indented display math blocks editable as source until nested block editing is supported', () => {
     const html = mobileMarkdownBodyToTentapHtml('  $$\n  x^2\n  $$\n\nDone\n')
 
@@ -332,99 +338,31 @@ Updated body.
   })
 
   it('serializes display math hard breaks back to durable markdown source', () => {
-    const document: TiptapJsonNode = {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [
-            { text: '$$', type: 'text' },
-            { type: 'hardBreak' },
-            { text: '\\int_0^1 x\\,dx', type: 'text' },
-            { type: 'hardBreak' },
-            { text: '$$', type: 'text' },
-          ],
-        },
-      ],
-    }
+    const document = paragraphDocument('$$', '\\int_0^1 x\\,dx', '$$')
 
     expect(tiptapJsonToMobileMarkdown(document)).toBe('$$\n\\int_0^1 x\\,dx\n$$')
   })
 
   it('keeps indented display math paragraphs as editable markdown source after native saves', () => {
-    const document: TiptapJsonNode = {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [
-            { text: '  $$', type: 'text' },
-            { type: 'hardBreak' },
-            { text: '  x^2', type: 'text' },
-            { type: 'hardBreak' },
-            { text: '  $$', type: 'text' },
-          ],
-        },
-      ],
-    }
+    const document = paragraphDocument('  $$', '  x^2', '  $$')
 
     expect(tiptapJsonToMobileMarkdown(document)).toBe('  $$\n  x^2\n  $$')
   })
 
   it('keeps indented fenced code paragraphs as editable markdown source after native saves', () => {
-    const document: TiptapJsonNode = {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [
-            { text: '  ```ts', type: 'text' },
-            { type: 'hardBreak' },
-            { text: '  const x = 1', type: 'text' },
-            { type: 'hardBreak' },
-            { text: '  ```', type: 'text' },
-          ],
-        },
-      ],
-    }
+    const document = paragraphDocument('  ```ts', '  const x = 1', '  ```')
 
     expect(tiptapJsonToMobileMarkdown(document)).toBe('  ```ts\n  const x = 1\n  ```')
   })
 
   it('keeps non-math TenTap hard breaks as markdown hard break markers', () => {
-    const document: TiptapJsonNode = {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [
-            { text: 'Line one', type: 'text' },
-            { type: 'hardBreak' },
-            { text: 'Line two', type: 'text' },
-          ],
-        },
-      ],
-    }
+    const document = paragraphDocument('Line one', 'Line two')
 
     expect(tiptapJsonToMobileMarkdown(document)).toBe('Line one  \nLine two')
   })
 
   it('keeps unsupported table paragraphs as editable markdown table lines after native saves', () => {
-    const document: TiptapJsonNode = {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [
-            { text: '| Surface | Target |', type: 'text' },
-            { type: 'hardBreak' },
-            { text: '| --- | --- |', type: 'text' },
-            { type: 'hardBreak' },
-            { text: '| Editor | WYSIWYG |', type: 'text' },
-          ],
-        },
-      ],
-    }
+    const document = paragraphDocument('| Surface | Target |', '| --- | --- |', '| Editor | WYSIWYG |')
 
     expect(tiptapJsonToMobileMarkdown(document)).toBe([
       '| Surface | Target |',
@@ -434,23 +372,7 @@ Updated body.
   })
 
   it('keeps unsupported details paragraphs as editable markdown source after native saves', () => {
-    const document: TiptapJsonNode = {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [
-            { text: '<details><summary>Manufacturing</summary>', type: 'text' },
-            { type: 'hardBreak' },
-            { type: 'hardBreak' },
-            { text: 'Made in Italy', type: 'text' },
-            { type: 'hardBreak' },
-            { type: 'hardBreak' },
-            { text: '</details>', type: 'text' },
-          ],
-        },
-      ],
-    }
+    const document = paragraphDocument('<details><summary>Manufacturing</summary>', '', 'Made in Italy', '', '</details>')
 
     expect(tiptapJsonToMobileMarkdown(document)).toBe([
       '<details><summary>Manufacturing</summary>',
@@ -462,24 +384,32 @@ Updated body.
   })
 
   it('keeps detached indented list paragraphs as editable markdown source after native saves', () => {
-    const document: TiptapJsonNode = {
-      type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [
-            { text: '  1. Contextualize: Dump TOC into an LLM.', type: 'text' },
-            { type: 'hardBreak' },
-            { text: '  2. Summarize major sections.', type: 'text' },
-          ],
-        },
-      ],
-    }
+    const document = paragraphDocument(
+      '  1. Contextualize: Dump TOC into an LLM.',
+      '  2. Summarize major sections.',
+    )
 
     expect(tiptapJsonToMobileMarkdown(document)).toBe([
       '  1. Contextualize: Dump TOC into an LLM.',
       '  2. Summarize major sections.',
     ].join('\n'))
+  })
+
+  it('serializes blockquote paragraphs with quoted hard breaks and blank quote separators', () => {
+    const document: TiptapJsonNode = {
+      type: 'doc',
+      content: [
+        {
+          type: 'blockquote',
+          content: [
+            paragraphNode('First quote line', 'Second line'),
+            paragraphNode('Follow-up paragraph'),
+          ],
+        },
+      ],
+    }
+
+    expect(tiptapJsonToMobileMarkdown(document)).toBe('> First quote line  \n> Second line\n> \n> Follow-up paragraph')
   })
 
   it('serializes TenTap image nodes back to portable markdown images', () => {
@@ -499,3 +429,17 @@ Updated body.
     expect(tiptapJsonToMobileMarkdown(document)).toBe('![Architecture diagram](<attachments/mobile diagram.png>)')
   })
 })
+
+function paragraphDocument(...lines: string[]): TiptapJsonNode {
+  return { type: 'doc', content: [paragraphNode(...lines)] }
+}
+
+function paragraphNode(...lines: string[]): TiptapJsonNode {
+  return {
+    type: 'paragraph',
+    content: lines.flatMap((line, index): TiptapJsonNode[] => [
+      ...(index > 0 ? [{ type: 'hardBreak' }] : []),
+      ...(line ? [{ text: line, type: 'text' }] : []),
+    ]),
+  }
+}
