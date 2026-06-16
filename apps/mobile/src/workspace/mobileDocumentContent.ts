@@ -167,6 +167,7 @@ const htmlBlockReaders = [
   readIndentedHeadingSourceBlock,
   readHeading,
   readQuote,
+  readIndentedTextSourceBlock,
   readIndentedListSourceBlock,
   readList,
 ]
@@ -302,6 +303,19 @@ function readIndentedListSourceBlock(lines: MarkdownLines, startIndex: number): 
   }
 }
 
+function readIndentedTextSourceBlock(lines: MarkdownLines, startIndex: number): ReadHtmlBlockResult | null {
+  if (!isIndentedTextSourceLine(lines[startIndex] ?? '')) return null
+
+  const sourceLines: string[] = []
+  let index = startIndex
+  while (index < lines.length && isIndentedTextSourceLine(lines[index] ?? '')) {
+    sourceLines.push(lines[index] ?? '')
+    index += 1
+  }
+
+  return sourceLinesParagraphBlock(sourceLines, index)
+}
+
 function sourceLinesParagraphBlock(sourceLines: MarkdownLines, nextIndex: number): ReadHtmlBlockResult {
   return {
     html: `<p>${sourceLines.map(escapeHtml).join('<br>')}</p>`,
@@ -385,6 +399,10 @@ function listLine(line: MarkdownLine): (MobileMarkdownListItem & { kind: ListKin
 
 function isIndentedListSourceLine(line: MarkdownLine): boolean {
   return hasLeadingWhitespace(line) && listLine(line) !== null
+}
+
+function isIndentedTextSourceLine(line: MarkdownLine): boolean {
+  return /^(?: {4,}|\t)\S/u.test(line)
 }
 
 function hasLeadingWhitespace(line: MarkdownLine): boolean {
@@ -478,6 +496,9 @@ function normalizeMobileFallbackParagraphMarkdown(markdown: MarkdownBody): Markd
   const indentedListSourceMarkdown = normalizeIndentedListSourceMarkdown(markdown)
   if (indentedListSourceMarkdown !== markdown) return indentedListSourceMarkdown
 
+  const indentedTextSourceMarkdown = normalizeIndentedTextSourceMarkdown(markdown)
+  if (indentedTextSourceMarkdown !== markdown) return indentedTextSourceMarkdown
+
   return normalizeUnsupportedTableMarkdown(markdown)
 }
 
@@ -502,6 +523,13 @@ function isIndentedCodeFenceSourceParagraph(lines: MarkdownLines): boolean {
 function normalizeIndentedListSourceMarkdown(markdown: MarkdownBody): MarkdownBody {
   const lines = markdown.split('\n').map(stripHardBreakMarker)
   if (!lines.every(isIndentedListSourceLine)) return markdown
+
+  return lines.join('\n')
+}
+
+function normalizeIndentedTextSourceMarkdown(markdown: MarkdownBody): MarkdownBody {
+  const lines = markdown.split('\n').map(stripHardBreakMarker)
+  if (!lines.every(isIndentedTextSourceLine)) return markdown
 
   return lines.join('\n')
 }

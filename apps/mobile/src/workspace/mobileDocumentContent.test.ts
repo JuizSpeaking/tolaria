@@ -189,6 +189,12 @@ Updated body.
     expect(html).not.toContain('<pre>')
   })
 
+  it('keeps root indented text blocks editable as source until indented code editing is supported', () => {
+    const html = mobileMarkdownBodyToTentapHtml('    Teach your AI agent the workflow context.\n    Then run the task.\n\nDone\n')
+
+    expect(html).toBe('<p>    Teach your AI agent the workflow context.<br>    Then run the task.</p>\n<p>Done</p>')
+  })
+
   it('hydrates explicit markdown hard breaks as TenTap line breaks', () => {
     const html = mobileMarkdownBodyToTentapHtml('Line one  \nLine two\nSoft\nwrapped\n\nBackslash\\\nbreak\n')
 
@@ -353,6 +359,14 @@ Updated body.
     const document = paragraphDocument('  ```ts', '  const x = 1', '  ```')
 
     expect(tiptapJsonToMobileMarkdown(document)).toBe('  ```ts\n  const x = 1\n  ```')
+  })
+
+  it('keeps root indented text paragraphs as editable markdown source after native saves', () => {
+    const document = paragraphDocument('    Teach your AI agent the workflow context.', '    Then run the task.')
+
+    expect(tiptapJsonToMobileMarkdown(document)).toBe(
+      '    Teach your AI agent the workflow context.\n    Then run the task.',
+    )
   })
 
   it('keeps non-math TenTap hard breaks as markdown hard break markers', () => {

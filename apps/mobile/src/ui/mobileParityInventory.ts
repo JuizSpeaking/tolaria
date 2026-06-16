@@ -176,7 +176,7 @@ export const mobileParityInventory = [
     surface: 'Markdown formatting toolbar',
   },
   {
-    assertions: ['TenTap native simulator rendering', 'document-content hydration and serialization with raw frontmatter, desktop highlight, wikilink alias/no-alias, display math, hard-break, blockquote paragraphs, unsupported-table, details block, root image, and indented image/heading/list/code-fence/display-math source regression checks'],
+    assertions: ['TenTap native simulator rendering', 'document-content hydration and serialization with raw frontmatter, desktop highlight, wikilink alias/no-alias, display math, hard-break, blockquote paragraphs, unsupported-table, details block, root image, and indented image/heading/list/code-fence/display-math/text source regression checks'],
     contracts: ['desktopEditorParity'],
     desktopSource: 'EditorTheme.css, theme.json, BlockNote/Tiptap document editing, and desktop markdown serialization',
     mobileFile: 'src/components/workspace/MobileWysiwygMarkdownEditor.native.tsx',
