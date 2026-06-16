@@ -16,6 +16,14 @@ import type {
 type TypeName = string
 type TypePath = string
 type TypeRawContent = string
+type FrontmatterKey = string
+
+const systemMetadataAliases = {
+  icon: ['_icon', 'icon'],
+  order: ['_order', 'order'],
+  sidebarLabel: ['_sidebar_label', 'sidebar_label', 'sidebar label'],
+  sort: ['_sort', 'sort'],
+} as const
 
 export type MobileTypeDefinitionPatch = {
   icon?: string | null
@@ -154,13 +162,13 @@ function patchedTypeFrontmatter(
 ): LocalVaultFrontmatter {
   const nextFrontmatter = { ...frontmatter }
   writeFrontmatterValue(nextFrontmatter, 'type', 'Type')
-  writeOptionalFrontmatterValue(nextFrontmatter, 'sidebar label', patch.label)
+  writeOptionalSystemMetadataValue(nextFrontmatter, systemMetadataAliases.sidebarLabel, patch.label)
   writeOptionalFrontmatterValue(nextFrontmatter, 'color', patch.tone)
-  writeOptionalFrontmatterValue(nextFrontmatter, 'icon', patch.icon)
+  writeOptionalSystemMetadataValue(nextFrontmatter, systemMetadataAliases.icon, patch.icon)
   writeOptionalFrontmatterValue(nextFrontmatter, 'template', patch.template)
-  writeOptionalFrontmatterValue(nextFrontmatter, 'sort', patch.sort)
+  writeOptionalSystemMetadataValue(nextFrontmatter, systemMetadataAliases.sort, patch.sort)
   writeOptionalFrontmatterValue(nextFrontmatter, '_list_properties_display', patch.listPropertiesDisplay)
-  writeOptionalFrontmatterValue(nextFrontmatter, 'order', patch.order)
+  writeOptionalSystemMetadataValue(nextFrontmatter, systemMetadataAliases.order, patch.order)
 
   if (patch.visible !== undefined) {
     writeFrontmatterValue(nextFrontmatter, 'visible', patch.visible === false ? false : null)
@@ -204,6 +212,19 @@ function writeOptionalFrontmatterValue(
   value: LocalVaultFrontmatterValue | undefined,
 ) {
   if (value !== undefined) writeFrontmatterValue(frontmatter, key, value)
+}
+
+function writeOptionalSystemMetadataValue(
+  frontmatter: LocalVaultFrontmatter,
+  [canonicalKey, ...aliases]: readonly [FrontmatterKey, ...FrontmatterKey[]],
+  value: LocalVaultFrontmatterValue | undefined,
+) {
+  if (value === undefined) return
+
+  for (const key of aliases) {
+    Reflect.deleteProperty(frontmatter, key)
+  }
+  writeFrontmatterValue(frontmatter, canonicalKey, value)
 }
 
 function writeFrontmatterValue(

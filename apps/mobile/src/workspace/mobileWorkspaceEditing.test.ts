@@ -288,14 +288,14 @@ describe('applyMobileWorkspaceEdit', () => {
       })]),
     )
     expect(result.writes).toEqual([{
-      content: expect.stringContaining('sidebar label: Runbooks'),
+      content: expect.stringContaining('_sidebar_label: Runbooks'),
       kind: 'saveNote',
       path: 'procedure.md',
     }])
     const typeWrite = result.writes.find((write) => write.kind === 'saveNote')
     expect(typeWrite?.content).toContain('color: green')
-    expect(typeWrite?.content).toContain('icon: folder')
-    expect(typeWrite?.content).toContain('sort: "property:Priority:desc"')
+    expect(typeWrite?.content).toContain('_icon: folder')
+    expect(typeWrite?.content).toContain('_sort: "property:Priority:desc"')
     expect(typeWrite?.content).toContain('_list_properties_display:\n  - status\n  - belongs_to')
   })
 
