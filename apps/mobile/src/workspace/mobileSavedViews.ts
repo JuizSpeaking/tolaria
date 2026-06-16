@@ -98,11 +98,9 @@ const statusSortOrder = new Map<string, number>([
 const builtInFieldResolvers: Record<string, BuiltInFieldResolver> = {
   archived: (note) => scalarField(note.archived === true),
   body: (note) => scalarField(note.snippet),
-  created: (note) => scalarField(note.createdAt ?? note.created),
   favorite: (note) => scalarField(note.favorite),
   filename: (note) => scalarField(note.path?.split('/').at(-1) ?? note.id),
   isa: (note) => scalarField(note.type),
-  modified: (note) => scalarField(note.modifiedAt ?? note.modified),
   organized: (note) => scalarField(note.organized === true),
   path: (note) => scalarField(note.path ?? note.id),
   status: (note) => scalarField(note.status),

@@ -231,6 +231,12 @@ filters:
     ]).map((candidate) => candidate.id)).toEqual(['Procedures/mobile-runbook.md'])
   })
 
+  it('resolves created and modified filters through custom properties like desktop', () => {
+    const view = parseMobileSavedViewFile({ content: 'name: Custom\nfilters:\n  all:\n    - field: created\n      op: equals\n      value: 2026-06-01\n    - field: modified\n      op: equals\n      value: custom-modified\n', relativePath: 'views/custom.yml' }, 0)
+    const notes = [note({ createdAt: Date.parse('2020-01-01'), id: 'custom-property-match', modifiedAt: Date.parse('2020-01-02'), properties: [{ key: 'created', label: 'created', value: '2026-06-01' }, { key: 'modified', label: 'modified', value: 'custom-modified' }] }), note({ createdAt: Date.parse('2026-06-01'), id: 'timestamp-only', modifiedAt: Date.parse('2020-01-02') })]
+    expect(evaluateMobileSavedView(view!, notes).map((candidate) => candidate.id)).toEqual(['custom-property-match'])
+  })
+
   it('evaluates regex-enabled saved-view filters like desktop', () => {
     const view = parseMobileSavedViewFile({
       relativePath: 'views/regex.yml',
