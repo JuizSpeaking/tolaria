@@ -20,7 +20,7 @@ Usage:
 
 Options:
   --device <udid>       Simulator UDID. Defaults to MOBILE_QA_SIMULATOR_UDID, then the booted iPad.
-  --last <duration>     log show window, such as 90s or 5m. Defaults to ${defaultLogWindow}.
+  --last <duration>     log show window when no URL is opened, such as 90s or 5m. Defaults to ${defaultLogWindow}.
   --open-url <url>      Open a simulator URL before collecting logs. Use Expo deep links with layoutProbe=1.
                        http(s) URLs are rejected because they open Mobile Safari, not the native app.
   --wait <ms>           Delay after opening a URL before collecting logs. Defaults to 3000.
@@ -69,15 +69,15 @@ function selectDevice(requestedDevice) {
   return selected.udid
 }
 
-function collectSimulatorLogs(device, last) {
+function collectSimulatorLogs(device, { last, start }) {
+  const timeArgs = start ? ['--start', start] : ['--last', last]
   return run('xcrun', [
     'simctl',
     'spawn',
     device,
     'log',
     'show',
-    '--last',
-    last,
+    ...timeArgs,
     '--style',
     'compact',
     '--predicate',
@@ -111,6 +111,22 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+function simulatorLogTimestamp(date) {
+  return [
+    date.getFullYear(),
+    padTimestampPart(date.getMonth() + 1),
+    padTimestampPart(date.getDate()),
+  ].join('-') + ' ' + [
+    padTimestampPart(date.getHours()),
+    padTimestampPart(date.getMinutes()),
+    padTimestampPart(date.getSeconds()),
+  ].join(':')
+}
+
+function padTimestampPart(value) {
+  return String(value).padStart(2, '0')
+}
+
 async function main() {
   const args = process.argv.slice(2)
   if (args.includes('--help')) {
@@ -122,13 +138,15 @@ async function main() {
   const openUrl = readOption(args, '--open-url', undefined)
   const last = readOption(args, '--last', defaultLogWindow)
   const waitMs = Number(readOption(args, '--wait', '3000'))
+  let logStart
 
   if (openUrl) {
     assertNativeQaOpenUrl(openUrl, 'Native iOS layout metrics')
+    logStart = simulatorLogTimestamp(new Date(Date.now() - 1000))
     await openFreshProbeUrl(device, openUrl, waitMs)
   }
 
-  const logs = collectSimulatorLogs(device, last)
+  const logs = collectSimulatorLogs(device, { last, start: logStart })
   const metrics = latestNativeLayoutMetrics(parseNativeLayoutMetrics(logs))
   const failures = assertNativeMobileLayoutMetrics(metrics)
 
