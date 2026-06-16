@@ -4,17 +4,17 @@ import {
   type LocalVaultFrontmatter,
   type LocalVaultFrontmatterValue,
 } from './localVaultFrontmatter'
-import type { MobileEditorBlock, MobileEditorInline, MobileNote } from './mobileWorkspaceModel'
+import { isMobileDisplayMathStart, readMobileDisplayMathBlock } from './mobileDisplayMath'
+import { mobileEditorBlocksToMarkdown, mobileFallbackBulletsToMarkdown } from './mobileEditorBlockMarkdown'
+import type { MobileNote } from './mobileWorkspaceModel'
 
 type MarkdownContent = string
 type MarkdownBody = string
-type CodeLanguage = string
 type FrontmatterKey = string
 type HtmlSnippet = string
 type LinkLabel = string
 type MarkdownLine = string
 type MarkdownLines = MarkdownLine[]
-type MarkdownTableCell = string
 type NoteTitleText = string
 type PlainText = string
 type ReadHtmlBlockResult = { html: HtmlSnippet; nextIndex: number }
@@ -116,82 +116,7 @@ function serializeFrontmatterEntry(key: FrontmatterKey, value: LocalVaultFrontma
 
 function optionalTitleHeading(title: NoteTitleText): string {
   const text = title.trim()
-  return text ? `# ${escapeMarkdownLine(text)}` : ''
-}
-
-function mobileEditorBlocksToMarkdown(blocks: MobileEditorBlock[]): string {
-  return blocks.map(mobileEditorBlockToMarkdown).filter(Boolean).join('\n\n')
-}
-
-function mobileEditorBlockToMarkdown(block: MobileEditorBlock): string {
-  return editorBlockMarkdownSerializers[block.kind](block as never)
-}
-
-const editorBlockMarkdownSerializers = {
-  paragraph: (block: Extract<MobileEditorBlock, { kind: 'paragraph' }>) => mobileEditorInlineToMarkdown(block.content),
-  heading: (block: Extract<MobileEditorBlock, { kind: 'heading' }>) => `${'#'.repeat(block.level)} ${escapeMarkdownLine(block.text)}`,
-  bullets: (block: Extract<MobileEditorBlock, { kind: 'bullets' }>) => block.items.map((item) => `${listIndent(item.depth)}- ${mobileEditorInlineToMarkdown(item.content)}`).join('\n'),
-  orderedList: (block: Extract<MobileEditorBlock, { kind: 'orderedList' }>) => block.items.map((item) => `${listIndent(item.depth)}${item.marker} ${mobileEditorInlineToMarkdown(item.content)}`).join('\n'),
-  tasks: (block: Extract<MobileEditorBlock, { kind: 'tasks' }>) => block.items.map((item) => `${listIndent(item.depth)}- [${item.checked ? 'x' : ' '}] ${mobileEditorInlineToMarkdown(item.content)}`).join('\n'),
-  quote: (block: Extract<MobileEditorBlock, { kind: 'quote' }>) => `> ${mobileEditorInlineToMarkdown(block.content)}`,
-  codeBlock: (block: Extract<MobileEditorBlock, { kind: 'codeBlock' }>) => codeBlockToMarkdown(block.code, block.language ?? null),
-  divider: () => '---',
-  table: (block: Extract<MobileEditorBlock, { kind: 'table' }>) => tableBlockToMarkdown(block.headers, block.rows),
-} satisfies Record<MobileEditorBlock['kind'], (block: never) => string>
-
-function mobileFallbackBulletsToMarkdown(bullets: MarkdownLines): string {
-  return bullets.map((bullet) => `- ${escapeMarkdownLine(bullet)}`).join('\n')
-}
-
-function mobileEditorInlineToMarkdown(content: MobileEditorInline[]): string {
-  return content.map(inlineSegmentToMarkdown).join('')
-}
-
-function inlineSegmentToMarkdown(segment: MobileEditorInline): string {
-  let text = escapeInlineMarkdown(segment.text)
-  if (segment.wikilinkTarget) text = wikilinkToMarkdown(segment.wikilinkTarget, segment.text)
-  if (segment.linkHref) text = `[${escapeLinkLabel(segment.text)}](${segment.linkHref})`
-  if (segment.code) text = `\`${segment.text.replaceAll('`', '\\`')}\``
-  if (segment.bold) text = `**${text}**`
-  if (segment.italic) text = `*${text}*`
-  if (segment.strike) text = `~~${text}~~`
-  return text
-}
-
-function wikilinkToMarkdown(target: WikilinkTarget, label: LinkLabel): string {
-  return target === label ? `[[${target}]]` : `[[${target}|${label}]]`
-}
-
-function listIndent(depth: number | undefined): string {
-  return '  '.repeat(depth ?? 0)
-}
-
-function codeBlockToMarkdown(code: PlainText, language: CodeLanguage | null): string {
-  return `\`\`\`${language ?? ''}\n${code}\n\`\`\``
-}
-
-function tableBlockToMarkdown(headers: MarkdownTableCell[], rows: MarkdownTableCell[][]): string {
-  return [
-    `| ${headers.map(escapeTableCell).join(' | ')} |`,
-    `| ${headers.map(() => '---').join(' | ')} |`,
-    ...rows.map((row) => `| ${row.map(escapeTableCell).join(' | ')} |`),
-  ].join('\n')
-}
-
-function escapeMarkdownLine(text: PlainText): string {
-  return text.replace(/\r?\n/gu, ' ')
-}
-
-function escapeInlineMarkdown(text: PlainText): string {
-  return text.replaceAll('\\', '\\\\')
-}
-
-function escapeLinkLabel(text: LinkLabel): string {
-  return text.replaceAll('[', '\\[').replaceAll(']', '\\]')
-}
-
-function escapeTableCell(text: MarkdownTableCell): string {
-  return escapeMarkdownLine(text).replaceAll('|', '\\|')
+  return text ? `# ${text.replace(/\r?\n/gu, ' ')}` : ''
 }
 
 function readCodeBlock(lines: MarkdownLines, startIndex: number): ReadHtmlBlockResult | null {
@@ -214,6 +139,7 @@ function readCodeBlock(lines: MarkdownLines, startIndex: number): ReadHtmlBlockR
 
 const htmlBlockReaders = [
   readCodeBlock,
+  readDisplayMathBlock,
   readTable,
   readHorizontalRule,
   readHeading,
@@ -228,6 +154,13 @@ function readHtmlBlock(lines: MarkdownLines, startIndex: number): ReadHtmlBlockR
   }
 
   return null
+}
+
+function readDisplayMathBlock(lines: MarkdownLines, startIndex: number): ReadHtmlBlockResult | null {
+  const displayMath = readMobileDisplayMathBlock(lines, startIndex)
+  return displayMath
+    ? { html: `<p>${displayMath.lines.map(escapeHtml).join('<br>')}</p>`, nextIndex: displayMath.nextIndex }
+    : null
 }
 
 function readTable(lines: MarkdownLines, startIndex: number): ReadHtmlBlockResult | null {
@@ -329,6 +262,7 @@ function isBlockStart(lines: MarkdownLines, index: number): boolean {
   if (/^(#{1,6})\s+/.test(line)) return true
   if (/^>\s?/.test(line)) return true
   if (isHorizontalRule(line)) return true
+  if (isMobileDisplayMathStart(line)) return true
   if (listLine(line)) return true
   return Boolean(lines[index + 1] && isMarkdownTableDivider(lines[index + 1] ?? ''))
 }
@@ -432,7 +366,7 @@ function serializeInlineChildren(nodes: TiptapJsonNode[]): string {
 
 function serializeInlineNode(node: TiptapJsonNode): string {
   if (node.type === 'text') return applyMarks(node.text ?? '', node.marks ?? [])
-  if (node.type === 'hardBreak') return '  \n'
+  if (node.type === 'hardBreak') return '\n'
   if (node.type === 'image') return imageMarkdown(node)
   return serializeInlineChildren(node.content ?? [])
 }

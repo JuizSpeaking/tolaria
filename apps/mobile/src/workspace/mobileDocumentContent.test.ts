@@ -100,6 +100,12 @@ Updated body.
     expect(html).not.toContain('<table>')
   })
 
+  it('keeps unsupported display math blocks editable as markdown lines in TenTap basic mode', () => {
+    const html = mobileMarkdownBodyToTentapHtml('Intro\n\n$$\n\\int_0^1 x\\,dx\n$$\n\nDone\n')
+
+    expect(html).toBe('<p>Intro</p>\n<p>$$<br>\\int_0^1 x\\,dx<br>$$</p>\n<p>Done</p>')
+  })
+
   it('serializes TenTap JSON back to Tolaria markdown', () => {
     const document: TiptapJsonNode = {
       type: 'doc',
@@ -184,5 +190,25 @@ Updated body.
       '| --- | --- |',
       '| Editor | WYSIWYG |',
     ].join('\n'))
+  })
+
+  it('serializes display math hard breaks back to durable markdown source', () => {
+    const document: TiptapJsonNode = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { text: '$$', type: 'text' },
+            { type: 'hardBreak' },
+            { text: '\\int_0^1 x\\,dx', type: 'text' },
+            { type: 'hardBreak' },
+            { text: '$$', type: 'text' },
+          ],
+        },
+      ],
+    }
+
+    expect(tiptapJsonToMobileMarkdown(document)).toBe('$$\n\\int_0^1 x\\,dx\n$$')
   })
 })
