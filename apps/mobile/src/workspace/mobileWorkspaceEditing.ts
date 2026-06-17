@@ -192,9 +192,9 @@ const mobileNoteEditHandlers: Record<MobileNoteEdit['type'], MobileNoteEditHandl
     if (edit.type !== 'setOrganized') return editableNote
     return deriveEditedNote(editableNote, writeFrontmatterValue(editableNote.rawContent, '_organized', edit.organized), typeDefinitions)
   },
-  toggleFavorite: ({ editableNote, note, typeDefinitions }, edit) => {
+  toggleFavorite: ({ editableNote, note, notes, typeDefinitions }, edit) => {
     if (edit.type !== 'toggleFavorite') return editableNote
-    return deriveEditedNote(editableNote, writeFrontmatterValue(editableNote.rawContent, '_favorite', !note.favorite), typeDefinitions)
+    return toggleFavorite(editableNote, note, notes, typeDefinitions)
   },
   updateNoteContent: ({ editableNote, typeDefinitions }, edit) => {
     if (edit.type !== 'updateNoteContent') return editableNote
@@ -525,6 +525,27 @@ function changeNoteType(
   if (!nextType || nextType === note.type) return note
 
   return deriveEditedNote(note, writeFrontmatterValue(note.rawContent, 'type', nextType), typeDefinitions)
+}
+
+function toggleFavorite(
+  note: EditableNoteInput,
+  currentNote: MobileNote,
+  notes: MobileNote[],
+  typeDefinitions?: MobileTypeDefinitions,
+): MobileNote {
+  if (currentNote.favorite) {
+    const withoutFavorite = writeFrontmatterValue(note.rawContent, '_favorite', null)
+    return deriveEditedNote(note, writeFrontmatterValue(withoutFavorite, '_favorite_index', null), typeDefinitions)
+  }
+
+  const withFavorite = writeFrontmatterValue(note.rawContent, '_favorite', true)
+  return deriveEditedNote(note, writeFrontmatterValue(withFavorite, '_favorite_index', nextFavoriteIndex(notes)), typeDefinitions)
+}
+
+function nextFavoriteIndex(notes: MobileNote[]): number {
+  return notes
+    .filter((candidate) => candidate.favorite)
+    .reduce((max, candidate) => Math.max(max, candidate.favoriteIndex ?? 0), 0) + 1
 }
 
 function deleteMobileNote(snapshot: MobileWorkspaceSnapshot, noteId: NoteId): MobileWorkspaceEditResult {
@@ -986,6 +1007,7 @@ function deriveEditableNote({
       editorBlocks: blocks,
       editorBullets: localVaultEditorBullets(blocks),
       favorite: frontmatterFlag(document.frontmatter, ['_favorite', 'favorite']),
+      favoriteIndex: frontmatterNumber(document.frontmatter, ['_favorite_index', 'favorite_index', 'favorite index']),
       links: linkCount(document.body),
       modified: '0m ago',
       organized: frontmatterFlag(document.frontmatter, ['_organized', 'organized']),
@@ -1048,6 +1070,7 @@ function fallbackMetadataFrontmatter(note: MobileNote): LocalVaultFrontmatter {
   addFrontmatterValue(frontmatter, 'aliases', nonEmptyStringList(note.aliases))
   addFrontmatterValue(frontmatter, 'tags', nonEmptyStringList(note.tags))
   addFrontmatterValue(frontmatter, '_favorite', trueFlagValue(note.favorite))
+  addFrontmatterValue(frontmatter, '_favorite_index', favoriteIndexValue(note.favoriteIndex))
   addFrontmatterValue(frontmatter, '_archived', trueFlagValue(note.archived))
   addFrontmatterValue(frontmatter, '_organized', trueFlagValue(note.organized))
   return frontmatter
@@ -1063,6 +1086,10 @@ function nonEmptyStringList(values: string[] | undefined): string[] | undefined 
 
 function trueFlagValue(value: boolean | undefined): true | undefined {
   return value ? true : undefined
+}
+
+function favoriteIndexValue(value: number | null | undefined): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 }
 
 function fallbackPropertyFrontmatter(note: MobileNote): LocalVaultFrontmatter {
@@ -1259,6 +1286,31 @@ function humanizeKey(key: FrontmatterKey): string {
 
 function normalizedFrontmatterKey(key: FrontmatterKey): string {
   return key.trim().toLowerCase().replace(/\s+/g, '_')
+}
+
+function frontmatterNumber(
+  frontmatter: LocalVaultFrontmatter,
+  keys: readonly FrontmatterKey[],
+): number | null {
+  for (const key of keys) {
+    const value = frontmatterValueForKey(frontmatter, key)
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+  }
+
+  return null
+}
+
+function frontmatterValueForKey(
+  frontmatter: LocalVaultFrontmatter,
+  key: FrontmatterKey,
+): LocalVaultFrontmatterValue | undefined {
+  const exactValue = frontmatter[key]
+  if (exactValue !== undefined) return exactValue
+
+  const normalizedKey = normalizedFrontmatterKey(key)
+  return Object.entries(frontmatter).find(([candidateKey]) => (
+    normalizedFrontmatterKey(candidateKey) === normalizedKey
+  ))?.[1]
 }
 
 function linkCount(body: MarkdownContent): number {

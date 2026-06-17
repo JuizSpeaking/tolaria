@@ -27,17 +27,26 @@ describe('mobile frontmatter writes', () => {
       noteId: 'legacy-metadata',
       type: 'deleteProperty',
     })
-    const note = noteById(sorted.snapshot, 'legacy-metadata')
+    const favorited = applyMobileWorkspaceEditWithWrites(sorted.snapshot, {
+      noteId: 'legacy-metadata',
+      type: 'toggleFavorite',
+    })
+    const note = noteById(favorited.snapshot, 'legacy-metadata')
 
     expect(note).toMatchObject({
       archived: true,
+      favorite: true,
       type: 'Project',
     })
     expect(note.rawContent).toContain('type: Project')
     expect(note.rawContent).toContain('_archived: true')
+    expect(note.rawContent).toContain('_favorite: true')
+    expect(note.rawContent).toContain('_favorite_index:')
     expect(note.rawContent).toContain('_icon: star')
     expect(note.rawContent).not.toContain('"Is A":')
     expect(note.rawContent).not.toContain('archived: false')
+    expect(note.rawContent).not.toContain('\nfavorite:')
+    expect(note.rawContent).not.toContain('\nfavorite_index:')
     expect(note.rawContent).not.toContain('\nicon:')
     expect(note.rawContent).not.toContain('\nsort:')
     expect(note.rawContent).not.toContain('\n_sort:')
@@ -54,6 +63,8 @@ function snapshotWithLegacyMetadataNote(): MobileWorkspaceSnapshot {
     rawContent: `---
 "Is A": Note
 archived: false
+favorite: false
+favorite_index: 3
 icon: rocket
 sort: modified:desc
 _sort: title:asc

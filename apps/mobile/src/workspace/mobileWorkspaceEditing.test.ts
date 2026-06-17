@@ -524,6 +524,65 @@ describe('applyMobileWorkspaceEdit', () => {
     )
   })
 
+  it('toggles favorites through desktop _favorite and _favorite_index frontmatter', () => {
+    const base = workspaceScenarioForId('default')
+    const openSourceNote = base.notes.find((candidate) => candidate.id === 'open-source-project')
+    if (!openSourceNote) throw new Error('Missing open source fixture note')
+    const favoritePeer = {
+      ...base.notes[0],
+      favorite: true,
+      favoriteIndex: 7,
+      rawContent: [
+        '---',
+        'title: Workflow Orchestration Essay',
+        '_favorite: true',
+        '_favorite_index: 7',
+        '---',
+        '# Workflow Orchestration Essay',
+        '',
+      ].join('\n'),
+    }
+    const editableOpenSourceNote = {
+      ...openSourceNote,
+      rawContent: [
+        '---',
+        'title: How I Run an Open Source Project',
+        'type: Procedure',
+        '---',
+        '# How I Run an Open Source Project',
+        '',
+      ].join('\n'),
+    }
+    const favoriteResult = applyMobileWorkspaceEditWithWrites({
+      ...base,
+      allNotes: [favoritePeer, editableOpenSourceNote],
+      notes: [favoritePeer, editableOpenSourceNote],
+    }, {
+      noteId: editableOpenSourceNote.id,
+      type: 'toggleFavorite',
+    })
+    const favorited = noteById(favoriteResult.snapshot, editableOpenSourceNote.id)
+
+    expect(favorited).toMatchObject({ favorite: true, favoriteIndex: 8 })
+    expect(favorited.rawContent).toContain('_favorite: true')
+    expect(favorited.rawContent).toContain('_favorite_index: 8')
+    expect(favoriteResult.writes).toEqual([{
+      content: favorited.rawContent,
+      kind: 'saveNote',
+      path: 'Tolaria/Mobile UI/How I Run an Open Source Project.md',
+    }])
+
+    const unfavoriteResult = applyMobileWorkspaceEditWithWrites(favoriteResult.snapshot, {
+      noteId: editableOpenSourceNote.id,
+      type: 'toggleFavorite',
+    })
+    const unfavorited = noteById(unfavoriteResult.snapshot, editableOpenSourceNote.id)
+
+    expect(unfavorited).toMatchObject({ favorite: false, favoriteIndex: null })
+    expect(unfavorited.rawContent).not.toContain('_favorite:')
+    expect(unfavorited.rawContent).not.toContain('_favorite_index:')
+  })
+
   it('normalizes built-in relationship labels to desktop frontmatter keys', () => {
     const snapshot = applyMobileWorkspaceEdit(workspaceScenarioForId('default'), {
       key: 'Related to',

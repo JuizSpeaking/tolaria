@@ -254,6 +254,8 @@ const quoteCharacters = new Set(['"', '\''])
 
 const canonicalFrontmatterAliases = new Map([
   ['archived', '_archived'],
+  ['favorite', '_favorite'],
+  ['favorite_index', '_favorite_index'],
   ['icon', '_icon'],
   ['is_a', 'type'],
   ['sidebar_label', '_sidebar_label'],
@@ -290,6 +292,7 @@ const reservedFrontmatterKeys = new Set([
   'archived',
   'color',
   'favorite',
+  'favorite_index',
   'icon',
   'is_a',
   'order',

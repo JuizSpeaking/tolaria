@@ -13,6 +13,8 @@ type CanonicalFrontmatterWriteRule = {
 const canonicalFrontmatterWriteRules: readonly CanonicalFrontmatterWriteRule[] = [
   { aliases: ['type', 'is_a', 'Is A'], writeKey: 'type' },
   { aliases: ['_archived', 'Archived', 'archived'], writeKey: '_archived' },
+  { aliases: ['_favorite', 'favorite'], writeKey: '_favorite' },
+  { aliases: ['_favorite_index', 'favorite_index', 'favorite index'], writeKey: '_favorite_index' },
   { aliases: ['_icon', 'icon'], writeKey: '_icon' },
   { aliases: ['_order', 'order'], writeKey: '_order' },
   { aliases: ['_sidebar_label', 'sidebar_label', 'sidebar label'], writeKey: '_sidebar_label' },
