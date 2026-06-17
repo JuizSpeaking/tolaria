@@ -238,8 +238,7 @@ export function filterNotesBySearch(notes: MobileNote[], searchQuery: SearchQuer
 }
 
 function inboxNotes(notes: MobileNote[]) {
-  const filteredNotes = notes.filter((note) => !note.archived && !note.organized)
-  return filteredNotes.length > 0 ? filteredNotes : notes
+  return notes.filter((note) => !note.archived && !note.organized && note.type !== 'Type')
 }
 
 function noteBelongsToFolder(note: MobileNote, selection: Extract<TabletSidebarSelection, { kind: 'folder' }>) {

@@ -68,6 +68,26 @@ describe('tablet workspace navigation', () => {
     }).map((candidate) => candidate.id)).toEqual(['selected'])
   })
 
+  it('keeps inbox limited to active unorganized non-Type notes', () => {
+    const inboxSelection: TabletSidebarSelection = {
+      id: 'inbox',
+      kind: 'item',
+      label: 'Inbox',
+      sectionId: 'primary',
+    }
+
+    expect(notesForSidebarSelection(workspaceSnapshot([
+      note({ id: 'organized', organized: true, title: 'Organized' }),
+      note({ archived: true, id: 'archived', title: 'Archived' }),
+    ]), inboxSelection)).toEqual([])
+
+    expect(notesForSidebarSelection(workspaceSnapshot([
+      note({ id: 'capture', title: 'Capture' }),
+      note({ id: 'type-doc', title: 'Type Doc', type: 'Type' }),
+      note({ organized: true, id: 'organized', title: 'Organized' }),
+    ]), inboxSelection).map((candidate) => candidate.id)).toEqual(['capture'])
+  })
+
   it('selects folders by path and includes descendants without matching duplicate labels', () => {
     const snapshot = workspaceSnapshot([
       note({ id: 'writing-root', path: 'Writing/Root.md', title: 'Root' }),
