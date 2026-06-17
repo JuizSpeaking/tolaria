@@ -19,9 +19,11 @@ import {
 } from './mobileSavedViews'
 import { buildMobileSidebarSections } from './mobileSidebarSections'
 import { isMobileInboxNote } from './mobileNoteFilters'
+import { normalizeMobileNoteWidth } from './mobileNoteWidth'
 import { normalizeMobileWikilinkTarget } from './mobileWikilinks'
 import type {
   MobileNote,
+  MobileNoteWidth,
   MobileProperty,
   MobilePropertyValue,
   MobileRelationship,
@@ -73,6 +75,7 @@ type LocalVaultEntry = {
   id: NoteId
   links: number
   modifiedAt: TimestampMs | null
+  noteWidth: MobileNoteWidth | null
   organized: boolean
   path: RelativeVaultPath
   properties: MobileProperty[]
@@ -171,6 +174,7 @@ function parseLocalVaultEntry(file: LocalVaultFile): LocalVaultEntry {
     id: file.relativePath,
     links: linkCount(document.body),
     modifiedAt: file.modifiedAt,
+    noteWidth: normalizeMobileNoteWidth(frontmatterScalar(document.frontmatter, ['_width', 'width'])),
     organized: frontmatterFlag(document.frontmatter, ['_organized']),
     path: file.relativePath,
     properties: mobileProperties(frontmatterProperties(document.frontmatter)),
@@ -297,6 +301,7 @@ function localEntryToMobileNote(
     links: entry.links,
     modified: relativeDate(entry.modifiedAt),
     modifiedAt: entry.modifiedAt,
+    noteWidth: entry.noteWidth,
     archived: entry.archived,
     organized: entry.organized,
     path: entry.path,

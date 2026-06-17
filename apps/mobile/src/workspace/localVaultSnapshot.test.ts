@@ -17,6 +17,7 @@ describe('buildLocalVaultWorkspaceSnapshot', () => {
       rawContent: tolariaMobileContent,
       title: 'Tolaria Mobile',
       type: 'Project',
+      noteWidth: 'wide',
       typeTone: 'red',
       workspace: 'Laputa',
     })
@@ -476,6 +477,7 @@ _organized: false
 const tolariaMobileContent = `---
 type: Project
 _organized: false
+_width: wide
 aliases:
   - Mobile App
 related_to:

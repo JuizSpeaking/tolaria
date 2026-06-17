@@ -60,6 +60,7 @@ import {
   rewriteMovedNoteWikilinks,
 } from './mobileWorkspacePathRewrites'
 import { writeMobileFrontmatterValue } from './mobileFrontmatterWrites'
+import { normalizeMobileNoteWidth } from './mobileNoteWidth'
 import { mobileNoteForWikilinkTarget } from './mobileWikilinks'
 import type { MobileTypeDefinitionPatch } from './mobileTypeDefinitions'
 import { applyMobileTypeEdit } from './mobileWorkspaceTypeEditing'
@@ -1010,6 +1011,7 @@ function deriveEditableNote({
       favoriteIndex: frontmatterNumber(document.frontmatter, ['_favorite_index', 'favorite_index', 'favorite index']),
       links: linkCount(document.body),
       modified: '0m ago',
+      noteWidth: normalizeMobileNoteWidth(frontmatterScalar(document.frontmatter, ['_width', 'width'])),
       organized: frontmatterFlag(document.frontmatter, ['_organized']),
       path: fallback.path ?? fallback.id,
       properties,

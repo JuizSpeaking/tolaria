@@ -1,4 +1,5 @@
 export type MobileTone = 'blue' | 'gray' | 'green' | 'orange' | 'purple' | 'red' | 'yellow'
+export type MobileNoteWidth = 'normal' | 'wide'
 
 export type MobileNote = {
   aliases?: string[]
@@ -14,6 +15,7 @@ export type MobileNote = {
   links: number
   modified: string
   modifiedAt?: number | null
+  noteWidth?: MobileNoteWidth | null
   organized?: boolean
   path?: string
   properties?: MobileProperty[]
