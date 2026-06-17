@@ -97,6 +97,49 @@ Body ${index}.
     expect(snapshot.source).toMatchObject({ totalNotes: 5, visibleNotes: 2 })
   })
 
+  it('orders local vault favorites by the desktop favorite index', () => {
+    const snapshot = buildLocalVaultWorkspaceSnapshot({
+      files: [
+        vaultFile('unindexed.md', `---
+type: Note
+_favorite: true
+---
+# Unindexed Favorite
+`, 30),
+        vaultFile('later.md', `---
+type: Note
+_favorite: true
+_favorite_index: 2
+---
+# Later Favorite
+`, 20),
+        vaultFile('first.md', `---
+type: Note
+_favorite: true
+_favorite_index: 0
+---
+# First Favorite
+`, 10),
+        vaultFile('archived.md', `---
+type: Note
+_favorite: true
+_favorite_index: 1
+_archived: true
+---
+# Archived Favorite
+`, 40),
+      ],
+      vaultLabel: 'Laputa',
+      vaultPath: '/Users/luca/Laputa',
+    })
+
+    expect(snapshot.sidebarSections.find((section) => section.id === 'favorites')?.items?.map((item) => item.label)).toEqual([
+      'First Favorite',
+      'Later Favorite',
+      'Unindexed Favorite',
+    ])
+  })
+
   it('keeps local vault Inbox empty instead of falling back to active notes', () => {
     const snapshot = buildLocalVaultWorkspaceSnapshot({
       files: [

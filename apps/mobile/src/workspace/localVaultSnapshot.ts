@@ -68,6 +68,7 @@ type LocalVaultEntry = {
   body: string
   createdAt: TimestampMs | null
   favorite: boolean
+  favoriteIndex: number | null
   filename: string
   id: NoteId
   links: number
@@ -165,6 +166,7 @@ function parseLocalVaultEntry(file: LocalVaultFile): LocalVaultEntry {
     body: document.body,
     createdAt: file.createdAt,
     favorite: frontmatterFlag(document.frontmatter, ['_favorite', 'favorite']),
+    favoriteIndex: frontmatterNumber(document.frontmatter, ['_favorite_index']),
     filename,
     id: file.relativePath,
     links: linkCount(document.body),
@@ -279,6 +281,7 @@ function localEntryToMobileNote(
     editorBlocks: blocks,
     editorBullets: blocks ? localVaultEditorBullets(blocks) : undefined,
     favorite: entry.favorite,
+    favoriteIndex: entry.favoriteIndex,
     id: entry.id,
     links: entry.links,
     modified: relativeDate(entry.modifiedAt),

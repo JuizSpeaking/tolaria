@@ -9,6 +9,7 @@ export type MobileNote = {
   editorBlocks?: MobileEditorBlock[]
   editorBullets?: string[]
   favorite: boolean
+  favoriteIndex?: number | null
   id: string
   links: number
   modified: string

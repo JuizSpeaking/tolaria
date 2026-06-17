@@ -69,9 +69,21 @@ function primarySection(activeNotes: MobileNote[], archivedNotes: MobileNote[]):
 function favoritesSection(notes: MobileNote[]): MobileSidebarSection {
   return {
     id: 'favorites',
-    items: notes.filter((note) => note.favorite).slice(0, 8).map(favoriteItem),
+    items: sortedFavorites(notes).slice(0, 8).map(favoriteItem),
     label: 'Favorites',
   }
+}
+
+function sortedFavorites(notes: MobileNote[]): MobileNote[] {
+  return notes
+    .filter((note) => note.favorite)
+    .sort(compareFavoriteIndex)
+}
+
+function compareFavoriteIndex(left: MobileNote, right: MobileNote): number {
+  const leftIndex = left.favoriteIndex ?? Infinity
+  const rightIndex = right.favoriteIndex ?? Infinity
+  return leftIndex === rightIndex ? 0 : leftIndex - rightIndex
 }
 
 function favoriteItem(note: MobileNote): MobileSidebarItem {
