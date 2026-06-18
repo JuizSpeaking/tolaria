@@ -60,6 +60,8 @@ describe('native WYSIWYG mutation probe', () => {
       'editor.wysiwyg.mutation.wikilink',
       'editor.wysiwyg.mutation.lists',
       'editor.wysiwyg.mutation.quote',
+      'editor.wysiwyg.mutation.codeBlock',
+      'editor.wysiwyg.mutation.divider',
       'editor.wysiwyg.mutation.table',
     ])
   })
@@ -121,6 +123,13 @@ function savedMutationContent(): string {
     '- [x] Task item',
     '',
     '> Quoted desktop parity',
+    '',
+    '```ts',
+    'const parity = "desktop";',
+    'ship(parity)',
+    '```',
+    '',
+    '---',
     '',
     '| Surface | Target |',
     '| --- | --- |',

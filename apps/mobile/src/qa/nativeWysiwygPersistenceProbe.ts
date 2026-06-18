@@ -128,6 +128,8 @@ function mutationProofFailures(
     proofFailure(proof.wikilinkSaved, 'editor.wysiwyg.persistence.mutation.wikilink', 'Native WYSIWYG links can preserve Tolaria wikilink markdown'),
     proofFailure(proof.listBlocksSaved, 'editor.wysiwyg.persistence.mutation.lists', 'Native WYSIWYG list blocks serialize to desktop markdown syntax'),
     proofFailure(proof.quoteSaved, 'editor.wysiwyg.persistence.mutation.quote', 'Native WYSIWYG quote blocks serialize to desktop markdown syntax'),
+    proofFailure(proof.codeBlockSaved, 'editor.wysiwyg.persistence.mutation.codeBlock', 'Unsupported code-fence content remains editable desktop markdown lines'),
+    proofFailure(proof.dividerSaved, 'editor.wysiwyg.persistence.mutation.divider', 'Unsupported divider content remains editable desktop markdown'),
     proofFailure(proof.tableLinesPreserved, 'editor.wysiwyg.persistence.mutation.table', 'Unsupported table content remains editable markdown lines'),
   ]
 }

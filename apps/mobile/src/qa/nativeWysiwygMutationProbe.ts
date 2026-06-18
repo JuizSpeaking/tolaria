@@ -11,7 +11,9 @@ type ProofFailureId = string
 type ProofFailureMessage = string
 
 export type NativeWysiwygMutationProof = {
+  codeBlockSaved: boolean
   contentLength: number
+  dividerSaved: boolean
   favoritePreserved: boolean
   frontmatterPreserved: boolean
   inlineMarksSaved: boolean
@@ -46,9 +48,14 @@ const mutationText = 'Native bridge mutation saved through TenTap.'
 const mutationInlineSamples = ['**bold**', '*italic*', '~~strike~~', '`code`', '==highlight=='] as const
 const mutationListSamples = ['- Bullet item', '1. Ordered item', '- [x] Task item'] as const
 const mutationQuote = '> Quoted desktop parity'
+const mutationCodeFenceLines = ['```ts', 'const parity = "desktop";', 'ship(parity)', '```'] as const
+const mutationCodeFence = mutationCodeFenceLines.join('\n')
 const mutationTableLines = ['| Surface | Target |', '| --- | --- |', '| Editor | Native WYSIWYG |'] as const
+const mutationDividerBeforeTable = `\n---\n\n${mutationTableLines[0]}`
 const mutationWikilink = '[[AI Ops Guide]]'
 const mutationProofBooleanFields: readonly NativeWysiwygMutationBooleanField[] = [
+  'codeBlockSaved',
+  'dividerSaved',
   'favoritePreserved',
   'frontmatterPreserved',
   'inlineMarksSaved',
@@ -112,6 +119,8 @@ export function nativeWysiwygMutationProbeContent(): TiptapJsonNode {
       mutationOrderedListNode,
       mutationTaskListNode,
       mutationQuoteNode,
+      paragraphNode(...mutationCodeFenceLines),
+      paragraphNode('---'),
       paragraphNode(...mutationTableLines),
     ],
     type: 'doc',
@@ -130,7 +139,9 @@ export function nativeWysiwygMutationProof({
   noteId,
 }: NativeWysiwygMutationProofInput): NativeWysiwygMutationProof {
   return {
+    codeBlockSaved: content.includes(mutationCodeFence),
     contentLength: content.length,
+    dividerSaved: content.includes(mutationDividerBeforeTable),
     favoritePreserved: content.includes('\n_favorite: true\n'),
     frontmatterPreserved: content.startsWith('---\n'),
     inlineMarksSaved: mutationInlineSamples.every((sample) => content.includes(sample)),
@@ -183,6 +194,8 @@ export function assertNativeWysiwygMutationProofs(
     proofFailure(latest.wikilinkSaved, 'editor.wysiwyg.mutation.wikilink', 'Native WYSIWYG links can preserve Tolaria wikilink markdown'),
     proofFailure(latest.listBlocksSaved, 'editor.wysiwyg.mutation.lists', 'Native WYSIWYG list blocks serialize to desktop markdown syntax'),
     proofFailure(latest.quoteSaved, 'editor.wysiwyg.mutation.quote', 'Native WYSIWYG quote blocks serialize to desktop markdown syntax'),
+    proofFailure(latest.codeBlockSaved, 'editor.wysiwyg.mutation.codeBlock', 'Unsupported code-fence content remains editable desktop markdown lines'),
+    proofFailure(latest.dividerSaved, 'editor.wysiwyg.mutation.divider', 'Unsupported divider content remains editable desktop markdown'),
     proofFailure(latest.tableLinesPreserved, 'editor.wysiwyg.mutation.table', 'Unsupported table content remains editable markdown lines'),
   ].filter((failure): failure is NativeWysiwygMutationAssertionFailure => failure !== null)
 }

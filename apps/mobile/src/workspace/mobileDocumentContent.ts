@@ -21,6 +21,7 @@ type HtmlSnippet = string
 type LinkLabel = string
 type MarkdownLine = string
 type MarkdownLines = MarkdownLine[]
+type CodeFenceSourceMode = 'indented' | 'root'
 type NoteTitleText = string
 type PlainText = string
 type ReadHtmlBlockResult = { html: HtmlSnippet; nextIndex: number }
@@ -677,6 +678,7 @@ function normalizeMobileFallbackParagraphMarkdown(markdown: MarkdownBody): Markd
 const mobileFallbackParagraphNormalizers: MarkdownNormalizer[] = [
   normalizeMobileDisplayMathMarkdown,
   normalizeInlineImageSourceMarkdown,
+  normalizeCodeFenceSourceMarkdown,
   normalizeUnsupportedHtmlBlockMarkdown,
   normalizeIndentedCodeFenceSourceMarkdown,
   normalizeIndentedListSourceMarkdown,
@@ -697,22 +699,31 @@ function hasInlineMarkdownImageSource(markdown: MarkdownBody): boolean {
   return /(^|[^\\])!\[(?:\\.|[^\]\\\n])*\]\(/u.test(markdown)
 }
 
-function normalizeIndentedCodeFenceSourceMarkdown(markdown: MarkdownBody): MarkdownBody {
+function normalizeCodeFenceSourceMarkdown(markdown: MarkdownBody): MarkdownBody {
   const lines = markdown.split('\n').map(stripHardBreakMarker)
-  if (!isIndentedCodeFenceSourceParagraph(lines)) return markdown
+  if (!isCodeFenceSourceParagraph(lines, 'root')) return markdown
 
   return lines.join('\n')
 }
 
-function isIndentedCodeFenceSourceParagraph(lines: MarkdownLines): boolean {
-  const opening = hasLeadingWhitespace(lines[0] ?? '')
-    ? readMobileMarkdownCodeFence(lines[0] ?? '')
-    : null
+function isCodeFenceSourceParagraph(lines: MarkdownLines, mode: CodeFenceSourceMode): boolean {
+  const firstLine = lines[0] ?? ''
+  if (mode === 'indented' && !hasLeadingWhitespace(firstLine)) return false
+  if (mode === 'root' && hasLeadingWhitespace(firstLine)) return false
+
+  const opening = readMobileMarkdownCodeFence(firstLine)
   return Boolean(
     opening
     && lines.length > 1
-    && isMobileMarkdownCodeFenceClose(lines[lines.length - 1] ?? '', opening),
+    && isMobileMarkdownCodeFenceClose(lines[lines.length - 1] ?? '', opening)
   )
+}
+
+function normalizeIndentedCodeFenceSourceMarkdown(markdown: MarkdownBody): MarkdownBody {
+  const lines = markdown.split('\n').map(stripHardBreakMarker)
+  if (!isCodeFenceSourceParagraph(lines, 'indented')) return markdown
+
+  return lines.join('\n')
 }
 
 function normalizeIndentedListSourceMarkdown(markdown: MarkdownBody): MarkdownBody {

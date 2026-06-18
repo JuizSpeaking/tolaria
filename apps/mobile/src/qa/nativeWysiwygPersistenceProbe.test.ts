@@ -52,6 +52,8 @@ describe('native WYSIWYG persistence probe', () => {
       'editor.wysiwyg.persistence.mutation.wikilink',
       'editor.wysiwyg.persistence.mutation.lists',
       'editor.wysiwyg.persistence.mutation.quote',
+      'editor.wysiwyg.persistence.mutation.codeBlock',
+      'editor.wysiwyg.persistence.mutation.divider',
       'editor.wysiwyg.persistence.mutation.table',
     ])
   })
@@ -82,6 +84,13 @@ function passingPersistenceProof(): NativeWysiwygPersistenceProof {
         '- [x] Task item',
         '',
         '> Quoted desktop parity',
+        '',
+        '```ts',
+        'const parity = "desktop";',
+        'ship(parity)',
+        '```',
+        '',
+        '---',
         '',
         '| Surface | Target |',
         '| --- | --- |',

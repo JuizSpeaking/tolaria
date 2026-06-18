@@ -373,6 +373,15 @@ Updated body.
     ].join('\n'))
   })
 
+  it('keeps source-fallback code fences from native TenTap paragraphs as editable markdown lines', () => {
+    expect(tiptapJsonToMobileMarkdown(paragraphDocument(
+      '```ts',
+      'const parity = "desktop";',
+      'ship(parity)',
+      '```',
+    ))).toBe(['```ts', 'const parity = "desktop";', 'ship(parity)', '```'].join('\n'))
+  })
+
   it('serializes plain TenTap wikilinks without redundant display aliases', () => {
     const document: TiptapJsonNode = {
       type: 'doc',
