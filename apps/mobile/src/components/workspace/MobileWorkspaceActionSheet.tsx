@@ -682,7 +682,7 @@ function AddRelationshipContent({
   const keySuggestions = mobileRelationshipKeySuggestions(notes, relationshipName, selectedNote, typeDefinitions)
   const suggestions = mobileRelationshipTargetSuggestions(notes, relationshipNoteTitle)
   const createTargetTitle = relationshipNoteTitle.trim()
-  const showCreateTarget = shouldShowRelationshipCreateTarget(notes, createTargetTitle)
+  const showCreateTarget = shouldShowRelationshipCreateTarget(createTargetTitle, suggestions)
 
   return (
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" style={styles.scrollArea}>
@@ -1080,11 +1080,8 @@ function NoteRowChips({ note }: { note: MobileNote }) {
   )
 }
 
-function shouldShowRelationshipCreateTarget(notes: MobileNote[], title: string) {
-  const normalized = title.trim().toLowerCase()
-  if (!normalized) return false
-
-  return !notes.some((note) => !note.archived && note.title.trim().toLowerCase() === normalized)
+function shouldShowRelationshipCreateTarget(title: string, suggestions: MobileNote[]) {
+  return title.trim().length > 0 && suggestions.length === 0
 }
 
 function actionTitle(action: MobileWorkspaceAction, propertyName: string) {
