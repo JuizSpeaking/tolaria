@@ -257,6 +257,48 @@ describe('tablet workspace editing history', () => {
     expect(redoneDefinition.tone).toBe('blue')
   })
 
+  it.each([
+    {
+      edit: { type: 'createTypeDefinition' as const, typeName: 'Decision' },
+      label: 'Type creation',
+      redoneDefinitions: ['Decision', 'Essay', 'Procedure', 'Release'],
+      redoneSections: ['Decision', 'Essay', 'Procedure', 'Release'],
+      undoneDefinitions: ['Essay', 'Procedure', 'Release'],
+      undoneSections: ['Essay', 'Procedure', 'Release'],
+    },
+    {
+      edit: { type: 'deleteTypeDefinition' as const, typeName: 'Procedure' },
+      label: 'Type deletion',
+      redoneDefinitions: ['Essay', 'Release'],
+      redoneSections: ['Essay', 'Procedure', 'Release'],
+      undoneDefinitions: ['Essay', 'Procedure', 'Release'],
+      undoneSections: ['Essay', 'Procedure', 'Release'],
+    },
+    {
+      edit: { direction: 'up' as const, type: 'moveTypeSection' as const, typeName: 'Procedure' },
+      label: 'Type reordering',
+      redoneDefinitions: ['Essay', 'Procedure', 'Release'],
+      redoneSections: ['Procedure', 'Essay', 'Release'],
+      undoneDefinitions: ['Essay', 'Procedure', 'Release'],
+      undoneSections: ['Essay', 'Procedure', 'Release'],
+    },
+  ])('undoes and redoes $label exactly', ({
+    edit,
+    redoneDefinitions,
+    redoneSections,
+    undoneDefinitions,
+    undoneSections,
+  }) => {
+    expectTypeHistoryRoundTrip({
+      edit,
+      previousSnapshot: workspaceScenarioForId('default'),
+      redoneDefinitions,
+      redoneSections,
+      undoneDefinitions,
+      undoneSections,
+    })
+  })
+
   it('undoes and redoes note folder moves through path edits', () => {
     expectNotePathRoundTrip({
       edit: {
@@ -486,6 +528,39 @@ function savedViewMoveHistorySnapshot(): MobileWorkspaceSnapshot {
 
 function viewHistoryLabels(snapshot: MobileWorkspaceSnapshot): string[] {
   return (snapshot.views ?? []).map((view) => `${view.filename}:${view.definition.name}`)
+}
+
+function expectTypeHistoryRoundTrip({
+  edit,
+  previousSnapshot,
+  redoneDefinitions,
+  redoneSections,
+  undoneDefinitions,
+  undoneSections,
+}: {
+  edit: MobileWorkspaceEdit
+  previousSnapshot: MobileWorkspaceSnapshot
+  redoneDefinitions: string[]
+  redoneSections: string[]
+  undoneDefinitions: string[]
+  undoneSections: string[]
+}) {
+  const { redoneSnapshot, undoneSnapshot } = historyRoundTrip(previousSnapshot, edit)
+
+  expect(typeDefinitionNames(undoneSnapshot)).toEqual(undoneDefinitions)
+  expect(typeDefinitionNames(redoneSnapshot)).toEqual(redoneDefinitions)
+  expect(typeSectionNames(undoneSnapshot)).toEqual(undoneSections)
+  expect(typeSectionNames(redoneSnapshot)).toEqual(redoneSections)
+}
+
+function typeDefinitionNames(snapshot: MobileWorkspaceSnapshot): string[] {
+  return Object.keys(snapshot.typeDefinitions ?? {}).sort()
+}
+
+function typeSectionNames(snapshot: MobileWorkspaceSnapshot): string[] {
+  return (snapshot.sidebarSections.find((section) => section.id === 'types')?.items ?? [])
+    .map((item) => item.typeName)
+    .filter((typeName): typeName is string => Boolean(typeName))
 }
 
 function snapshotWithEditableNote(overrides: Partial<MobileNote> & { id: string; rawContent: string }): MobileWorkspaceSnapshot {
