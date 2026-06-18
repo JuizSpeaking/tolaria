@@ -77,6 +77,7 @@ const emptyReadOnlyForm: TabletReadOnlyForm = {
   folderName: '',
   folderParentPath: '',
   folderPath: '',
+  noteIcon: '',
   noteType: '',
   propertyName: '',
   propertyValue: '',
@@ -188,6 +189,11 @@ export function useTabletWorkspaceController({
     selectedNote,
     workspaceSnapshot,
   })
+  const noteIconActions = noteIconWorkspaceActions({
+    readOnlyForm,
+    saveSelectedEdit,
+    updateReadOnlyForm,
+  })
   const actionSheetActions = actionSheetWorkspaceActions(workspaceActionsContext)
   useHydrateSelectedNote({ applyEdit, repository, repositoryRequest, selectedNote })
 
@@ -196,6 +202,7 @@ export function useTabletWorkspaceController({
     ...navigation,
     ...createActions,
     ...editorActions,
+    ...noteIconActions,
     ...propertyActions,
     ...relationshipActions,
     ...retargetActions,
@@ -331,6 +338,9 @@ function actionSheetWorkspaceActions({
     onOpenMoveNoteToFolder: () => openAction('moveNoteToFolder', [{ key: 'folderPath', value: '' }]),
     onOpenRenameNoteFile: () => openAction('renameNoteFile', [
       { key: 'filenameStem', value: filenameStemForNote(selectedNote) },
+    ]),
+    onOpenSetNoteIcon: () => openAction('setNoteIcon', [
+      { key: 'noteIcon', value: selectedNote?.icon ?? '' },
     ]),
     onOpenSearch: () => setOpenAction('search'),
     onOpenFolderActions: (selection: MobileSidebarFolderSelection) => openWorkspaceAction({
@@ -645,6 +655,31 @@ function retargetWorkspaceActions({
         type: 'renameNoteFile',
       }))
     },
+  }
+}
+
+function noteIconWorkspaceActions({
+  readOnlyForm,
+  saveSelectedEdit,
+  updateReadOnlyForm,
+}: {
+  readOnlyForm: TabletReadOnlyForm
+  saveSelectedEdit: SaveSelectedEdit
+  updateReadOnlyForm: ReadOnlyFormUpdater
+}) {
+  return {
+    onNoteIconChange: (value: string) => updateReadOnlyForm('noteIcon', value),
+    onRemoveNoteIcon: () => saveSelectedEdit((noteId) => ({
+      key: '_icon',
+      noteId,
+      type: 'deleteProperty',
+    })),
+    onSetNoteIcon: () => saveSelectedEdit((noteId) => ({
+      key: '_icon',
+      noteId,
+      type: 'updateProperty',
+      value: readOnlyForm.noteIcon.trim(),
+    })),
   }
 }
 

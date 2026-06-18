@@ -15,6 +15,7 @@ export type MobileNote = {
   links: number
   modified: string
   modifiedAt?: number | null
+  icon?: string | null
   noteWidth?: MobileNoteWidth | null
   organized?: boolean
   path?: string

@@ -73,6 +73,7 @@ type LocalVaultEntry = {
   favoriteIndex: number | null
   filename: string
   id: NoteId
+  icon: string | null
   links: number
   modifiedAt: TimestampMs | null
   noteWidth: MobileNoteWidth | null
@@ -172,6 +173,7 @@ function parseLocalVaultEntry(file: LocalVaultFile): LocalVaultEntry {
     favoriteIndex: frontmatterNumber(document.frontmatter, ['_favorite_index']),
     filename,
     id: file.relativePath,
+    icon: frontmatterText(document.frontmatter, ['_icon', 'icon']),
     links: linkCount(document.body),
     modifiedAt: file.modifiedAt,
     noteWidth: normalizeMobileNoteWidth(frontmatterScalar(document.frontmatter, ['_width', 'width'])),
@@ -298,6 +300,7 @@ function localEntryToMobileNote(
     favorite: entry.favorite,
     favoriteIndex: entry.favoriteIndex,
     id: entry.id,
+    icon: entry.icon,
     links: entry.links,
     modified: relativeDate(entry.modifiedAt),
     modifiedAt: entry.modifiedAt,

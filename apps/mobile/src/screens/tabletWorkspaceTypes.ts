@@ -36,6 +36,7 @@ export type TabletReadOnlyForm = {
   folderName: ReadOnlyFormValue
   folderParentPath: ReadOnlyFormValue
   folderPath: ReadOnlyFormValue
+  noteIcon: ReadOnlyFormValue
   noteType: ReadOnlyFormValue
   propertyName: ReadOnlyFormValue
   propertyValue: ReadOnlyFormValue
@@ -113,6 +114,7 @@ export type TabletWorkspaceChromeProps = {
   onMoveTypeUp: () => void
   onMoveViewDown: () => void
   onMoveViewUp: () => void
+  onNoteIconChange: (value: ReadOnlyFormValue) => void
   onOpenChangeNoteType: () => void
   onOpenCreateChildFolder: () => void
   onOpenCreateFolder: () => void
@@ -125,6 +127,7 @@ export type TabletWorkspaceChromeProps = {
   onOpenViewActions: (selection: MobileSidebarItemSelection) => void
   onOpenMoreActions: () => void
   onOpenRenameNoteFile: () => void
+  onOpenSetNoteIcon: () => void
   onOpenSearch: () => void
   onRemoveRelationship: (noteId: NoteId, key: string, ref: string) => void
   onRenameFolder: () => void
@@ -133,6 +136,8 @@ export type TabletWorkspaceChromeProps = {
   onSaveRelationship: () => void
   onRenameNoteFile: () => void
   onRenameNoteFileToTitle: () => void
+  onRemoveNoteIcon: () => void
+  onSetNoteIcon: () => void
   onUpdateNoteContent: (noteId: NoteId, content: string) => void
   onTypeDisplayPropertiesChange: (value: string[]) => void
   onTypeNameChange: (value: ReadOnlyFormValue) => void

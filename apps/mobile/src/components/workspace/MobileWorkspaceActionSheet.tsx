@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Pressable, ScrollView, StyleSheet, View, type NativeSyntheticEvent, type TextInputKeyPressEventData } from 'react-native'
-import { Archive, ArrowsInLineHorizontal, ArrowsOutLineHorizontal, CheckCircle, FilePlus, FolderOpen, LinkSimple, PencilSimple, Star, Tag, Trash } from 'phosphor-react-native'
+import { Archive, ArrowsInLineHorizontal, ArrowsOutLineHorizontal, CheckCircle, FilePlus, FolderOpen, LinkSimple, PencilSimple, Smiley, Star, Tag, Trash } from 'phosphor-react-native'
 import { Text } from '../ui/text'
 import { mobileText } from '../../i18n/mobileText'
 import { MobileButton } from '../../ui/MobileButton'
@@ -67,6 +67,7 @@ export type MobileWorkspaceAction =
   | 'moveNoteToFolder'
   | 'renameNoteFile'
   | 'search'
+  | 'setNoteIcon'
 
 type MobileWorkspaceActionSheetProps = {
   action: MobileWorkspaceAction
@@ -81,6 +82,7 @@ type MobileWorkspaceActionSheetProps = {
   folderName: string
   folderPath: string
   notes: MobileNote[]
+  noteIcon: string
   noteType: string
   onChangeNoteType: () => void
   onChangeNoteTypeInputChange: (value: string) => void
@@ -104,10 +106,12 @@ type MobileWorkspaceActionSheetProps = {
   onMoveTypeUp: () => void
   onMoveViewDown: () => void
   onMoveViewUp: () => void
+  onNoteIconChange: (value: string) => void
   onOpenChangeNoteType: () => void
   onOpenCreateChildFolder: () => void
   onOpenMoveNoteToFolder: () => void
   onOpenRenameNoteFile: () => void
+  onOpenSetNoteIcon: () => void
   onPropertyNameChange: (value: string) => void
   onPropertyValueChange: (value: string) => void
   onPropertyValueKindChange: (value: MobilePropertyValueKind) => void
@@ -120,10 +124,12 @@ type MobileWorkspaceActionSheetProps = {
   onRenameFolder: () => void
   onRenameNoteFile: () => void
   onRenameNoteFileToTitle: () => void
+  onRemoveNoteIcon: () => void
   onSaveView: () => void
   onSearchQueryChange: (value: string) => void
   onSelectNote: (noteId: string) => void
   onSetArchived: (archived: boolean) => void
+  onSetNoteIcon: () => void
   onSetOrganized: (organized: boolean) => void
   onToggleNoteWidth: () => void
   onViewIconChange: (value: MobileSidebarIcon) => void
@@ -258,7 +264,9 @@ const actionContentByAction: Record<MobileWorkspaceAction, (props: MobileWorkspa
       onOpenChangeNoteType={props.onOpenChangeNoteType}
       onOpenMoveNoteToFolder={props.onOpenMoveNoteToFolder}
       onOpenRenameNoteFile={props.onOpenRenameNoteFile}
+      onOpenSetNoteIcon={props.onOpenSetNoteIcon}
       onRenameNoteFileToTitle={props.onRenameNoteFileToTitle}
+      onRemoveNoteIcon={props.onRemoveNoteIcon}
       onSetArchived={props.onSetArchived}
       onSetOrganized={props.onSetOrganized}
       onToggleNoteWidth={props.onToggleNoteWidth}
@@ -268,6 +276,7 @@ const actionContentByAction: Record<MobileWorkspaceAction, (props: MobileWorkspa
   moveNoteToFolder: (props) => <RetargetNoteContent {...props} retargetAction="moveFolder" />,
   renameNoteFile: (props) => <SingleTextFieldContent config={singleTextFieldConfig(props)} />,
   search: (props) => <SearchContent {...props} />,
+  setNoteIcon: (props) => <SingleTextFieldContent config={singleTextFieldConfig(props)} />,
 }
 
 function SearchContent({
@@ -450,6 +459,22 @@ function singleTextFieldConfig(props: MobileWorkspaceActionSheetProps) {
       onChangeText: props.onFilenameStemChange,
       onSubmit: props.onRenameNoteFile,
       submitDisabled: notePathValidationBlocksSubmit(renameNoteFileValidation(props)),
+      submitLabel: mobileText('common.save'),
+    }
+  }
+
+  if (props.action === 'setNoteIcon') {
+    return {
+      inputLabel: mobileText('command.note.setIcon'),
+      inputPlaceholder: mobileText('command.note.setIcon'),
+      inputTestId: 'workspace-note-icon-input',
+      inputValue: props.noteIcon,
+      onCancel: props.onClose,
+      onChangeText: props.onNoteIconChange,
+      onSubmit: props.onSetNoteIcon,
+      secondaryAction: props.selectedNote?.icon ? (
+        <MobileButton label={mobileText('command.note.removeIcon')} variant="ghost" onPress={props.onRemoveNoteIcon} />
+      ) : undefined,
       submitLabel: mobileText('common.save'),
     }
   }
@@ -853,7 +878,9 @@ function MoreActionsContent(props: {
   onOpenChangeNoteType: () => void
   onOpenMoveNoteToFolder: () => void
   onOpenRenameNoteFile: () => void
+  onOpenSetNoteIcon: () => void
   onRenameNoteFileToTitle: () => void
+  onRemoveNoteIcon: () => void
   onSetArchived: (archived: boolean) => void
   onSetOrganized: (organized: boolean) => void
   onToggleNoteWidth: () => void
@@ -867,7 +894,9 @@ function MoreActionsContent(props: {
     onOpenChangeNoteType,
     onOpenMoveNoteToFolder,
     onOpenRenameNoteFile,
+    onOpenSetNoteIcon,
     onRenameNoteFileToTitle,
+    onRemoveNoteIcon,
     onSetArchived,
     onSetOrganized,
     onToggleNoteWidth,
@@ -884,7 +913,9 @@ function MoreActionsContent(props: {
           onOpenChangeNoteType={onOpenChangeNoteType}
           onOpenMoveNoteToFolder={onOpenMoveNoteToFolder}
           onOpenRenameNoteFile={onOpenRenameNoteFile}
+          onOpenSetNoteIcon={onOpenSetNoteIcon}
           onRenameNoteFileToTitle={onRenameNoteFileToTitle}
+          onRemoveNoteIcon={onRemoveNoteIcon}
           onSetArchived={onSetArchived}
           onSetOrganized={onSetOrganized}
           onToggleNoteWidth={onToggleNoteWidth}
@@ -911,7 +942,9 @@ function NoteMoreActionRows(props: {
   onOpenChangeNoteType: () => void
   onOpenMoveNoteToFolder: () => void
   onOpenRenameNoteFile: () => void
+  onOpenSetNoteIcon: () => void
   onRenameNoteFileToTitle: () => void
+  onRemoveNoteIcon: () => void
   onSetArchived: (archived: boolean) => void
   onSetOrganized: (organized: boolean) => void
   onToggleNoteWidth: () => void
@@ -923,7 +956,9 @@ function NoteMoreActionRows(props: {
     onOpenChangeNoteType,
     onOpenMoveNoteToFolder,
     onOpenRenameNoteFile,
+    onOpenSetNoteIcon,
     onRenameNoteFileToTitle,
+    onRemoveNoteIcon,
     onSetArchived,
     onSetOrganized,
     onToggleNoteWidth,
@@ -954,6 +989,20 @@ function NoteMoreActionRows(props: {
           onClose()
         }}
       />
+      <ActionRow
+        icon={<Smiley color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
+        label={mobileText('command.note.setIcon')}
+        testID="workspace-action-set-note-icon"
+        onPress={onOpenSetNoteIcon}
+      />
+      {note.icon ? (
+        <ActionRow
+          icon={<Smiley color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
+          label={mobileText('command.note.removeIcon')}
+          testID="workspace-action-remove-note-icon"
+          onPress={onRemoveNoteIcon}
+        />
+      ) : null}
       <ActionRow
         icon={<Tag color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
         label={mobileText('command.note.changeType')}
@@ -1124,6 +1173,7 @@ const actionTitleByAction: Record<MobileWorkspaceAction, () => string> = {
   moveNoteToFolder: () => mobileText('command.note.moveToFolder'),
   renameNoteFile: () => mobileText('editor.filename.rename'),
   search: () => mobileText('noteList.searchAction'),
+  setNoteIcon: () => mobileText('command.note.setIcon'),
 }
 
 const styles = StyleSheet.create({

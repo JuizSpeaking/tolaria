@@ -386,6 +386,7 @@ function createMobileNote(
       date: absoluteDate(now),
       favorite: defaults.favorite === true,
       id,
+      icon: null,
       links: 0,
       modified: '0m ago',
       path: id,
@@ -1009,6 +1010,7 @@ function deriveEditableNote({
       editorBullets: localVaultEditorBullets(blocks),
       favorite: frontmatterFlag(document.frontmatter, ['_favorite', 'favorite']),
       favoriteIndex: frontmatterNumber(document.frontmatter, ['_favorite_index', 'favorite_index', 'favorite index']),
+      icon: frontmatterText(document.frontmatter, ['_icon', 'icon']),
       links: linkCount(document.body),
       modified: '0m ago',
       noteWidth: normalizeMobileNoteWidth(frontmatterScalar(document.frontmatter, ['_width', 'width'])),
@@ -1288,6 +1290,18 @@ function humanizeKey(key: FrontmatterKey): string {
 
 function normalizedFrontmatterKey(key: FrontmatterKey): string {
   return key.trim().toLowerCase().replace(/\s+/g, '_')
+}
+
+function frontmatterText(
+  frontmatter: LocalVaultFrontmatter,
+  keys: readonly FrontmatterKey[],
+): string | null {
+  for (const key of keys) {
+    const value = frontmatterValueForKey(frontmatter, key)
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+
+  return null
 }
 
 function frontmatterNumber(

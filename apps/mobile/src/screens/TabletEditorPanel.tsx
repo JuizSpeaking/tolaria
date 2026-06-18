@@ -10,6 +10,7 @@ import { ScrollView, StyleSheet, View } from 'react-native'
 import { useCallback, useState } from 'react'
 import { MobileEditorBlocks } from '../components/workspace/MobileEditorBlocks'
 import { MobileMarkdownSourceEditor } from '../components/workspace/MobileMarkdownSourceEditor'
+import { MobileNoteIcon } from '../components/workspace/MobileWorkspaceIcons'
 import { MobileWysiwygMarkdownEditor } from '../components/workspace/MobileWysiwygMarkdownEditor'
 import { Text } from '../components/ui/text'
 import { mobileText } from '../i18n/mobileText'
@@ -185,6 +186,7 @@ function EditorToolbar({
   return (
     <MobileToolbar testID="editor-toolbar">
       <FileText color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />
+      <MobileNoteIcon color={mobileColors.textMuted} icon={note.icon} size={desktopToolbarActionParity.iconSize} testID="editor-toolbar-note-icon" />
       <MobileToolbarTitle testID="editor-toolbar-title" title={note.title} />
       <MobileChip label={note.workspace} tone="gray" />
       <MobileIconButton

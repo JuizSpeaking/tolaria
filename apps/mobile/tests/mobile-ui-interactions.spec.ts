@@ -208,6 +208,7 @@ async function retargetSelectedRelease(page: PageLike) {
   await editSelectedReleaseTags(page)
   await addTypedProperties(page)
   await moveAndRenameSelectedRelease(page)
+  await setAndRemoveSelectedNoteIcon(page)
   await assertSelectedReleaseDeepLink(page)
 }
 
@@ -322,6 +323,23 @@ async function renameSelectedFileToTitle(page: PageLike) {
     const attempts = (window as unknown as Record<string, unknown>)[key]
     return Array.isArray(attempts) ? attempts.at(-1) : null
   }, mobileClipboardAttemptsGlobalKey)).resolves.toBe('tolaria://tv/Tolaria/Mobile%20UI/workflow-orchestration-essay.md')
+}
+
+async function setAndRemoveSelectedNoteIcon(page: PageLike) {
+  await expect(page.getByTestId('editor-toolbar-note-icon')).toBeHidden()
+  await page.getByTestId('editor-more-action').click()
+  await page.getByTestId('workspace-action-set-note-icon').click()
+  await expect(page.getByTestId('workspace-note-icon-input')).toHaveValue('')
+  await page.getByTestId('workspace-note-icon-input').fill('🚀')
+  await page.getByTestId('workspace-action-sheet-setNoteIcon').getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
+  await expect(page.getByTestId('editor-toolbar-note-icon')).toHaveText('🚀')
+
+  await page.getByTestId('editor-more-action').click()
+  await expect(page.getByTestId('workspace-action-remove-note-icon')).toBeVisible()
+  await page.getByTestId('workspace-action-remove-note-icon').click()
+  await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
+  await expect(page.getByTestId('editor-toolbar-note-icon')).toBeHidden()
 }
 
 async function assertSelectedReleaseDeepLink(page: PageLike) {
