@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '../ui/text'
 import { mobileText } from '../../i18n/mobileText'
-import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
+import { mobileColors, mobileRadius, mobileSpace, mobileType } from '../../ui/tokens'
 import type { MobilePropertyValueKind } from '../../workspace/mobilePropertyValues'
 
 export function MobilePropertyValueKindPicker({
@@ -54,6 +54,72 @@ export function MobileBooleanPropertyValuePicker({
         testID="workspace-property-boolean-no"
         onPress={() => onChange('false')}
       />
+    </View>
+  )
+}
+
+export function MobileColorPropertyValuePicker({
+  onChange,
+  value,
+}: {
+  onChange: (value: string) => void
+  value: string
+}) {
+  const selectedValue = value.trim().toLowerCase()
+
+  return (
+    <View style={styles.colorOptions} testID="workspace-property-color-picker">
+      {propertyColorOptions.map((option) => {
+        const selected = option.value.toLowerCase() === selectedValue
+
+        return (
+          <Pressable
+            accessibilityLabel={option.label}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            key={option.label}
+            style={[
+              styles.colorButton,
+              {
+                backgroundColor: option.softColor,
+                borderColor: selected ? option.value : 'transparent',
+              },
+            ]}
+            testID={`workspace-property-color-${option.label}`}
+            onPress={() => onChange(option.value)}
+          >
+            <View style={[styles.colorDot, { backgroundColor: option.value }]} />
+          </Pressable>
+        )
+      })}
+    </View>
+  )
+}
+
+export function MobileStatusPropertyValuePicker({
+  onChange,
+  options,
+  value,
+}: {
+  onChange: (value: string) => void
+  options: string[]
+  value: string
+}) {
+  if (options.length === 0) return null
+
+  const selectedValue = value.trim().toLowerCase()
+
+  return (
+    <View style={styles.statusOptions} testID="workspace-property-status-picker">
+      {options.map((option) => (
+        <PropertyValueButton
+          key={option}
+          label={option}
+          selected={option.trim().toLowerCase() === selectedValue}
+          testID={`workspace-property-status-${testIdSegment(option)}`}
+          onPress={() => onChange(option)}
+        />
+      ))}
     </View>
   )
 }
@@ -133,6 +199,24 @@ const propertyValueKindOptions: Array<{ kind: MobilePropertyValueKind; labelKey:
   { kind: 'color', labelKey: 'inspector.properties.valueKind.color' },
 ]
 
+const propertyColorOptions = [
+  colorOption('gray', mobileColors.textMuted, mobileColors.graySoft),
+  colorOption('blue', mobileColors.blue, mobileColors.blueSoft),
+  colorOption('green', mobileColors.green, mobileColors.greenSoft),
+  colorOption('purple', mobileColors.purple, mobileColors.purpleSoft),
+  colorOption('orange', mobileColors.orange, mobileColors.orangeSoft),
+  colorOption('red', mobileColors.red, mobileColors.redSoft),
+  colorOption('yellow', mobileColors.yellow, mobileColors.yellowSoft),
+] as const
+
+function colorOption(label: string, value: string, softColor: string) {
+  return { label, softColor, value }
+}
+
+function testIdSegment(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+}
+
 const styles = StyleSheet.create({
   booleanButton: {
     minHeight: 30,
@@ -150,6 +234,24 @@ const styles = StyleSheet.create({
     color: mobileColors.textMuted,
     fontSize: mobileType.caption,
     fontWeight: '500',
+  },
+  colorButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 30,
+    height: 30,
+    borderRadius: mobileRadius.pill,
+    borderWidth: 2,
+  },
+  colorDot: {
+    width: 14,
+    height: 14,
+    borderRadius: mobileRadius.pill,
+  },
+  colorOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: mobileSpace.xs,
   },
   disabledButton: {
     opacity: 0.45,
@@ -184,5 +286,10 @@ const styles = StyleSheet.create({
   },
   selectedButtonText: {
     color: mobileColors.primary,
+  },
+  statusOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: mobileSpace.xs,
   },
 })

@@ -225,6 +225,8 @@ async function editSelectedReleaseStatus(page: PageLike) {
   await page.getByTestId('property-row-status-edit').click()
   await expect(page.getByTestId('workspace-action-sheet-editProperty')).toBeVisible()
   await expect(page.getByTestId('workspace-property-name-input')).toHaveValue('Status')
+  await expect(page.getByTestId('workspace-property-status-picker')).toBeVisible()
+  await expect(page.getByTestId('workspace-property-status-shipped')).toBeVisible()
   await expect(page.getByTestId('workspace-property-value-input')).toHaveValue('Shipped')
   await page.getByTestId('workspace-property-value-input').fill('Active')
   await page.getByTestId('workspace-action-sheet-editProperty').getByRole('button', { name: 'Save' }).click()
@@ -259,6 +261,22 @@ async function addTypedProperties(page: PageLike) {
   await page.getByTestId('workspace-property-boolean-no').click()
   await page.getByTestId('workspace-action-sheet-addProperty').getByRole('button', { name: 'Save' }).click()
   await expect(page.getByTestId('property-row-published')).toContainText('No')
+
+  await page.getByTestId('property-action-add-property').click()
+  await page.getByTestId('workspace-property-name-input').fill('URL')
+  await expect(page.getByTestId('workspace-property-kind-url')).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByTestId('workspace-property-value-input')).toHaveAttribute('placeholder', 'https://')
+  await page.getByTestId('workspace-property-value-input').fill('https://tolaria.app')
+  await page.getByTestId('workspace-action-sheet-addProperty').getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByTestId('property-row-url')).toContainText('https://tolaria.app')
+
+  await page.getByTestId('property-action-add-property').click()
+  await page.getByTestId('workspace-property-name-input').fill('Brand color')
+  await expect(page.getByTestId('workspace-property-kind-color')).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByTestId('workspace-property-color-picker')).toBeVisible()
+  await page.getByTestId('workspace-property-color-blue').click()
+  await page.getByTestId('workspace-action-sheet-addProperty').getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByTestId('property-row-brand-color')).toContainText('#155DFF')
 }
 
 async function moveAndRenameSelectedRelease(page: PageLike) {
@@ -675,6 +693,7 @@ async function addDatePropertyFromSuggestion(page: PageLike) {
   await expect(page.getByTestId('workspace-property-name-input')).toBeVisible()
   await expect(page.getByTestId('workspace-property-name-input')).toHaveValue('Date')
   await expect(page.getByTestId('workspace-property-kind-date')).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByTestId('workspace-property-value-input')).toHaveAttribute('placeholder', 'YYYY-MM-DD')
   await page.getByTestId('workspace-property-value-input').fill('2026-06-14')
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()

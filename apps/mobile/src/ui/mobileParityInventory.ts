@@ -127,6 +127,13 @@ export const mobileParityInventory = [
     surface: 'Property value kind picker',
   },
   {
+    assertions: ['typed property edit user-flow checks for status, date, URL, and color values'],
+    contracts: ['desktopPropertyParity'],
+    desktopSource: 'PropertyValueCells.tsx and DynamicPropertiesPanel type-aware add property form',
+    mobileFile: 'src/components/workspace/MobilePropertyValueEditor.tsx',
+    surface: 'Typed property value editor',
+  },
+  {
     assertions: ['property and relationship suggestion user-flow checks', 'relationship target and Type-defined view-value resolution parity'],
     contracts: ['desktopPropertyParity'],
     desktopSource: 'RelationshipsPanel note search dropdown and inspector property forms',

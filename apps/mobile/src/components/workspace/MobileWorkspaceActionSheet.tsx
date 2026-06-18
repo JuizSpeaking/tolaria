@@ -22,7 +22,6 @@ import {
 } from '../../workspace/mobileQuickOpen'
 import {
   isMobileListPropertyKey,
-  mobilePropertySuggestionValue,
   mobilePropertyValueKindForKey,
   type MobilePropertyValueKind,
 } from '../../workspace/mobilePropertyValues'
@@ -43,7 +42,7 @@ import {
 import { MobileTypeIcon } from './MobileWorkspaceIcons'
 import { MobileMetadataPicker } from './MobileMetadataPicker'
 import { MobileSortPicker } from './MobileSortPicker'
-import { MobileBooleanPropertyValuePicker, MobilePropertyValueKindPicker } from './MobilePropertyValueKindPicker'
+import { MobilePropertyValueEditor } from './MobilePropertyValueEditor'
 import { MobileTypeSectionEditor } from './MobileTypeSectionEditor'
 import { MobileViewDisplayPropertiesPicker } from './MobileViewDisplayPropertiesPicker'
 import { MobileViewFilterBuilder } from './MobileViewFilterBuilder'
@@ -650,32 +649,14 @@ function AddPropertyContent({
           onSelect={onPropertyNameChange}
         />
       ) : null}
-      <MobilePropertyValueKindPicker
+      <MobilePropertyValueEditor
+        kind={selectedValueKind}
         lockedListKind={lockedListKind}
-        selectedKind={selectedValueKind}
-        onSelect={onPropertyValueKindChange}
-      />
-      <MobileTextInput
-        keyboardType={selectedValueKind === 'number' ? 'numeric' : 'default'}
-        label={mobileText('inspector.properties.valuePlaceholder')}
-        placeholder={mobileText('inspector.properties.valuePlaceholder')}
-        testID="workspace-property-value-input"
+        propertyName={propertyName}
+        suggestions={valueSuggestions}
         value={propertyValue}
-        onChangeText={onPropertyValueChange}
-      />
-      {selectedValueKind === 'boolean' ? (
-        <MobileBooleanPropertyValuePicker value={propertyValue} onChange={onPropertyValueChange} />
-      ) : null}
-      <MobileWorkspaceSuggestionList
-        labels={valueSuggestions}
-        testID="workspace-property-value-suggestions"
-        testIDPrefix="workspace-property-value-suggestion"
-        onSelect={(value) => onPropertyValueChange(mobilePropertySuggestionValue({
-          key: propertyName,
-          kind: selectedValueKind,
-          suggestion: value,
-          valueText: propertyValue,
-        }))}
+        onKindChange={onPropertyValueKindChange}
+        onValueChange={onPropertyValueChange}
       />
       <SheetFooter>
         <MobileButton label={mobileText('common.cancel')} variant="ghost" onPress={onClose} />
