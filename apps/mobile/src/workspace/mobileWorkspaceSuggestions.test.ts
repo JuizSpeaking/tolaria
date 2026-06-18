@@ -156,6 +156,26 @@ describe('mobile workspace suggestions', () => {
     expect(mobileRelationshipTargetSuggestions(notes, 'archived weekly')).toEqual([])
   })
 
+  it('suggests active relationship targets before typing and excludes existing targets', () => {
+    const scenario = applyMobileWorkspaceEdit(workspaceScenarioForId('default'), {
+      key: 'related_to',
+      noteId: 'workflow-orchestration',
+      targetRef: '[[Tolaria/Mobile UI/How I Run an Open Source Project]]',
+      targetTitle: 'How I Run an Open Source Project',
+      type: 'addRelationship',
+    })
+    const selectedNote = scenario.notes.find((note) => note.id === 'workflow-orchestration') ?? null
+
+    expect(mobileRelationshipTargetSuggestions(scenario.notes, '', {
+      relationshipKey: 'related_to',
+      selectedNote,
+    }).map((note) => note.id)).toEqual(['release-2026-05-02'])
+    expect(mobileRelationshipTargetSuggestions(scenario.notes, '', {
+      relationshipKey: 'has',
+      selectedNote,
+    }).map((note) => note.id)).toEqual(['open-source-project', 'release-2026-05-02'])
+  })
+
   it('suggests retargeting types and folders excluding the selected note destination', () => {
     const notes = workspaceScenarioForId('default').notes
     const selectedNote = notes[2] ?? null

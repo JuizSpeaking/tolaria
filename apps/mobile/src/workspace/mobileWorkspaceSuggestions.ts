@@ -1,6 +1,7 @@
 import type { MobileNote, MobileRelationship, MobileTypeDefinitions } from './mobileWorkspaceModel'
 import { mobileNoteIdentityMatchesQuery, normalizedMobileSearchQuery } from './mobileNoteSearch'
 import { mobilePropertyValueKindForKey, type MobilePropertyValueKind } from './mobilePropertyValues'
+import { mobileNoteForWikilinkTarget, parseMobileWikilink } from './mobileWikilinks'
 import {
   allTypePropertyCandidates,
   allTypeRelationshipCandidates,
@@ -31,6 +32,10 @@ type FolderPath = string
 type PropertyValueSuggestionOptions = {
   selectedNote?: MobileNote | null
   typeDefinitions?: MobileTypeDefinitions
+}
+type RelationshipTargetSuggestionOptions = {
+  relationshipKey?: RelationshipKey
+  selectedNote?: MobileNote | null
 }
 
 const DESKTOP_SUGGESTED_PROPERTY_KEYS = ['Status', 'Date', 'URL'] as const
@@ -92,12 +97,12 @@ export function mobileRelationshipKeySuggestions(
 export function mobileRelationshipTargetSuggestions(
   notes: MobileNote[],
   query: SuggestionQuery,
+  options: RelationshipTargetSuggestionOptions = {},
 ): MobileNote[] {
   const normalizedQuery = normalizedMobileSearchQuery(query)
-  if (!normalizedQuery) return []
 
   return notes
-    .filter((note) => !note.archived && mobileNoteIdentityMatchesQuery(note, normalizedQuery))
+    .filter((note) => isRelationshipTargetSuggestion(note, notes, normalizedQuery, options))
     .slice(0, 6)
 }
 
@@ -223,6 +228,46 @@ function relationshipKeyCandidates(
     ...selectedTypeRelationshipCandidates(selectedNote, typeDefinitions),
     ...notes.flatMap((note) => note.relationships.map(relationshipFrontmatterKey)),
   ]
+}
+
+function isRelationshipTargetSuggestion(
+  note: MobileNote,
+  notes: MobileNote[],
+  normalizedQuery: string,
+  options: RelationshipTargetSuggestionOptions,
+): boolean {
+  if (note.archived) return false
+  if (note.id === options.selectedNote?.id) return false
+  if (isExistingRelationshipTarget(note, notes, options)) return false
+  return !normalizedQuery || mobileNoteIdentityMatchesQuery(note, normalizedQuery)
+}
+
+function isExistingRelationshipTarget(
+  note: MobileNote,
+  notes: MobileNote[],
+  options: RelationshipTargetSuggestionOptions,
+): boolean {
+  const relationship = selectedRelationshipForSuggestions(options.selectedNote, options.relationshipKey)
+  return relationship?.values.some((value) => {
+    if (value.id === note.id) return true
+    return value.ref ? mobileNoteForWikilinkTarget(notes, parsedRelationshipRefTarget(value.ref))?.id === note.id : false
+  }) ?? false
+}
+
+function selectedRelationshipForSuggestions(
+  selectedNote: MobileNote | null | undefined,
+  key: RelationshipKey | undefined,
+): MobileRelationship | undefined {
+  const normalizedKey = canonicalSuggestionKey(key ?? '')
+  if (!selectedNote || !normalizedKey) return undefined
+
+  return selectedNote.relationships.find((relationship) => {
+    return canonicalSuggestionKey(relationshipFrontmatterKey(relationship)) === normalizedKey
+  })
+}
+
+function parsedRelationshipRefTarget(ref: string): string {
+  return parseMobileWikilink(ref)?.target ?? ref
 }
 
 function folderPathForNote(note: MobileNote | null): FolderPath {

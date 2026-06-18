@@ -692,7 +692,10 @@ function AddRelationshipContent({
   typeDefinitions,
 }: MobileWorkspaceActionSheetProps) {
   const keySuggestions = mobileRelationshipKeySuggestions(notes, relationshipName, selectedNote, typeDefinitions)
-  const suggestions = mobileRelationshipTargetSuggestions(notes, relationshipNoteTitle)
+  const suggestions = mobileRelationshipTargetSuggestions(notes, relationshipNoteTitle, {
+    relationshipKey: relationshipName,
+    selectedNote,
+  })
   const createTargetTitle = relationshipNoteTitle.trim()
   const showCreateTarget = shouldShowRelationshipCreateTarget(createTargetTitle, suggestions)
 
