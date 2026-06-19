@@ -5,6 +5,12 @@ import { mobileText } from '../../i18n/mobileText'
 import { MobileTextInput } from '../../ui/MobileTextInput'
 import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
 import { MobileWorkspaceSuggestionList } from './MobileWorkspaceSuggestionList'
+import {
+  mobileCustomPropertySortValue,
+  mobileCustomSortFromValue,
+  mobileSortFieldMatches,
+  type MobileSortDirection,
+} from './MobileSortPickerModel'
 
 const mobileSortOptions = [
   { label: `${mobileText('noteList.sort.modified')} ${mobileText('noteList.sort.descending')}`, value: 'modified:desc' },
@@ -30,20 +36,20 @@ export function MobileSortPicker({
   testIDPrefix?: string
   onSelect: (value: string) => void
 }) {
-  const customSort = customSortFromValue(selectedSort)
+  const customSort = mobileCustomSortFromValue(selectedSort)
   const [customField, setCustomField] = useState(customSort.field)
   const customDirection = customSort.direction ?? 'asc'
   const customSuggestions = useMemo(() => {
     return customPropertyOptions
-      .filter((property) => matchesCustomField(property, customField))
+      .filter((property) => mobileSortFieldMatches(property, customField))
       .slice(0, 6)
   }, [customField, customPropertyOptions])
 
-  const selectCustomSort = (field: string, direction = customDirection) => {
+  const selectCustomSort = (field: string, direction: MobileSortDirection = customDirection) => {
     const trimmedField = field.trim()
     if (!trimmedField) return
     setCustomField(trimmedField)
-    onSelect(customPropertySortValue(trimmedField, direction))
+    onSelect(mobileCustomPropertySortValue(trimmedField, direction))
   }
 
   return (
@@ -77,14 +83,14 @@ export function MobileSortPicker({
           <CustomDirectionButton
             disabled={customField.trim().length === 0}
             label={mobileText('noteList.sort.ascending')}
-            selected={selectedSort === customPropertySortValue(customField, 'asc')}
+            selected={selectedSort === mobileCustomPropertySortValue(customField, 'asc')}
             testID={`${testIDPrefix}-custom-asc`}
             onPress={() => selectCustomSort(customField, 'asc')}
           />
           <CustomDirectionButton
             disabled={customField.trim().length === 0}
             label={mobileText('noteList.sort.descending')}
-            selected={selectedSort === customPropertySortValue(customField, 'desc')}
+            selected={selectedSort === mobileCustomPropertySortValue(customField, 'desc')}
             testID={`${testIDPrefix}-custom-desc`}
             onPress={() => selectCustomSort(customField, 'desc')}
           />
@@ -160,34 +166,6 @@ function CustomDirectionButton({
 
 function sortLabel() {
   return mobileText('noteList.sort.menu').replace(/\s*\{label\}/u, '').trim()
-}
-
-function customSortFromValue(value: string): { direction: 'asc' | 'desc' | null; field: string } {
-  const normalized = value.trim()
-  const separator = normalized.lastIndexOf(':')
-  if (separator <= 0) return { direction: null, field: '' }
-
-  const direction = normalized.slice(separator + 1)
-  if (direction !== 'asc' && direction !== 'desc') return { direction: null, field: '' }
-
-  const rawField = normalized.slice(0, separator)
-  const field = rawField.startsWith('property:') ? rawField.slice('property:'.length) : rawField
-  return isBuiltInSortField(field) ? { direction: null, field: '' } : { direction, field }
-}
-
-function customPropertySortValue(field: string, direction: 'asc' | 'desc') {
-  return `property:${field.trim()}:${direction}`
-}
-
-function isBuiltInSortField(field: string) {
-  const normalized = field.trim().toLowerCase()
-  return ['created', 'modified', 'status', 'title', 'type'].includes(normalized)
-}
-
-function matchesCustomField(property: string, query: string) {
-  const normalizedQuery = query.trim().toLowerCase()
-  if (!normalizedQuery) return true
-  return property.toLowerCase().includes(normalizedQuery)
 }
 
 const styles = StyleSheet.create({
