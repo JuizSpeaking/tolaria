@@ -4,11 +4,13 @@ export type MobileMarkdownSourceBlockAction =
   | 'mathBlock'
   | 'mermaid'
   | 'table'
+  | 'whiteboard'
 
 export type MobileMarkdownSourceBlockFormat = {
   closing: string
   fallback: string
   opening: string
+  replaceSelectedText: boolean
   selectFallback: boolean
 }
 
@@ -25,34 +27,39 @@ const markdownTableSnippet = [
   '| Item | Detail |',
 ].join('\n')
 
+const defaultTldrawHeight = '520'
+const defaultTldrawSnapshot = '{}'
+
 export const mobileMarkdownSourceBlockActions = [
   'divider',
   'codeBlock',
   'mathBlock',
   'mermaid',
   'table',
+  'whiteboard',
 ] as const satisfies readonly MobileMarkdownSourceBlockAction[]
 
 const mobileMarkdownSourceBlockFormats: Record<MobileMarkdownSourceBlockAction, MobileMarkdownSourceBlockFormat> = {
-  codeBlock: { closing: '\n```', fallback: 'code', opening: '```text\n', selectFallback: true },
-  divider: { closing: '', fallback: '---', opening: '', selectFallback: false },
-  mathBlock: { closing: '\n$$', fallback: defaultMathBlockLatex, opening: '$$\n', selectFallback: true },
-  mermaid: { closing: '\n```', fallback: defaultMermaidDiagram, opening: '```mermaid\n', selectFallback: true },
-  table: { closing: '', fallback: markdownTableSnippet, opening: '', selectFallback: false },
+  codeBlock: { closing: '\n```', fallback: 'code', opening: '```text\n', replaceSelectedText: true, selectFallback: true },
+  divider: { closing: '', fallback: '---', opening: '', replaceSelectedText: true, selectFallback: false },
+  mathBlock: { closing: '\n$$', fallback: defaultMathBlockLatex, opening: '$$\n', replaceSelectedText: true, selectFallback: true },
+  mermaid: { closing: '\n```', fallback: defaultMermaidDiagram, opening: '```mermaid\n', replaceSelectedText: true, selectFallback: true },
+  table: { closing: '', fallback: markdownTableSnippet, opening: '', replaceSelectedText: true, selectFallback: false },
+  whiteboard: { closing: '\n```', fallback: defaultTldrawSnapshot, opening: '', replaceSelectedText: false, selectFallback: false },
 }
 
 export function mobileMarkdownSourceBlockFormat(
   action: string,
 ): MobileMarkdownSourceBlockFormat | null {
-  return isMobileMarkdownSourceBlockAction(action)
-    ? mobileMarkdownSourceBlockFormats[action]
-    : null
+  if (!isMobileMarkdownSourceBlockAction(action)) return null
+  if (action === 'whiteboard') return mobileWhiteboardSourceBlockFormat()
+  return mobileMarkdownSourceBlockFormats[action]
 }
 
 export function mobileMarkdownSourceBlockText(
   action: MobileMarkdownSourceBlockAction,
 ): string {
-  const format = mobileMarkdownSourceBlockFormats[action]
+  const format = mobileMarkdownSourceBlockFormat(action) ?? mobileMarkdownSourceBlockFormats[action]
   return `${format.opening}${format.fallback}${format.closing}`
 }
 
@@ -66,4 +73,18 @@ function isMobileMarkdownSourceBlockAction(
   action: string,
 ): action is MobileMarkdownSourceBlockAction {
   return mobileMarkdownSourceBlockActions.some((candidate) => candidate === action)
+}
+
+function mobileWhiteboardSourceBlockFormat(): MobileMarkdownSourceBlockFormat {
+  return {
+    ...mobileMarkdownSourceBlockFormats.whiteboard,
+    opening: `\`\`\`tldraw id="${createMobileWhiteboardBoardId()}" height="${defaultTldrawHeight}"\n`,
+  }
+}
+
+function createMobileWhiteboardBoardId(): string {
+  const randomUUID = globalThis.crypto?.randomUUID
+  return typeof randomUUID === 'function'
+    ? randomUUID.call(globalThis.crypto)
+    : `whiteboard-${Date.now().toString(36)}`
 }

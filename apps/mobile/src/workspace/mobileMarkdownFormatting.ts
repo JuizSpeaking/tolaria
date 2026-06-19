@@ -27,6 +27,7 @@ export type MobileMarkdownFormatAction =
   | 'strike'
   | 'table'
   | 'taskList'
+  | 'whiteboard'
   | 'wikilink'
 
 export type MobileMarkdownSelection = {
@@ -230,7 +231,7 @@ class MarkdownEditSession {
 
   private insertSourceBlock(format: MobileMarkdownSourceBlockFormat): MobileMarkdownFormatResult {
     const selected = this.selectedText()
-    const content = selected || format.fallback
+    const content = format.replaceSelectedText && selected ? selected : format.fallback
     const before = this.blockPrefix()
     const after = this.blockSuffix()
     const replacement = `${before}${format.opening}${content}${format.closing}${after}`

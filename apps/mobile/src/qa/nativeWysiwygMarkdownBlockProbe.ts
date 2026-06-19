@@ -13,6 +13,7 @@ export type NativeWysiwygMarkdownBlockProof = {
   mermaidSaved: boolean
   noteId: NoteId
   tableSaved: boolean
+  whiteboardSaved: boolean
 }
 
 export type NativeWysiwygMarkdownBlockAssertionFailure = {
@@ -42,6 +43,7 @@ const expectedTable = [
   '| --- | --- |',
   '| Item | Detail |',
 ].join('\n')
+const expectedWhiteboardFence = /```tldraw id="[^"]+" height="520"\n\{\}\n```/u
 
 const proofFieldTypes = {
   codeBlockSaved: 'boolean',
@@ -51,6 +53,7 @@ const proofFieldTypes = {
   mermaidSaved: 'boolean',
   noteId: 'string',
   tableSaved: 'boolean',
+  whiteboardSaved: 'boolean',
 } as const satisfies Record<ProofFieldName, ProofFieldType>
 
 const proofFields = Object.keys(proofFieldTypes) as ProofFieldName[]
@@ -62,6 +65,7 @@ export function nativeWysiwygMarkdownBlockProbePayloads(): NativeWysiwygMarkdown
     { action: 'mathBlock' },
     { action: 'mermaid' },
     { action: 'table' },
+    { action: 'whiteboard' },
   ]
 }
 
@@ -82,6 +86,7 @@ export function nativeWysiwygMarkdownBlockProof({
     mermaidSaved: normalizedContent.includes(expectedMermaid),
     noteId,
     tableSaved: normalizedContent.includes(expectedTable),
+    whiteboardSaved: expectedWhiteboardFence.test(normalizedContent),
   }
 }
 
@@ -137,6 +142,11 @@ export function assertNativeWysiwygMarkdownBlockProofs(
       'editor.wysiwyg.markdownBlocks.table',
       'Native WYSIWYG table insertion saves as desktop markdown table source lines',
     ),
+    proofFailure(
+      latest.whiteboardSaved,
+      'editor.wysiwyg.markdownBlocks.whiteboard',
+      'Native WYSIWYG whiteboard insertion saves as desktop tldraw fenced markdown',
+    ),
   ].filter((failure): failure is NativeWysiwygMarkdownBlockAssertionFailure => failure !== null)
 }
 
@@ -174,6 +184,7 @@ function parsedProof(value: unknown): NativeWysiwygMarkdownBlockProof | null {
     mermaidSaved: value.mermaidSaved,
     noteId: value.noteId,
     tableSaved: value.tableSaved,
+    whiteboardSaved: value.whiteboardSaved,
   }
 }
 

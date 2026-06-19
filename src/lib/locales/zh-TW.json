@@ -645,6 +645,7 @@
   "editor.formatting.mathBlock": "數學",
   "editor.formatting.mermaid": "Mermaid",
   "editor.formatting.table": "表格",
+  "editor.formatting.whiteboard": "白板",
   "editor.whiteboard.enterFullscreen": "展開白板",
   "editor.whiteboard.exitFullscreen": "退出全螢幕白板",
   "editor.exportPdf.unavailable": "在匯出 PDF 之前，請先開啟 Markdown 筆記。",

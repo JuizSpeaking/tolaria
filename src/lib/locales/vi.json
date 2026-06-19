@@ -645,6 +645,7 @@
   "editor.formatting.mathBlock": "Toán học",
   "editor.formatting.mermaid": "Mermaid",
   "editor.formatting.table": "Bảng",
+  "editor.formatting.whiteboard": "Bảng trắng",
   "editor.whiteboard.enterFullscreen": "Mở rộng bảng trắng",
   "editor.whiteboard.exitFullscreen": "Thoát chế độ bảng trắng toàn màn hình",
   "editor.exportPdf.unavailable": "Mở ghi chú Markdown trước khi xuất PDF.",

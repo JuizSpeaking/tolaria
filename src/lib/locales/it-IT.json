@@ -645,6 +645,7 @@
   "editor.formatting.mathBlock": "Matematica",
   "editor.formatting.mermaid": "Mermaid",
   "editor.formatting.table": "Tabella",
+  "editor.formatting.whiteboard": "Lavagna",
   "editor.whiteboard.enterFullscreen": "Espandi la lavagna",
   "editor.whiteboard.exitFullscreen": "Esci dalla lavagna a schermo intero",
   "editor.exportPdf.unavailable": "Apri una nota Markdown prima di esportare un PDF.",

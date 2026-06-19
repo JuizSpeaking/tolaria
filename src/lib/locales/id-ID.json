@@ -645,6 +645,7 @@
   "editor.formatting.mathBlock": "Matematika",
   "editor.formatting.mermaid": "Mermaid",
   "editor.formatting.table": "Tabel",
+  "editor.formatting.whiteboard": "Papan tulis",
   "editor.whiteboard.enterFullscreen": "Perluas papan tulis",
   "editor.whiteboard.exitFullscreen": "Keluar dari papan tulis layar penuh",
   "editor.exportPdf.unavailable": "Buka catatan Markdown sebelum mengekspor PDF.",

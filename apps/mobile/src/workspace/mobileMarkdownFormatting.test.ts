@@ -96,6 +96,13 @@ describe('mobile markdown formatting', () => {
     })
   })
 
+  it('inserts desktop-compatible whiteboard source blocks without wrapping selected text', () => {
+    const result = applyMobileMarkdownFormat('Intro\nselected', { start: 6, end: 14 }, 'whiteboard')
+
+    expect(result.selection).toEqual({ start: result.text.length, end: result.text.length })
+    expect(result.text).toMatch(/^Intro\n\n```tldraw id="[^"]+" height="520"\n\{\}\n```$/u)
+  })
+
   it('inserts clipboard text exactly at the current source selection', () => {
     expect(insertMobileMarkdownPlainText({
       selection: { start: 7, end: 11 },

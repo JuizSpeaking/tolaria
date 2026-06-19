@@ -17,6 +17,7 @@ describe('native WYSIWYG markdown block probe', () => {
       { action: 'mathBlock' },
       { action: 'mermaid' },
       { action: 'table' },
+      { action: 'whiteboard' },
     ])
   })
 
@@ -43,6 +44,10 @@ describe('native WYSIWYG markdown block probe', () => {
         '| Column | Value |',
         '| --- | --- |',
         '| Item | Detail |',
+        '',
+        '```tldraw id="board-1" height="520"',
+        '{}',
+        '```',
       ].join('\n'),
       noteId: 'note.md',
     })).toMatchObject({
@@ -52,6 +57,7 @@ describe('native WYSIWYG markdown block probe', () => {
       mermaidSaved: true,
       noteId: 'note.md',
       tableSaved: true,
+      whiteboardSaved: true,
     })
   })
 
@@ -78,6 +84,10 @@ describe('native WYSIWYG markdown block probe', () => {
         '| Column | Value |',
         '| --- | --- |',
         '| Item | Detail |',
+        '',
+        '```tldraw id="board-1" height="520"',
+        '{}',
+        '```',
       ].join('\n'),
       noteId: 'note.md',
     })).toMatchObject({
@@ -86,6 +96,7 @@ describe('native WYSIWYG markdown block probe', () => {
       mathBlockSaved: true,
       mermaidSaved: true,
       tableSaved: true,
+      whiteboardSaved: true,
     })
   })
 
@@ -112,6 +123,10 @@ describe('native WYSIWYG markdown block probe', () => {
         '| Column | Value |',
         '| --- | --- |',
         '| Item | Detail |',
+        '',
+        '```tldraw id="board-1" height="520"',
+        '{}',
+        '```',
       ].join('\n'),
       noteId: 'note.md',
     })
@@ -146,6 +161,10 @@ describe('native WYSIWYG markdown block probe', () => {
       {
         id: 'editor.wysiwyg.markdownBlocks.table',
         message: 'Native WYSIWYG table insertion saves as desktop markdown table source lines',
+      },
+      {
+        id: 'editor.wysiwyg.markdownBlocks.whiteboard',
+        message: 'Native WYSIWYG whiteboard insertion saves as desktop tldraw fenced markdown',
       },
     ])
   })

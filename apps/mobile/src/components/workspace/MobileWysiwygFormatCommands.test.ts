@@ -34,7 +34,7 @@ describe('native WYSIWYG format commands', () => {
   })
 
   it('keeps source-backed block markdown commands visible without mapping them to TenTap commands', () => {
-    const sourceBackedActions: MobileMarkdownFormatAction[] = ['divider', 'codeBlock', 'mathBlock', 'mermaid', 'table']
+    const sourceBackedActions: MobileMarkdownFormatAction[] = ['divider', 'codeBlock', 'mathBlock', 'mermaid', 'table', 'whiteboard']
 
     expect(nativeWysiwygFormattingActions).toEqual(expect.arrayContaining(sourceBackedActions))
 

@@ -645,6 +645,7 @@
   "editor.formatting.mathBlock": "Mathématiques",
   "editor.formatting.mermaid": "Mermaid",
   "editor.formatting.table": "Tableau",
+  "editor.formatting.whiteboard": "Tableau blanc",
   "editor.whiteboard.enterFullscreen": "Agrandir le tableau blanc",
   "editor.whiteboard.exitFullscreen": "Quitter le tableau blanc en plein écran",
   "editor.exportPdf.unavailable": "Ouvrez une note Markdown avant d'exporter un PDF.",

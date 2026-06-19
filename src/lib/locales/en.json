@@ -645,6 +645,7 @@
   "editor.formatting.mathBlock": "Math",
   "editor.formatting.mermaid": "Mermaid",
   "editor.formatting.table": "Table",
+  "editor.formatting.whiteboard": "Whiteboard",
   "editor.whiteboard.enterFullscreen": "Expand whiteboard",
   "editor.whiteboard.exitFullscreen": "Exit fullscreen whiteboard",
   "editor.exportPdf.unavailable": "Open a Markdown note before exporting a PDF.",

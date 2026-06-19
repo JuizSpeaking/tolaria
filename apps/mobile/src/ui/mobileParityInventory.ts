@@ -211,7 +211,7 @@ export const mobileParityInventory = [
     surface: 'Type section visibility editor',
   },
   {
-    assertions: ['markdown formatting command user-flow checks for paste without formatting, inline marks, H1-H6 headings, lists, blocks, wikilinks, and tables', 'native iOS WYSIWYG markdown block insertion proof'],
+    assertions: ['markdown formatting command user-flow checks for paste without formatting, inline marks, H1-H6 headings, lists, blocks, wikilinks, tables, math, Mermaid, and whiteboards', 'native iOS WYSIWYG markdown block insertion proof'],
     contracts: ['desktopToolbarActionParity'],
     desktopSource: 'BlockNote formatting commands and BreadcrumbBar icon button sizing',
     mobileFile: 'src/components/workspace/MobileMarkdownFormattingToolbar.tsx',

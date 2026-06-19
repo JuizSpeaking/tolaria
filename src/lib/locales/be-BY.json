@@ -645,6 +645,7 @@
   "editor.formatting.mathBlock": "Матэматыка",
   "editor.formatting.mermaid": "Mermaid",
   "editor.formatting.table": "Табліца",
+  "editor.formatting.whiteboard": "Дошка",
   "editor.whiteboard.enterFullscreen": "Разгарнуць дошку",
   "editor.whiteboard.exitFullscreen": "Выйсці з поўнаэкраннай дошкі",
   "editor.exportPdf.unavailable": "Адкрыйце нататку Markdown перад экспартам у PDF.",

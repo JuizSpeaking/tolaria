@@ -645,6 +645,7 @@
   "editor.formatting.mathBlock": "数学",
   "editor.formatting.mermaid": "Mermaid",
   "editor.formatting.table": "表",
+  "editor.formatting.whiteboard": "ホワイトボード",
   "editor.whiteboard.enterFullscreen": "ホワイトボードを展開",
   "editor.whiteboard.exitFullscreen": "フルスクリーンホワイトボードを終了",
   "editor.exportPdf.unavailable": "PDFをエクスポートする前に、Markdownノートを開いてください。",

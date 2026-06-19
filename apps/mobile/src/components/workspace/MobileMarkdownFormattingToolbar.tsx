@@ -11,6 +11,7 @@ import {
   Paperclip,
   Pi,
   Quotes,
+  ScribbleLoop,
   Table,
   TextB,
   TextHFive,
@@ -170,6 +171,12 @@ const formattingCommands: FormattingCommand[] = [
     icon: (color) => <FlowArrow color={color} size={desktopToolbarActionParity.iconSize} />,
     label: mobileText('editor.formatting.mermaid'),
     testID: 'editor-format-mermaid',
+  },
+  {
+    action: 'whiteboard',
+    icon: (color) => <ScribbleLoop color={color} size={desktopToolbarActionParity.iconSize} />,
+    label: mobileText('editor.formatting.whiteboard'),
+    testID: 'editor-format-whiteboard',
   },
   {
     action: 'table',

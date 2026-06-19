@@ -108,6 +108,18 @@ describe('native WYSIWYG wikilink bridge', () => {
     expect(tiptapJsonToMobileMarkdown(nextDocument)).toBe(expectedMarkdown)
   })
 
+  it('inserts native WYSIWYG whiteboards as desktop durable tldraw markdown', () => {
+    const nextDocument = nativeWysiwygDocumentWithInsertedMarkdownBlock({
+      json: documentNode(paragraphNode('Intro'), paragraphNode('Tail')),
+      payload: { action: 'whiteboard' },
+      selection: { from: 3, to: 3 },
+    })
+
+    expect(tiptapJsonToMobileMarkdown(nextDocument)).toMatch(
+      /^Intro\n\n```tldraw id="[^"]+" height="520"\n\{\}\n```\n\nTail$/u,
+    )
+  })
+
   it('inserts the wikilink at the current native editor selection', () => {
     expect(insertedWikilinkMarkdown({
       text: 'Read  today.',

@@ -647,6 +647,7 @@
   "editor.formatting.mathBlock": "Matematyka",
   "editor.formatting.mermaid": "Mermaid",
   "editor.formatting.table": "Tablica",
+  "editor.formatting.whiteboard": "Doška",
   "editor.whiteboard.enterFullscreen": "Pašyryć došku",
   "editor.whiteboard.exitFullscreen": "Vyjsci z poŭnaekrannaj doški",
   "editor.exportPdf.unavailable": "Adkryjcie natatku Markdown pierad ekspartam u PDF.",
