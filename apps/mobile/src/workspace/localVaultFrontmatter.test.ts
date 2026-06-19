@@ -157,6 +157,25 @@ Body.
     expect(document.frontmatter.order).toBe(3.5)
   })
 
+  it('decodes desktop quoted frontmatter scalar escapes', () => {
+    const document = parseLocalVaultDocument(String.raw`---
+title: "Luca \"Focus\" \u2605"
+Status: "Needs\nReview"
+aliases: ["Mobile \"QA\"", 'Owner''s Plan']
+related_to:
+  - "[[Project \"A\"]]"
+---
+Body.
+`)
+
+    expect(frontmatterScalar(document.frontmatter, ['title'])).toBe('Luca "Focus" \u2605')
+    expect(frontmatterScalar(document.frontmatter, ['Status', 'status'])).toBe('Needs\nReview')
+    expect(frontmatterList(document.frontmatter, ['aliases'])).toEqual(['Mobile "QA"', "Owner's Plan"])
+    expect(frontmatterRelationships(document.frontmatter)).toEqual({
+      related_to: ['[[Project "A"]]'],
+    })
+  })
+
   it('keeps null frontmatter scalars as literal strings like desktop', () => {
     const document = parseLocalVaultDocument(`---
 empty: null

@@ -374,14 +374,18 @@ function parseScalar(value: FrontmatterText): LocalVaultFrontmatterScalar | null
 }
 
 function isQuotedScalar(value: FrontmatterText): boolean {
+  return scalarQuote(value) !== null
+}
+
+function scalarQuote(value: FrontmatterText): '"' | '\'' | null {
   const quote = value.at(0)
-  return isQuote(quote) && value.at(-1) === quote
+  if (isQuote(quote) && value.at(-1) === quote) return quote
+  return null
 }
 
 function unquote(value: FrontmatterText): FrontmatterText {
-  const quote = value.at(0)
-  if (!isQuote(quote)) return value
-  return value.at(-1) === quote ? value.slice(1, -1) : value
+  const quote = scalarQuote(value)
+  return quote === null ? value : unquoteFrontmatterKey(value.slice(1, -1), quote)
 }
 
 function isQuote(value: string | undefined): value is '"' | '\'' {
