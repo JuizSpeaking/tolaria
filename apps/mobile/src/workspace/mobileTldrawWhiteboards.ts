@@ -8,12 +8,13 @@ export type MobileTldrawWhiteboard = {
   endLine: number
   height: string
   key: string
+  metadataSuffix: string
   snapshot: string
   startLine: number
   width: string
 }
 
-type MobileTldrawFenceMetadata = Pick<MobileTldrawWhiteboard, 'boardId' | 'height' | 'width'>
+type MobileTldrawFenceMetadata = Pick<MobileTldrawWhiteboard, 'boardId' | 'height' | 'metadataSuffix' | 'width'>
 
 type MobileTldrawWhiteboardUpdate = {
   height?: string
@@ -68,6 +69,7 @@ export function updateMobileTldrawWhiteboard(
       fallback: whiteboard.height,
       value: update.height,
     }),
+    metadataSuffix: whiteboard.metadataSuffix,
     snapshot: normalizedSnapshot({ snapshot: update.snapshot ?? whiteboard.snapshot }),
     width: normalizedDimension({ blankFallback: '', fallback: whiteboard.width, value: update.width }),
   })
@@ -86,11 +88,19 @@ export function updateMobileTldrawWhiteboard(
 export function mobileTldrawFenceSource({
   boardId,
   height,
+  metadataSuffix = '',
   snapshot,
   width,
-}: Pick<MobileTldrawWhiteboard, 'boardId' | 'height' | 'snapshot' | 'width'>): string {
+}: Pick<MobileTldrawWhiteboard, 'boardId' | 'height' | 'snapshot' | 'width'> & {
+  metadataSuffix?: string
+}): string {
   const fence = '`'.repeat(fenceLengthForSnapshot({ snapshot }))
-  return `${fence}tldraw${mobileTldrawFenceMetadata({ boardId, height, width })}\n${snapshotBody({ snapshot })}${fence}`
+  return `${fence}tldraw${mobileTldrawFenceMetadata({
+    boardId,
+    height,
+    metadataSuffix,
+    width,
+  })}\n${snapshotBody({ snapshot })}${fence}`
 }
 
 function readMobileTldrawFenceAt({
@@ -151,6 +161,7 @@ function readMobileTldrawFenceMetadata({ info }: { info: string }): MobileTldraw
   return {
     boardId: readFenceAttribute({ info: metadata, name: 'id' }),
     height: readFenceAttribute({ info: metadata, name: 'height' }) || mobileTldrawDefaultHeight,
+    metadataSuffix: metadataWithoutKnownAttributes({ metadata }),
     width: readFenceAttribute({ info: metadata, name: 'width' }),
   }
 }
@@ -159,12 +170,25 @@ function mobileTldrawWhiteboardKey({ boardId, startLine }: { boardId: string; st
   return boardId || `line:${startLine}`
 }
 
-function mobileTldrawFenceMetadata({ boardId, height, width }: MobileTldrawFenceMetadata): string {
+function mobileTldrawFenceMetadata({
+  boardId,
+  height,
+  metadataSuffix,
+  width,
+}: MobileTldrawFenceMetadata): string {
   const attributes: string[] = []
   if (boardId) attributes.push(`id="${escapeFenceAttribute({ value: boardId })}"`)
   if (height) attributes.push(`height="${escapeFenceAttribute({ value: height })}"`)
   if (width) attributes.push(`width="${escapeFenceAttribute({ value: width })}"`)
+  if (metadataSuffix.trim()) attributes.push(metadataSuffix.trim())
   return attributes.length > 0 ? ` ${attributes.join(' ')}` : ''
+}
+
+function metadataWithoutKnownAttributes({ metadata }: { metadata: string }): string {
+  return metadata
+    .replace(/\b(?:height|id|width)=(?:"[^"]*"|'[^']*'|[^\s]+)/gu, ' ')
+    .trim()
+    .replace(/\s+/gu, ' ')
 }
 
 function readFenceAttribute({ info, name }: { info: string; name: 'height' | 'id' | 'width' }): string {

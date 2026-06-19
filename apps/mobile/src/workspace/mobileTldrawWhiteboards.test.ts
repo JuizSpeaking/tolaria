@@ -22,6 +22,7 @@ describe('mobile tldraw whiteboards', () => {
       endLine: 4,
       height: '640',
       key: 'map',
+      metadataSuffix: '',
       snapshot: '{ "store": { "shape": true } }',
       startLine: 2,
       width: '900',
@@ -67,14 +68,46 @@ describe('mobile tldraw whiteboards', () => {
     ].join('\n'))
   })
 
+  it('preserves extra desktop tldraw fence metadata when editing dimensions and snapshot', () => {
+    const content = [
+      '# Planning',
+      '',
+      '```tldraw id="map" height="640" width="900" compact="true" data-owner="desktop"',
+      '{}',
+      '```',
+    ].join('\n')
+
+    const [board] = readMobileTldrawWhiteboards({ markdown: content })
+    expect(board?.metadataSuffix).toBe('compact="true" data-owner="desktop"')
+
+    const result = updateMobileTldrawWhiteboard({
+      markdown: content,
+      update: {
+        height: '720',
+        key: 'map',
+        snapshot: '{ "document": true }',
+      },
+    })
+
+    expect(result.updated).toBe(true)
+    expect(result.markdown).toBe([
+      '# Planning',
+      '',
+      '```tldraw id="map" height="720" width="900" compact="true" data-owner="desktop"',
+      '{ "document": true }',
+      '```',
+    ].join('\n'))
+  })
+
   it('uses a longer fence when the snapshot contains backticks', () => {
     expect(mobileTldrawFenceSource({
       boardId: 'quoted',
       height: '520',
+      metadataSuffix: 'compact="true"',
       snapshot: '{ "text": "```" }',
       width: '',
     })).toBe([
-      '````tldraw id="quoted" height="520"',
+      '````tldraw id="quoted" height="520" compact="true"',
       '{ "text": "```" }',
       '````',
     ].join('\n'))
