@@ -5,6 +5,7 @@ import {
   frontmatterRelationships,
   frontmatterScalar,
   parseLocalVaultDocument,
+  serializeLocalVaultFrontmatterKey,
   serializeLocalVaultFrontmatterScalar,
   type LocalVaultFrontmatter,
   type LocalVaultFrontmatterScalar,
@@ -1196,11 +1197,12 @@ function serializeDocument(frontmatter: LocalVaultFrontmatter, body: MarkdownCon
 }
 
 function serializeFrontmatterEntry(key: FrontmatterKey, value: LocalVaultFrontmatterValue): string {
+  const frontmatterKey = serializeLocalVaultFrontmatterKey(key)
   if (Array.isArray(value)) {
-    return `${key}:\n${value.map((item) => `  - ${serializeScalar(item)}`).join('\n')}`
+    return `${frontmatterKey}:\n${value.map((item) => `  - ${serializeScalar(item)}`).join('\n')}`
   }
 
-  return `${key}: ${serializeScalar(value)}`
+  return `${frontmatterKey}: ${serializeScalar(value)}`
 }
 
 function serializeScalar(value: Exclude<LocalVaultFrontmatterValue, LocalVaultFrontmatterValue[]>): string {

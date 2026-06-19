@@ -95,4 +95,14 @@ _sort: title:asc
     expect(content).not.toContain('\nsort:')
     expect(content).not.toContain('\n_sort:')
   })
+
+  it('quotes Type schema frontmatter keys with desktop YAML rules', () => {
+    const content = mobileTypeDefinitionContent('Project', undefined, {
+      properties: { 'key:value': '2026-06-01' },
+      relationships: { 'blocked#by': ['[[launch-plan]]'] },
+    })
+
+    expect(content).toContain('"key:value": 2026-06-01')
+    expect(content).toContain('"blocked#by":\n  - "[[launch-plan]]"')
+  })
 })

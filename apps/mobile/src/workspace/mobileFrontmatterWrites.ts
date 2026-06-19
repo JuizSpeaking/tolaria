@@ -4,6 +4,7 @@ import type {
 } from './localVaultFrontmatter'
 import {
   parseLocalVaultDocument,
+  serializeLocalVaultFrontmatterKey,
   serializeLocalVaultFrontmatterScalar,
 } from './localVaultFrontmatter'
 
@@ -105,9 +106,10 @@ function serializeFrontmatterEntry(
   key: FrontmatterKey,
   value: LocalVaultFrontmatterValue,
 ): string {
+  const frontmatterKey = serializeLocalVaultFrontmatterKey(key)
   if (Array.isArray(value)) {
-    return `${key}:\n${value.map((item) => `  - ${serializeLocalVaultFrontmatterScalar(item)}`).join('\n')}`
+    return `${frontmatterKey}:\n${value.map((item) => `  - ${serializeLocalVaultFrontmatterScalar(item)}`).join('\n')}`
   }
 
-  return `${key}: ${serializeLocalVaultFrontmatterScalar(value)}`
+  return `${frontmatterKey}: ${serializeLocalVaultFrontmatterScalar(value)}`
 }

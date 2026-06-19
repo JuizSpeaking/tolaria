@@ -6,6 +6,7 @@ import {
   frontmatterRelationships,
   frontmatterScalar,
   parseLocalVaultDocument,
+  serializeLocalVaultFrontmatterKey,
   serializeLocalVaultFrontmatterScalar,
 } from './localVaultFrontmatter'
 
@@ -48,6 +49,24 @@ Body.
     expect(frontmatterList(document.frontmatter, ['aliases'])).toEqual(['Mobile, UI', 'Tablet'])
     expect(frontmatterList(document.frontmatter, ['tags'])).toEqual(['AI, UX', 'Design'])
     expect(document.frontmatter.score).toEqual([1, true, 'Needs, Review'])
+  })
+
+  it('parses desktop quoted frontmatter keys with special characters', () => {
+    const document = parseLocalVaultDocument(`---
+"due date": 2026-06-01
+"key:value": "kept"
+"has#tag": true
+"key.name": plain
+---
+Body.
+`)
+
+    expect(frontmatterProperties(document.frontmatter)).toMatchObject({
+      'due date': '2026-06-01',
+      'has#tag': true,
+      'key.name': 'plain',
+      'key:value': 'kept',
+    })
   })
 
   it.each([
@@ -162,6 +181,17 @@ Body.
       expect(serializeLocalVaultFrontmatterScalar(value)).toBe(JSON.stringify(value))
     },
   )
+
+  it.each(['key:value', 'has#tag', 'key.name'])(
+    'quotes desktop frontmatter key %s when serializing',
+    (key) => {
+      expect(serializeLocalVaultFrontmatterKey(key)).toBe(JSON.stringify(key))
+    },
+  )
+
+  it('preserves unquoted relationship labels with spaces', () => {
+    expect(serializeLocalVaultFrontmatterKey('Related to')).toBe('Related to')
+  })
 
   it('reads desktop numeric boolean frontmatter flags', () => {
     const document = parseLocalVaultDocument(`---

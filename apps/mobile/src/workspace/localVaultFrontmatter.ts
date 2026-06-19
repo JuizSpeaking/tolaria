@@ -37,6 +37,10 @@ export function serializeLocalVaultFrontmatterScalar(value: LocalVaultFrontmatte
   return value
 }
 
+export function serializeLocalVaultFrontmatterKey(key: FrontmatterKey): string {
+  return shouldQuoteFrontmatterKey(key) ? JSON.stringify(key) : key
+}
+
 export function parseLocalVaultDocument(content: MarkdownContent): LocalVaultDocument {
   const open = content.match(FRONTMATTER_OPEN)
   if (!open) return { body: content, frontmatter: {} }
@@ -185,12 +189,54 @@ function applyFrontmatterKeyValue(
 function parseKeyValueLine(line: FrontmatterLine): { key: FrontmatterKey; value: FrontmatterText } | null {
   if (!line || line.startsWith(' ') || line.startsWith('\t')) return null
 
-  const match = line.match(/^["']?([^"':]+)["']?\s*:\s*(.*)$/)
+  return parseQuotedKeyValueLine(line) ?? parsePlainKeyValueLine(line)
+}
+
+function parseQuotedKeyValueLine(line: FrontmatterLine): { key: FrontmatterKey; value: FrontmatterText } | null {
+  const quote = line.at(0)
+  if (!isQuote(quote)) return null
+
+  const endQuoteIndex = closingQuoteIndex(line, quote)
+  if (endQuoteIndex === -1) return null
+
+  const valueMatch = line.slice(endQuoteIndex + 1).match(/^\s*:\s*(.*)$/u)
+  if (!valueMatch) return null
+
+  return {
+    key: unquoteFrontmatterKey(line.slice(1, endQuoteIndex), quote),
+    value: valueMatch[1].trim(),
+  }
+}
+
+function parsePlainKeyValueLine(line: FrontmatterLine): { key: FrontmatterKey; value: FrontmatterText } | null {
+  const match = line.match(/^([^"':]+)\s*:\s*(.*)$/)
   if (!match) return null
 
   return {
     key: match[1].trim(),
     value: match[2].trim(),
+  }
+}
+
+function closingQuoteIndex(line: FrontmatterLine, quote: '"' | '\''): number {
+  for (let index = 1; index < line.length; index += 1) {
+    if (line[index] === '\\' && quote === '"') {
+      index += 1
+      continue
+    }
+    if (line[index] === quote) return index
+  }
+
+  return -1
+}
+
+function unquoteFrontmatterKey(value: FrontmatterKey, quote: '"' | '\''): FrontmatterKey {
+  if (quote === '\'') return value.replace(/''/gu, '\'')
+
+  try {
+    return JSON.parse(`"${value}"`) as FrontmatterKey
+  } catch {
+    return value.replace(/\\"/gu, '"')
   }
 }
 
@@ -474,4 +520,8 @@ function shouldQuoteFrontmatterScalar(value: string): boolean {
 
 function isAmbiguousPlainScalar(value: string): boolean {
   return /^(?:true|false|null)$/u.test(value) || isNumericScalar(value)
+}
+
+function shouldQuoteFrontmatterKey(key: FrontmatterKey): boolean {
+  return key === '' || /[^A-Za-z0-9_ -]/u.test(key)
 }

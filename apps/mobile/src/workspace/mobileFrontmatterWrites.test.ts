@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { workspaceScenarioForId } from '../fixtures/workspaceFixtures'
+import { frontmatterProperties, parseLocalVaultDocument } from './localVaultFrontmatter'
+import { writeMobileFrontmatterContentValue } from './mobileFrontmatterWrites'
 import { applyMobileWorkspaceEditWithWrites } from './mobileWorkspaceEditing'
 import type { MobileNote, MobileWorkspaceSnapshot } from './mobileWorkspaceModel'
 
@@ -50,6 +52,19 @@ describe('mobile frontmatter writes', () => {
     expect(note.rawContent).not.toContain('\nicon:')
     expect(note.rawContent).not.toContain('\nsort:')
     expect(note.rawContent).not.toContain('\n_sort:')
+  })
+
+  it('quotes desktop frontmatter keys with special characters during direct writes', () => {
+    const content = writeMobileFrontmatterContentValue(
+      '---\ntype: Note\n---\n# Note\n',
+      'key:value',
+      'kept',
+    )
+
+    expect(content).toContain('"key:value": kept')
+    expect(frontmatterProperties(parseLocalVaultDocument(content).frontmatter)).toMatchObject({
+      'key:value': 'kept',
+    })
   })
 })
 

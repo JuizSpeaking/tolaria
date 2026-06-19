@@ -2,6 +2,7 @@ import {
   frontmatterProperties,
   frontmatterRelationships,
   parseLocalVaultDocument,
+  serializeLocalVaultFrontmatterKey,
   serializeLocalVaultFrontmatterScalar,
   type LocalVaultFrontmatter,
   type LocalVaultFrontmatterValue,
@@ -286,11 +287,12 @@ function serializeFrontmatterEntry(
   key: string,
   value: LocalVaultFrontmatterValue,
 ): string {
+  const frontmatterKey = serializeLocalVaultFrontmatterKey(key)
   if (Array.isArray(value)) {
-    return `${key}:\n${value.map((item) => `  - ${serializeScalar(item)}`).join('\n')}`
+    return `${frontmatterKey}:\n${value.map((item) => `  - ${serializeScalar(item)}`).join('\n')}`
   }
 
-  return `${key}: ${serializeScalar(value)}`
+  return `${frontmatterKey}: ${serializeScalar(value)}`
 }
 
 function serializeScalar(value: Exclude<LocalVaultFrontmatterValue, LocalVaultFrontmatterValue[]>): string {
