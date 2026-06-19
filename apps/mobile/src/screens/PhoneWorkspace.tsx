@@ -80,6 +80,10 @@ export function PhoneWorkspace({
     if (noteId) controller.onSelectNote(noteId)
     setPhoneState('editor')
   }, [controller, setPhoneState])
+  const openNeighborhoodList = useCallback((noteId: string) => {
+    controller.onEnterNeighborhood(noteId)
+    setPhoneState('list')
+  }, [controller, setPhoneState])
   const createRelationshipTargetAndOpenEditor = useCallback(() => {
     controller.onCreateRelationshipTarget()
     setPhoneState('editor')
@@ -142,6 +146,7 @@ export function PhoneWorkspace({
         layoutProbe={layoutProbe}
         suggestionNotes={suggestionNotes}
         onCreateRelationshipTarget={createRelationshipTargetAndOpenEditor}
+        onEnterNeighborhood={openNeighborhoodList}
       />
       <MobileSyncStatusBar sync={controller.snapshot.sync} onOpenLocalVault={onOpenNativeVault} />
     </View>
