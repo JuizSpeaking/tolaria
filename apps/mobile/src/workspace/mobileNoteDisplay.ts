@@ -1,4 +1,5 @@
-import type { MobileNote, MobileTone, MobileTypeDefinitions } from './mobileWorkspaceModel'
+import { mobilePropertyDisplay } from './mobilePropertyDisplay'
+import type { MobileNote, MobilePropertyValue, MobileTone, MobileTypeDefinitions } from './mobileWorkspaceModel'
 
 export type MobileTagTone = 'blue' | 'green' | 'orange' | 'purple' | 'red'
 type DisplayPropertyKey = string
@@ -93,7 +94,43 @@ function propertyChips(note: MobileNote, normalizedKey: NormalizedDisplayPropert
 
   const values = Array.isArray(property.value) ? property.value : [property.value]
   return values
-    .map((value) => String(value).trim())
-    .filter(Boolean)
-    .map((label) => ({ label, tone: 'gray' }))
+    .map((value) => propertyChip(property.key, value))
+    .filter((chip): chip is MobileNoteDisplayChip => chip !== null)
+}
+
+function propertyChip(key: DisplayPropertyKey, value: MobilePropertyValue): MobileNoteDisplayChip | null {
+  const display = mobilePropertyDisplay(key, value, { false: 'false', true: 'true' })
+  const label = display.kind === 'url' ? urlChipLabel(display.text) : truncateChipLabel(display.text)
+  if (!label) return null
+
+  return {
+    label,
+    tone: display.kind === 'status' ? statusTone(display.text) : propertyChipTone(display.kind),
+  }
+}
+
+function propertyChipTone(kind: ReturnType<typeof mobilePropertyDisplay>['kind']): MobileTone {
+  return kind === 'url' ? 'blue' : 'gray'
+}
+
+function urlChipLabel(value: string): string {
+  const url = normalizedHttpUrl(value)
+  return truncateChipLabel(url?.hostname ?? value)
+}
+
+function normalizedHttpUrl(value: string): URL | null {
+  const trimmed = value.trim()
+  const candidate = /^https?:\/\//iu.test(trimmed) ? trimmed : `https://${trimmed}`
+
+  try {
+    const url = new URL(candidate)
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url : null
+  } catch {
+    return null
+  }
+}
+
+function truncateChipLabel(value: string): string {
+  const trimmed = value.trim()
+  return trimmed.length > 40 ? `${trimmed.slice(0, 37)}...` : trimmed
 }
