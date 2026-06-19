@@ -3,6 +3,7 @@ import { Plus, X } from 'phosphor-react-native'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { Text } from '../ui/text'
 import { mobileCopy, mobileText } from '../../i18n/mobileText'
+import { probeProps, useMobileLayoutProbe, type MobileLayoutProbe } from '../../qa/mobileLayoutProbe'
 import { MobileChip } from '../../ui/MobileChip'
 import { MobilePanel, MobileToolbar, MobileToolbarTitle } from '../../ui/MobilePanel'
 import { MobilePropertyRow } from '../../ui/MobilePropertyRow'
@@ -23,6 +24,7 @@ import { chipTone, noteTypeColor, noteTypeSoftColor, statusTone, tagTone } from 
 export function MobilePropertiesPanel({
   compact,
   fullWidth = false,
+  layoutProbe = false,
   note,
   onAddProperty,
   onAddRelationship,
@@ -37,6 +39,7 @@ export function MobilePropertiesPanel({
 }: {
   compact: boolean
   fullWidth?: boolean
+  layoutProbe?: boolean
   note: MobileNote | null
   onAddProperty: (key?: string) => void
   onAddRelationship: (key?: string) => void
@@ -49,14 +52,25 @@ export function MobilePropertiesPanel({
   referenceGroups?: MobileNeighborhoodGroup[]
   typeDefinitions?: MobileTypeDefinitions
 }) {
+  const propertyLayoutProbe = useMobileLayoutProbe(layoutProbe)
+
   return (
-    <MobilePanel style={[panelStyles.panel, compact ? panelStyles.panelCompact : null, fullWidth ? panelStyles.panelFullWidth : null]} testID="properties-panel">
+    <MobilePanel
+      {...probeProps(propertyLayoutProbe.probe, 'properties.panel')}
+      style={[panelStyles.panel, compact ? panelStyles.panelCompact : null, fullWidth ? panelStyles.panelFullWidth : null]}
+      testID="properties-panel"
+    >
       <MobileToolbar testID="properties-toolbar">
         <MobileToolbarTitle testID="properties-toolbar-title" title={mobileCopy.properties} variant="inspector" />
       </MobileToolbar>
-      <ScrollView contentContainerStyle={panelStyles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        {...probeProps(propertyLayoutProbe.probe, 'properties.scroll')}
+        contentContainerStyle={panelStyles.content}
+        keyboardShouldPersistTaps="handled"
+      >
         {note ? (
           <NoteProperties
+            layoutProbe={propertyLayoutProbe.probe}
             note={note}
             onAddProperty={onAddProperty}
             onAddRelationship={onAddRelationship}
@@ -76,6 +90,7 @@ export function MobilePropertiesPanel({
 }
 
 function NoteProperties({
+  layoutProbe,
   note,
   onAddProperty,
   onAddRelationship,
@@ -88,6 +103,7 @@ function NoteProperties({
   referenceGroups,
   typeDefinitions,
 }: {
+  layoutProbe: MobileLayoutProbe
   note: MobileNote
   onAddProperty: (key?: string) => void
   onAddRelationship: (key?: string) => void
@@ -112,7 +128,7 @@ function NoteProperties({
           tone={chipTone(note.typeTone)}
           onPress={onOpenChangeNoteType}
         />
-      )} />
+      )} layoutProbe={layoutProbe} layoutProbeId="properties.row.type" />
       {note.status ? (
         <MobilePropertyRow label={mobileText('noteList.sort.status')} testID="property-row-status" value={(
           <EditableChipValue
@@ -121,20 +137,21 @@ function NoteProperties({
             tone={statusTone(note.status)}
             onPress={() => onEditProperty(note.id, 'Status', note.status)}
           />
-        )} />
+        )} layoutProbe={layoutProbe} layoutProbeId="properties.row.status" />
       ) : null}
-      <MobilePropertyRow label={mobileText('noteList.sort.created')} testID="property-row-created" value={note.created} />
-      <MobilePropertyRow label={mobileCopy.modified} testID="property-row-modified" value={note.modified} />
-      <MobilePropertyRow label={mobileText('inspector.properties.workspace')} testID="property-row-workspace" value={<WorkspaceBadge label={note.workspace} />} />
-      <PropertySection label="Tags" testID="property-section-tags">
+      <MobilePropertyRow label={mobileText('noteList.sort.created')} layoutProbe={layoutProbe} layoutProbeId="properties.row.created" testID="property-row-created" value={note.created} />
+      <MobilePropertyRow label={mobileCopy.modified} layoutProbe={layoutProbe} layoutProbeId="properties.row.modified" testID="property-row-modified" value={note.modified} />
+      <MobilePropertyRow label={mobileText('inspector.properties.workspace')} layoutProbe={layoutProbe} layoutProbeId="properties.row.workspace" testID="property-row-workspace" value={<WorkspaceBadge label={note.workspace} />} />
+      <PropertySection label="Tags" layoutProbe={layoutProbe} layoutProbeId="properties.section.tags" testID="property-section-tags">
         <EditableTagsValue
           labels={note.tags}
           onPress={() => onEditProperty(note.id, 'tags', note.tags)}
         />
       </PropertySection>
-      <MobilePropertyRow label="Links" testID="property-row-links" value={`${note.links}`} />
+      <MobilePropertyRow label="Links" layoutProbe={layoutProbe} layoutProbeId="properties.row.links" testID="property-row-links" value={`${note.links}`} />
       {note.icon ? (
         <EditablePropertyRow
+          layoutProbe={layoutProbe}
           noteId={note.id}
           property={{ key: 'icon', label: 'Icon', value: note.icon }}
           onDeleteProperty={onDeleteProperty}
@@ -144,6 +161,7 @@ function NoteProperties({
       {note.properties?.map((property) => (
         <EditablePropertyRow
           key={property.key}
+          layoutProbe={layoutProbe}
           noteId={note.id}
           property={property}
           onDeleteProperty={onDeleteProperty}
@@ -161,9 +179,12 @@ function NoteProperties({
         <PropertySection
           key={`${relationship.kind}-${relationship.label ?? relationship.values.map((value) => value.title).join('-')}`}
           label={relationshipHeading(relationship)}
+          layoutProbe={layoutProbe}
+          layoutProbeId={`properties.section.${testIdSegment(relationshipHeading(relationship))}`}
           testID={`property-section-${relationship.kind}`}
         >
           <RelationshipValues
+            layoutProbe={layoutProbe}
             noteId={note.id}
             relationship={relationship}
             onRemoveRelationship={onRemoveRelationship}
@@ -219,11 +240,13 @@ function EditableTagsValue({
 }
 
 function EditablePropertyRow({
+  layoutProbe,
   noteId,
   onDeleteProperty,
   onEditProperty,
   property,
 }: {
+  layoutProbe: MobileLayoutProbe
   noteId: string
   onDeleteProperty: (noteId: string, key: string) => void
   onEditProperty: (noteId: string, key: string, value: MobilePropertyValue) => void
@@ -238,6 +261,8 @@ function EditablePropertyRow({
   return (
     <MobilePropertyRow
       label={property.label}
+      layoutProbe={layoutProbe}
+      layoutProbeId={`properties.row.${testIdSegment(property.key)}`}
       testID={testId}
       value={(
         <Pressable
@@ -335,22 +360,29 @@ function PropertySection({
   children,
   label,
   labelVariant = 'default',
+  layoutProbe,
+  layoutProbeId,
   testID,
 }: {
   children: ReactNode
   label: string
   labelVariant?: 'default' | 'placeholder'
+  layoutProbe?: MobileLayoutProbe
+  layoutProbeId?: string
   testID?: string
 }) {
+  const metricId = layoutProbeId ?? testID
+
   return (
-    <View style={propertyStyles.sectionRow} testID={testID}>
+    <View {...propertyProbe(layoutProbe, metricId, 'row')} style={propertyStyles.sectionRow} testID={testID}>
       <Text
+        {...propertyProbe(layoutProbe, metricId, 'label')}
         style={[propertyStyles.sectionLabel, labelVariant === 'placeholder' ? propertyStyles.placeholderLabel : null]}
         testID={testID ? `${testID}-label` : undefined}
       >
         {label}
       </Text>
-      <View style={propertyStyles.sectionValue} testID={testID ? `${testID}-value` : undefined}>{children}</View>
+      <View {...propertyProbe(layoutProbe, metricId, 'value')} style={propertyStyles.sectionValue} testID={testID ? `${testID}-value` : undefined}>{children}</View>
     </View>
   )
 }
@@ -412,12 +444,14 @@ function PlaceholderRelationshipSection({
 }
 
 function RelationshipValues({
+  layoutProbe,
   noteId,
   onRemoveRelationship,
   onEnterNeighborhood,
   onSelectNote,
   relationship,
 }: {
+  layoutProbe: MobileLayoutProbe
   noteId: string
   relationship: MobileRelationship
   onRemoveRelationship: (noteId: string, key: string, ref: string) => void
@@ -427,11 +461,17 @@ function RelationshipValues({
   return (
     <View style={relationshipStyles.values}>
       {relationship.values.map((value) => (
-        <View key={`${value.type}-${value.title}`} style={[relationshipStyles.row, relationshipRowTone(value.typeTone)]} testID={`relationship-row-${testIdSegment(value.title)}`}>
+        <View
+          key={`${value.type}-${value.title}`}
+          {...propertyProbe(layoutProbe, `properties.relationship.${testIdSegment(value.title)}`, 'row')}
+          style={[relationshipStyles.row, relationshipRowTone(value.typeTone)]}
+          testID={`relationship-row-${testIdSegment(value.title)}`}
+        >
           <Pressable
             accessibilityLabel={value.title}
             accessibilityRole="button"
             disabled={!value.id}
+            {...propertyProbe(layoutProbe, `properties.relationship.${testIdSegment(value.title)}`, 'target')}
             style={relationshipStyles.openTarget}
             testID={`relationship-row-${testIdSegment(value.title)}-open`}
             onPress={() => {
@@ -443,7 +483,14 @@ function RelationshipValues({
             }}
           >
             <MobileTypeIcon size={desktopRelationshipParity.iconSize} tone={value.typeTone} type={value.type} />
-            <Text numberOfLines={1} style={[relationshipStyles.text, relationshipTextTone(value.typeTone)]} testID={`relationship-row-${testIdSegment(value.title)}-text`}>{value.title}</Text>
+            <Text
+              numberOfLines={1}
+              {...propertyProbe(layoutProbe, `properties.relationship.${testIdSegment(value.title)}`, 'text')}
+              style={[relationshipStyles.text, relationshipTextTone(value.typeTone)]}
+              testID={`relationship-row-${testIdSegment(value.title)}-text`}
+            >
+              {value.title}
+            </Text>
           </Pressable>
           <Pressable
             accessibilityLabel={mobileText('common.remove')}
@@ -461,6 +508,10 @@ function RelationshipValues({
       ))}
     </View>
   )
+}
+
+function propertyProbe(layoutProbe: MobileLayoutProbe | undefined, metricId: string | undefined, part: string) {
+  return metricId ? probeProps(layoutProbe, `${metricId}.${part}`) : {}
 }
 
 function ReferenceGroups({

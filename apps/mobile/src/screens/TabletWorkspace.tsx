@@ -315,6 +315,7 @@ function TabletEditorPanelHost({
 function TabletPropertiesPanelHost({
   compactTablet,
   gestures,
+  layoutProbe,
   onAddProperty,
   onAddRelationship,
   onDeleteProperty,
@@ -334,6 +335,7 @@ function TabletPropertiesPanelHost({
     <View {...gestures.propertiesSwipe} style={styles.panelHost}>
       <MobilePropertiesPanel
         compact={compactTablet}
+        layoutProbe={layoutProbe}
         note={selectedNote}
         onAddProperty={onAddProperty}
         onAddRelationship={onAddRelationship}

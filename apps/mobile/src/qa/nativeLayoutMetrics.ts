@@ -1,3 +1,10 @@
+import {
+  assertNativePropertiesLayoutMetrics,
+  nativePropertiesMetricContract,
+} from './nativePropertiesLayoutMetrics'
+
+export { nativePropertiesMetricContract } from './nativePropertiesLayoutMetrics'
+
 export type NativeLayoutMetric = {
   height: number
   id: string
@@ -252,6 +259,10 @@ export function assertNativeMobileLayoutMetrics(metrics: NativeLayoutMetricMap):
   return [
     ...assertNativeSidebarLayoutMetrics(metrics),
     ...assertNativeNoteListLayoutMetrics(metrics),
+    ...assertNativePropertiesLayoutMetrics({
+      expectedPanelWidth: nativePropertiesMetricContract.panelWidth,
+      metrics,
+    }),
   ]
 }
 
@@ -444,6 +455,13 @@ function assertNativePhoneContentMetrics(
       ...assertNativeSidebarLayoutMetrics(metrics),
       ...assertNativePhoneNoteListLayoutMetrics(metrics),
     ]
+  }
+  if (state === 'properties') {
+    const root = metrics['phone.root']
+    return assertNativePropertiesLayoutMetrics({
+      expectedPanelWidth: root?.width ?? nativePhoneShellMetricContract.maxWidth,
+      metrics,
+    })
   }
 
   return []

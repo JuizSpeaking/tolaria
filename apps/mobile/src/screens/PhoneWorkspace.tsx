@@ -682,6 +682,7 @@ function PhoneEditorBody({
 
 function PhonePropertiesScreen({
   controller,
+  layoutProbe,
   openEditor,
   openCommandPalette,
   openList,
@@ -707,6 +708,7 @@ function PhonePropertiesScreen({
       <MobilePropertiesPanel
         compact
         fullWidth
+        layoutProbe={layoutProbe}
         note={controller.selectedNote}
         typeDefinitions={controller.snapshot.typeDefinitions}
         onAddProperty={controller.onAddProperty}

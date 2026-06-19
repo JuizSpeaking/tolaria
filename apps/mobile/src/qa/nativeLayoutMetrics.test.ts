@@ -7,6 +7,7 @@ import {
   latestNativeLayoutMetrics,
   nativeNoteListMetricContract,
   nativePhoneShellMetricContract,
+  nativePropertiesMetricContract,
   nativeSidebarMetricContract,
   nativeWysiwygEditorMetricContract,
   parseNativeLayoutMetrics,
@@ -15,6 +16,8 @@ import {
 import {
   desktopNoteItemParity,
   desktopPanelParity,
+  desktopPropertyParity,
+  desktopRelationshipParity,
   desktopSidebarParity,
   desktopToolbarActionParity,
 } from '../ui/desktopParity'
@@ -55,6 +58,14 @@ describe('native layout metrics', () => {
       toolbarActionSize: desktopToolbarActionParity.iconButtonSize,
       toolbarHostPaddingHorizontal: mobileSpace.md,
       toolbarHostPaddingTop: mobileSpace.xs,
+    })
+    expect(nativePropertiesMetricContract).toEqual({
+      labelWidth: 86,
+      panelPadding: desktopPropertyParity.panelPadding,
+      panelWidth: desktopPanelParity.inspectorWidth,
+      relationshipRowMinHeight: desktopPropertyParity.rowMinHeight,
+      rowMinHeight: desktopPropertyParity.rowMinHeight,
+      rowPaddingHorizontal: desktopPropertyParity.rowPaddingHorizontal,
     })
     expect(nativePhoneShellMetricContract).toEqual({
       drawerMaxWidth: 320,
@@ -113,6 +124,59 @@ describe('native layout metrics', () => {
     expect(formatted).toContain('sidebar.item.inbox: row is captured before checking native padding')
   })
 
+  it('accepts native phone properties metrics that keep desktop inspector density', () => {
+    const phoneWidth = 390
+    const metrics = latestNativeLayoutMetrics([
+      phoneRootMetric({ width: phoneWidth }),
+      phoneScreenMetric('properties', { width: phoneWidth }),
+      propertiesPanelMetric({ width: phoneWidth }),
+      propertyRowMetric('properties.row.type', { panelWidth: phoneWidth }),
+      propertyRowMetric('properties.row.created', { panelWidth: phoneWidth }),
+      propertyRowMetric('properties.row.modified', { panelWidth: phoneWidth }),
+      propertyRowMetric('properties.row.workspace', { panelWidth: phoneWidth }),
+      propertyRowMetric('properties.row.links', { panelWidth: phoneWidth }),
+      propertySectionMetric('properties.section.tags', { panelWidth: phoneWidth }),
+      propertySectionMetric('properties.section.belongs-to', { panelWidth: phoneWidth }),
+      relationshipRowMetric('properties.relationship.llm-workflow', 'properties.section.belongs-to', { panelWidth: phoneWidth }),
+    ].flat())
+
+    expect(assertNativePhoneLayoutMetrics(metrics, 'properties')).toEqual([])
+  })
+
+  it('reports native phone properties metrics that lose desktop row padding', () => {
+    const phoneWidth = 390
+    const metrics = latestNativeLayoutMetrics([
+      phoneRootMetric({ width: phoneWidth }),
+      phoneScreenMetric('properties', { width: phoneWidth }),
+      propertiesPanelMetric({ width: phoneWidth }),
+      propertyRowMetric('properties.row.type', {
+        labelX: 0,
+        panelWidth: phoneWidth,
+        rowHeight: 20,
+        rowX: 0,
+        valueRightPadding: 0,
+      }),
+      propertyRowMetric('properties.row.created', { panelWidth: phoneWidth }),
+      propertyRowMetric('properties.row.modified', { panelWidth: phoneWidth }),
+      propertyRowMetric('properties.row.workspace', { panelWidth: phoneWidth }),
+      propertyRowMetric('properties.row.links', { panelWidth: phoneWidth }),
+      propertySectionMetric('properties.section.tags', { panelWidth: phoneWidth }),
+      propertySectionMetric('properties.section.belongs-to', { panelWidth: phoneWidth }),
+      relationshipRowMetric('properties.relationship.llm-workflow', 'properties.section.belongs-to', {
+        panelWidth: phoneWidth,
+        rowWidth: 260,
+      }),
+    ].flat())
+
+    const formatted = formatNativeLayoutAssertionFailures(assertNativePhoneLayoutMetrics(metrics, 'properties'))
+
+    expect(formatted).toContain('properties.row.type: property row keeps desktop panel inset')
+    expect(formatted).toContain('properties.row.type: property row keeps desktop minimum height')
+    expect(formatted).toContain('properties.row.type: property label keeps desktop row inset')
+    expect(formatted).toContain('properties.row.type: property value keeps desktop right padding')
+    expect(formatted).toContain('properties.relationship.llm-workflow: relationship row fills the property value width')
+  })
+
   it('accepts native sidebar metrics that match desktop spacing tokens', () => {
     const metrics = latestNativeLayoutMetrics([
       containerMetric({ height: 104, id: 'sidebar.section.primary.container', width: 259.5 }),
@@ -152,6 +216,15 @@ describe('native layout metrics', () => {
       noteListPanelMetric(),
       noteListItemMetric('noteList.item.workflow-orchestration', { selected: true, y: 0 }),
       noteListItemMetric('noteList.item.open-source-project', { y: 118 }),
+      propertiesPanelMetric(),
+      propertyRowMetric('properties.row.type'),
+      propertyRowMetric('properties.row.created'),
+      propertyRowMetric('properties.row.modified'),
+      propertyRowMetric('properties.row.workspace'),
+      propertyRowMetric('properties.row.links'),
+      propertySectionMetric('properties.section.tags'),
+      propertySectionMetric('properties.section.belongs-to'),
+      relationshipRowMetric('properties.relationship.llm-workflow', 'properties.section.belongs-to'),
     ].flat())
 
     expect(assertNativeMobileLayoutMetrics(metrics)).toEqual([])
@@ -320,6 +393,110 @@ function wysiwygEditorMetric(
 
 function wysiwygToolbarWidth(actionSize: number, actionGap: number) {
   return wysiwygToolbarActions.length * actionSize + (wysiwygToolbarActions.length - 1) * actionGap
+}
+
+function propertiesPanelMetric({
+  width = desktopPanelParity.inspectorWidth,
+}: {
+  width?: number
+} = {}): NativeLayoutMetric {
+  return containerMetric({ height: 704, id: 'properties.panel', width })
+}
+
+function propertyRowMetric(
+  id: string,
+  {
+    labelX = desktopPropertyParity.rowPaddingHorizontal,
+    labelWidth = nativePropertiesMetricContract.labelWidth,
+    panelWidth = desktopPanelParity.inspectorWidth,
+    rowHeight = desktopPropertyParity.rowMinHeight,
+    rowX = desktopPropertyParity.panelPadding,
+    valueRightPadding = desktopPropertyParity.rowPaddingHorizontal,
+  }: {
+    labelX?: number
+    labelWidth?: number
+    panelWidth?: number
+    rowHeight?: number
+    rowX?: number
+    valueRightPadding?: number
+  } = {},
+): NativeLayoutMetric[] {
+  const rowWidth = panelWidth - desktopPropertyParity.panelPadding * 2
+  const valueX = labelX + labelWidth + mobileSpace.sm
+  const valueWidth = rowWidth - valueX - valueRightPadding
+
+  return [
+    containerMetric({ height: rowHeight, id: `${id}.row`, width: rowWidth, x: rowX }),
+    containerMetric({ height: 18, id: `${id}.label`, width: labelWidth, x: labelX, y: 5 }),
+    containerMetric({ height: 18, id: `${id}.value`, width: valueWidth, x: valueX, y: 5 }),
+  ]
+}
+
+function propertySectionMetric(
+  id: string,
+  {
+    labelX = desktopPropertyParity.rowPaddingHorizontal,
+    panelWidth = desktopPanelParity.inspectorWidth,
+    rowHeight = 54,
+    rowX = desktopPropertyParity.panelPadding,
+  }: {
+    labelX?: number
+    panelWidth?: number
+    rowHeight?: number
+    rowX?: number
+  } = {},
+): NativeLayoutMetric[] {
+  const rowWidth = panelWidth - desktopPropertyParity.panelPadding * 2
+
+  return [
+    containerMetric({ height: rowHeight, id: `${id}.row`, width: rowWidth, x: rowX }),
+    containerMetric({ height: 18, id: `${id}.label`, width: nativePropertiesMetricContract.labelWidth, x: labelX, y: 6 }),
+    containerMetric({ height: 28, id: `${id}.value`, width: rowWidth - labelX * 2, x: labelX, y: 24 }),
+  ]
+}
+
+function relationshipRowMetric(
+  id: string,
+  sectionId: string,
+  {
+    panelWidth = desktopPanelParity.inspectorWidth,
+    rowWidth,
+  }: {
+    panelWidth?: number
+    rowWidth?: number
+  } = {},
+): NativeLayoutMetric[] {
+  const sectionValueWidth = panelWidth - desktopPropertyParity.panelPadding * 2 - desktopPropertyParity.rowPaddingHorizontal * 2
+  const actualRowWidth = rowWidth ?? sectionValueWidth
+
+  return [
+    containerMetric({
+      height: desktopPropertyParity.rowMinHeight,
+      id: `${id}.row`,
+      width: actualRowWidth,
+    }),
+    containerMetric({
+      height: 18,
+      id: `${id}.target`,
+      width: actualRowWidth - desktopRelationshipParity.removeIconSize - desktopRelationshipParity.rowGap,
+      x: desktopRelationshipParity.rowPaddingHorizontal,
+      y: desktopRelationshipParity.rowPaddingVertical,
+    }),
+    containerMetric({
+      height: 18,
+      id: `${id}.text`,
+      width: 160,
+      x: desktopRelationshipParity.iconSize + desktopRelationshipParity.rowGap,
+      y: 0,
+    }),
+    containerMetric({
+      height: 28,
+      id: `${sectionId}.value`,
+      width: sectionValueWidth,
+      x: desktopPropertyParity.rowPaddingHorizontal,
+      y: 24,
+    }),
+  ]
 }
 
 function itemMetric(
