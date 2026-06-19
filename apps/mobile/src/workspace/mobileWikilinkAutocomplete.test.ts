@@ -69,6 +69,32 @@ describe('mobile wikilink autocomplete', () => {
     expect(mobileWikilinkAutocompleteSuggestions(notes, 'al').map((suggestion) => suggestion.title)).toEqual(['Alpha'])
   })
 
+  it('ranks desktop-style exact title, alias, and prefix matches ahead of vault order', () => {
+    const suggestions = mobileWikilinkAutocompleteSuggestions([
+      note({ aliases: ['Refactoring'], path: 'ideas.md', title: 'Refactoring Ideas' }),
+      note({ path: 'manual.md', title: 'Refactoring Manual' }),
+      note({ path: 'refactoring.md', title: 'Refactoring' }),
+    ], 'Refactoring')
+
+    expect(suggestions.map((suggestion) => suggestion.title)).toEqual([
+      'Refactoring',
+      'Refactoring Ideas',
+      'Refactoring Manual',
+    ])
+  })
+
+  it('ranks desktop-style alias exact matches above title prefix matches', () => {
+    const suggestions = mobileWikilinkAutocompleteSuggestions([
+      note({ path: 'reference.md', title: 'Reference Manual' }),
+      note({ aliases: ['ref'], path: 'meeting.md', title: 'Meeting Notes' }),
+    ], 'ref')
+
+    expect(suggestions.map((suggestion) => suggestion.title)).toEqual([
+      'Meeting Notes',
+      'Reference Manual',
+    ])
+  })
+
   it('deduplicates path collisions and disambiguates duplicate titles by parent folder', () => {
     const suggestions = mobileWikilinkAutocompleteSuggestions([
       note({ path: 'work/standup.md', title: 'Standup' }),
@@ -107,6 +133,15 @@ describe('mobile wikilink autocomplete', () => {
     ], 'meri')
 
     expect(suggestions.map((suggestion) => suggestion.title)).toEqual(['Maria Rossi'])
+  })
+
+  it('ranks @ mention exact person titles before alias matches', () => {
+    const suggestions = mobilePersonMentionAutocompleteSuggestions([
+      note({ aliases: ['Luca'], path: 'people/lucas.md', title: 'Lucas Smith', type: 'Person' }),
+      note({ path: 'people/luca.md', title: 'Luca', type: 'Person' }),
+    ], 'luca')
+
+    expect(suggestions.map((suggestion) => suggestion.title)).toEqual(['Luca', 'Lucas Smith'])
   })
 
   it('replaces @ mention queries with canonical wikilinks and a trailing space', () => {

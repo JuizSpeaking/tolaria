@@ -1,6 +1,7 @@
 import type { MobileNote } from './mobileWorkspaceModel'
 import { mobileNoteIdentityMatchesQuery, normalizedMobileSearchQuery } from './mobileNoteSearch'
 import { mobileWikilinkTargetForNote } from './mobileWikilinks'
+import { bestSearchRank } from '../../../../src/utils/fuzzyMatch'
 
 type CursorOffset = number
 type MarkdownContent = string
@@ -61,8 +62,10 @@ export function mobileWikilinkAutocompleteSuggestions(
   const candidates = notes.filter((note) => !note.archived)
   if (query.length < MIN_WIKILINK_QUERY_LENGTH) return []
 
-  return finalizeMobileWikilinkSuggestions(candidates
-    .filter((note) => mobileWikilinkMatchesQuery(note, query)))
+  return finalizeMobileWikilinkSuggestions(rankMobileWikilinkSuggestions(
+    candidates.filter((note) => mobileWikilinkMatchesQuery(note, query)),
+    query,
+  ))
 }
 
 export const mobileWikilinkAutocompleteTarget = mobileWikilinkTargetForNote
@@ -95,9 +98,32 @@ export function mobilePersonMentionAutocompleteSuggestions(
   const normalizedQuery = normalizedMobileSearchQuery(query)
   if (normalizedQuery.length === 0) return []
 
-  return finalizeMobileWikilinkSuggestions(notes
+  const matchingNotes = notes
     .filter((note) => !note.archived && note.type === 'Person')
-    .filter((note) => mobilePersonMentionMatchesQuery(note, normalizedQuery)))
+    .filter((note) => mobilePersonMentionMatchesQuery(note, normalizedQuery))
+
+  return finalizeMobileWikilinkSuggestions(
+    rankMobileWikilinkSuggestions(matchingNotes, normalizedQuery),
+  )
+}
+
+function rankMobileWikilinkSuggestions(notes: MobileNote[], query: WikilinkQuery): MobileNote[] {
+  return notes
+    .map((note, index) => ({
+      index,
+      note,
+      rank: mobileWikilinkSuggestionRank(note, query),
+    }))
+    .sort((left, right) => left.rank - right.rank || left.index - right.index)
+    .map(({ note }) => note)
+}
+
+function mobileWikilinkSuggestionRank(note: MobileNote, query: WikilinkQuery): number {
+  return bestSearchRank(
+    normalizedMobileSearchQuery(query),
+    normalizedMobileSearchQuery(note.title),
+    (note.aliases ?? []).map(normalizedMobileSearchQuery),
+  )
 }
 
 function finalizeMobileWikilinkSuggestions(notes: MobileNote[]): MobileNote[] {
