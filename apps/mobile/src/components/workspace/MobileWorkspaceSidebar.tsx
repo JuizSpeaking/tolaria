@@ -4,6 +4,7 @@ import {
   CaretDown,
   FileText,
   FolderOpen,
+  Eye,
   Funnel,
   Plus,
   SidebarSimple,
@@ -58,6 +59,7 @@ type MobileWorkspaceSidebarProps = {
   onCreateView?: () => void
   onOpenFolderActions?: (selection: MobileSidebarFolderSelection) => void
   onOpenPrimaryActions?: (selection: MobileSidebarItemSelection) => void
+  onOpenTypeVisibility?: () => void
   onOpenTypeActions?: (selection: MobileSidebarItemSelection) => void
   onOpenViewActions?: (selection: MobileSidebarItemSelection) => void
   onSelectFolder?: (selection: MobileSidebarFolderSelection) => void
@@ -91,6 +93,7 @@ export function MobileWorkspaceSidebar(props: MobileWorkspaceSidebarProps) {
     onCreateView,
     onOpenFolderActions,
     onOpenPrimaryActions,
+    onOpenTypeVisibility,
     onOpenTypeActions,
     onOpenViewActions,
     onSelectFolder,
@@ -121,6 +124,7 @@ export function MobileWorkspaceSidebar(props: MobileWorkspaceSidebarProps) {
             onCreateView={onCreateView}
             onOpenFolderActions={onOpenFolderActions}
             onOpenPrimaryActions={onOpenPrimaryActions}
+            onOpenTypeVisibility={onOpenTypeVisibility}
             onOpenTypeActions={onOpenTypeActions}
             onOpenViewActions={onOpenViewActions}
             onSelectFolder={onSelectFolder}
@@ -142,6 +146,7 @@ function SidebarSection({
   onCreateType,
   onOpenFolderActions,
   onOpenPrimaryActions,
+  onOpenTypeVisibility,
   onOpenTypeActions,
   onOpenViewActions,
   onSelectFolder,
@@ -156,6 +161,7 @@ function SidebarSection({
   onCreateView?: () => void
   onOpenFolderActions?: (selection: MobileSidebarFolderSelection) => void
   onOpenPrimaryActions?: (selection: MobileSidebarItemSelection) => void
+  onOpenTypeVisibility?: () => void
   onOpenTypeActions?: (selection: MobileSidebarItemSelection) => void
   onOpenViewActions?: (selection: MobileSidebarItemSelection) => void
   onSelectFolder?: (selection: MobileSidebarFolderSelection) => void
@@ -174,6 +180,7 @@ function SidebarSection({
         onCreateFolder={onCreateFolder}
         onCreateType={onCreateType}
         onCreateView={onCreateView}
+        onOpenTypeVisibility={onOpenTypeVisibility}
       />
       <SidebarSectionItems
         activeItemId={activeItemId}
@@ -202,12 +209,14 @@ function SidebarSectionTitle({
   onCreateFolder,
   onCreateType,
   onCreateView,
+  onOpenTypeVisibility,
   section,
 }: {
   layoutProbe: MobileLayoutProbe
   onCreateFolder?: () => void
   onCreateType?: () => void
   onCreateView?: () => void
+  onOpenTypeVisibility?: () => void
   section: MobileSidebarSection
 }) {
   if (!section.label) return null
@@ -220,8 +229,23 @@ function SidebarSectionTitle({
       sectionId={section.id}
       createAccessibilityLabel={sectionCreateAccessibilityLabel(section.id)}
       onCreate={sectionCreateHandler(section.id, onCreateFolder, onCreateType, onCreateView)}
+      visibilityAccessibilityLabel={sectionVisibilityAccessibilityLabel(section.id)}
+      onVisibility={sectionVisibilityHandler(section.id, onOpenTypeVisibility)}
     />
   )
+}
+
+function sectionVisibilityAccessibilityLabel(sectionId: SidebarSectionId) {
+  if (sectionId === 'types') return mobileText('sidebar.section.showInSidebar')
+  return undefined
+}
+
+function sectionVisibilityHandler(
+  sectionId: SidebarSectionId,
+  onOpenTypeVisibility?: () => void,
+) {
+  if (sectionId === 'types') return onOpenTypeVisibility
+  return undefined
 }
 
 function sectionCreateAccessibilityLabel(sectionId: SidebarSectionId) {
@@ -388,14 +412,18 @@ function SectionTitle({
   label,
   layoutProbe,
   onCreate,
+  onVisibility,
   sectionId,
+  visibilityAccessibilityLabel,
 }: {
   count?: string
   createAccessibilityLabel?: string
   label: SidebarDisplayLabel
   layoutProbe?: MobileLayoutProbe
   onCreate?: () => void
+  onVisibility?: () => void
   sectionId: SidebarSectionId
+  visibilityAccessibilityLabel?: string
 }) {
   const metricId = `sidebar.section.${sectionId}`
 
@@ -421,6 +449,15 @@ function SectionTitle({
           testID={`sidebar-section-count-${sectionId}`}
           value={count}
         />
+      ) : null}
+      {onVisibility ? (
+        <MobileIconButton
+          accessibilityLabel={visibilityAccessibilityLabel ?? mobileText('sidebar.section.showInSidebar')}
+          testID={`sidebar-section-visibility-${sectionId}`}
+          onPress={onVisibility}
+        >
+          <Eye color={mobileColors.textMuted} size={12} />
+        </MobileIconButton>
       ) : null}
       {onCreate ? (
         <MobileIconButton

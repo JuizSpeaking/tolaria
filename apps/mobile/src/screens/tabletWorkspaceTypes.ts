@@ -146,6 +146,7 @@ export type TabletWorkspaceChromeProps = {
   onOpenMoveNoteToFolder: () => void
   onOpenPrimaryActions: (selection: MobileSidebarItemSelection) => void
   onOpenTypeActions: (selection: MobileSidebarItemSelection) => void
+  onOpenTypeVisibility: () => void
   onOpenViewActions: (selection: MobileSidebarItemSelection) => void
   onOpenMoreActions: () => void
   onOpenReplaceInNote: () => void
@@ -211,6 +212,7 @@ export type TabletWorkspaceChromeProps = {
   onSetOrganized: (organized: boolean) => void
   onToggleFavorite: () => void
   onToggleNoteWidth: () => void
+  onToggleTypeVisibility: (typeName: string) => void
   onUndoWorkspaceEdit: () => void
   openAction: MobileWorkspaceAction | null
   readOnlyForm: TabletReadOnlyForm

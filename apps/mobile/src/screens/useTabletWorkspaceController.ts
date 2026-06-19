@@ -444,6 +444,7 @@ function sidebarWorkspaceActionOpeners({
       snapshot: workspaceSnapshot,
       updateReadOnlyForm,
     }),
+    onOpenTypeVisibility: () => setOpenAction('editTypeVisibility'),
   }
 }
 
@@ -579,6 +580,11 @@ function typeSectionWorkspaceActions({
     onTypeIconChange: (value: MobileSidebarIcon) => updateReadOnlyForm('typeIcon', value),
     onTypeToneChange: (value: MobileTone) => updateReadOnlyForm('typeTone', value),
     onTypeVisibleChange: (value: boolean) => updateReadOnlyForm('typeVisible', value),
+    onToggleTypeVisibility: (typeName: string) => toggleTypeVisibility({
+      applyEdit,
+      typeDefinitions: workspaceSnapshot.typeDefinitions,
+      typeName,
+    }),
     typePropertyOptions: mobileListPropertySuggestions(
       editableTypePropertyNotes(readOnlyForm, workspaceSnapshot),
       readOnlyForm.typePropertyQuery,
@@ -1061,6 +1067,25 @@ function updateTypeDefinition({
 
   applyEdit(edit)
   closeAction()
+}
+
+function toggleTypeVisibility({
+  applyEdit,
+  typeDefinitions,
+  typeName,
+}: {
+  applyEdit: (edit: MobileWorkspaceEdit) => void
+  typeDefinitions: MobileTypeDefinitions | undefined
+  typeName: string
+}) {
+  const definition = typeDefinitions?.[typeName]
+  if (!definition) return
+
+  applyEdit({
+    patch: { visible: definition.visible === false ? null : false },
+    type: 'updateTypeDefinition',
+    typeName,
+  })
 }
 
 function editableTypePropertyNotes(

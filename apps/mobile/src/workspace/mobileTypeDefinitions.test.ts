@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mobileTypeDefinitionContent } from './mobileTypeDefinitions'
+import { applyMobileTypeDefinitionPatch, mobileTypeDefinitionContent } from './mobileTypeDefinitions'
 
 describe('mobile type definitions', () => {
   it('writes desktop-canonical system metadata keys for Type documents', () => {
@@ -116,6 +116,25 @@ Visible: false
     })
 
     expect(visibleContent).toContain('visible: false')
+  })
+
+  it('preserves omitted Type metadata when applying a visibility-only patch', () => {
+    expect(applyMobileTypeDefinitionPatch({
+      icon: 'stack',
+      label: 'Phone Runbooks',
+      properties: { Priority: 'High' },
+      template: '## Checklist',
+      tone: 'purple',
+    }, {
+      visible: false,
+    })).toMatchObject({
+      icon: 'stack',
+      label: 'Phone Runbooks',
+      properties: { Priority: 'High' },
+      template: '## Checklist',
+      tone: 'purple',
+      visible: false,
+    })
   })
 
   it('quotes Type schema frontmatter keys with desktop YAML rules', () => {

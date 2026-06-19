@@ -80,15 +80,16 @@ async function customizePhoneTypeSectionAndCreateTemplateNote(page: Page) {
   await sheet.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
   await expect(page.getByTestId('sidebar-item-procedures')).toContainText('Phone Runbooks')
+  const procedureSectionTestId = await hideAndRestorePhoneTypeSection(page)
 
-  await longPressTestId(page, 'sidebar-item-procedures')
+  await longPressTestId(page, procedureSectionTestId)
   await expect(page.getByTestId('workspace-type-selected-icon')).toContainText('folder')
   await expect(page.getByTestId('workspace-type-selected-color')).toContainText('green')
   await expect(page.getByTestId('workspace-type-sort-custom-field-input')).toHaveValue('Priority')
   await page.getByTestId('workspace-action-sheet-toolbar').getByRole('button', { name: 'Cancel' }).click()
   await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
 
-  await page.getByTestId('sidebar-item-procedures').click()
+  await page.getByTestId(procedureSectionTestId).click()
   await expect(page.getByTestId('phone-note-list-screen')).toBeVisible()
   await expect(page.getByTestId('note-list-toolbar-title')).toHaveText('Phone Runbooks')
   await expect(page.getByTestId('note-row-open-source-project').getByText('Project Board')).toBeVisible()
@@ -103,6 +104,25 @@ async function customizePhoneTypeSectionAndCreateTemplateNote(page: Page) {
   await page.getByTestId('phone-properties-action').click()
   await expect(page.getByTestId('property-row-priority')).toContainText('High')
   await expect(page.getByTestId('relationship-row-workflow-orchestration-essay')).toBeVisible()
+}
+
+async function hideAndRestorePhoneTypeSection(page: Page) {
+  await page.getByTestId('sidebar-section-visibility-types').click()
+  const sheet = page.getByTestId('workspace-action-sheet-editTypeVisibility')
+  const visibilityRow = page.getByTestId('workspace-type-visibility-procedure')
+  await expect(sheet).toBeVisible()
+  await expect(visibilityRow).toHaveAttribute('aria-checked', 'true')
+
+  await visibilityRow.click()
+  await expect(visibilityRow).not.toHaveAttribute('aria-checked', 'true')
+  await expect(page.getByRole('button', { name: 'Phone Runbooks' })).toBeHidden()
+
+  await visibilityRow.click()
+  await expect(visibilityRow).toHaveAttribute('aria-checked', 'true')
+  await expect(page.getByRole('button', { name: 'Phone Runbooks' })).toBeVisible()
+  await page.getByTestId('workspace-action-sheet-toolbar').getByRole('button', { name: 'Cancel' }).click()
+  await expect(sheet).toBeHidden()
+  return 'sidebar-item-type-procedure'
 }
 
 async function addSuggestedPhoneRelationship(page: Page) {

@@ -197,6 +197,13 @@ export const mobileParityInventory = [
     surface: 'Type section editor',
   },
   {
+    assertions: ['phone type-section visibility user-flow checks', 'Type visibility reducer regression tests'],
+    contracts: ['desktopSidebarParity', 'desktopPropertyParity'],
+    desktopSource: 'SidebarParts VisibilityPopover and Type document visible frontmatter',
+    mobileFile: 'src/components/workspace/MobileTypeVisibilityEditor.tsx',
+    surface: 'Type section visibility editor',
+  },
+  {
     assertions: ['markdown formatting command user-flow checks for inline marks, H1-H6 headings, lists, blocks, wikilinks, and tables', 'native iOS WYSIWYG markdown block insertion proof'],
     contracts: ['desktopToolbarActionParity'],
     desktopSource: 'BlockNote formatting commands and BreadcrumbBar icon button sizing',

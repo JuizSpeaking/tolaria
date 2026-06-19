@@ -121,6 +121,7 @@ function TabletSidebarHost({
   onOpenFolderActions,
   onOpenPrimaryActions,
   onOpenTypeActions,
+  onOpenTypeVisibility,
   onOpenViewActions,
   onSelectFolder,
   onSelectSidebarItem,
@@ -142,6 +143,7 @@ function TabletSidebarHost({
         onOpenFolderActions={onOpenFolderActions}
         onOpenPrimaryActions={onOpenPrimaryActions}
         onOpenTypeActions={onOpenTypeActions}
+        onOpenTypeVisibility={onOpenTypeVisibility}
         onOpenViewActions={onOpenViewActions}
         onSelectFolder={onSelectFolder}
         onSelectItem={onSelectSidebarItem}
@@ -474,6 +476,7 @@ function actionSheetHandlers(props: ActionSheetHostProps) {
     onSetOrganized: props.onSetOrganized,
     onToggleFavorite: props.onToggleFavorite,
     onToggleNoteWidth: props.onToggleNoteWidth,
+    onToggleTypeVisibility: props.onToggleTypeVisibility,
     onUndoWorkspaceEdit: props.onUndoWorkspaceEdit,
     onTypeDisplayPropertiesChange: props.onTypeDisplayPropertiesChange,
     onTypeNameChange: props.onTypeNameChange,

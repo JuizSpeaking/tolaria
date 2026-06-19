@@ -89,16 +89,15 @@ export function typeDefinitionsWithPatch(
 }
 
 function normalizedTypePatch(patch: MobileTypeDefinitionPatch): MobileTypeDefinitionPatch {
-  return {
-    ...patch,
-    label: normalizedTextPatch(patch.label),
-    listPropertiesDisplay: normalizedListPatch(patch.listPropertiesDisplay),
-    properties: normalizedPropertiesPatch(patch.properties),
-    relationships: normalizedRelationshipsPatch(patch.relationships),
-    sort: normalizedTextPatch(patch.sort),
-    template: normalizedTextPatch(patch.template),
-    view: normalizedTextPatch(patch.view),
-  }
+  const normalized: MobileTypeDefinitionPatch = { ...patch }
+  if (patch.label !== undefined) normalized.label = normalizedTextPatch(patch.label)
+  if (patch.listPropertiesDisplay !== undefined) normalized.listPropertiesDisplay = normalizedListPatch(patch.listPropertiesDisplay)
+  if (patch.properties !== undefined) normalized.properties = normalizedPropertiesPatch(patch.properties)
+  if (patch.relationships !== undefined) normalized.relationships = normalizedRelationshipsPatch(patch.relationships)
+  if (patch.sort !== undefined) normalized.sort = normalizedTextPatch(patch.sort)
+  if (patch.template !== undefined) normalized.template = normalizedTextPatch(patch.template)
+  if (patch.view !== undefined) normalized.view = normalizedTextPatch(patch.view)
+  return normalized
 }
 
 function normalizedTextPatch(value: string | null | undefined) {

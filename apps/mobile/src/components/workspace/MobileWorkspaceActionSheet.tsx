@@ -45,6 +45,7 @@ import { MobileMetadataPicker } from './MobileMetadataPicker'
 import { MobileSortPicker } from './MobileSortPicker'
 import { MobilePropertyValueEditor } from './MobilePropertyValueEditor'
 import { MobileTypeSectionEditor } from './MobileTypeSectionEditor'
+import { MobileTypeVisibilityEditor } from './MobileTypeVisibilityEditor'
 import { MobileViewDisplayPropertiesPicker } from './MobileViewDisplayPropertiesPicker'
 import { MobileViewFilterBuilder } from './MobileViewFilterBuilder'
 import { MobileEditorFindSheet } from './MobileEditorFindSheet'
@@ -66,6 +67,7 @@ export type MobileWorkspaceAction =
   | 'editProperty'
   | 'editPrimaryListProperties'
   | 'editTypeSection'
+  | 'editTypeVisibility'
   | 'editView'
   | 'findInNote'
   | 'moreActions'
@@ -160,6 +162,7 @@ type MobileWorkspaceActionSheetProps = {
   onSetOrganized: (organized: boolean) => void
   onToggleFavorite: () => void
   onToggleNoteWidth: () => void
+  onToggleTypeVisibility: (typeName: string) => void
   onUndoWorkspaceEdit: () => void
   onUpdateNoteContent: (noteId: string, content: string) => void
   onViewIconChange: (value: MobileSidebarIcon) => void
@@ -288,6 +291,7 @@ const actionContentByAction: Record<MobileWorkspaceAction, (props: MobileWorkspa
   editProperty: (props) => <AddPropertyContent {...props} />,
   editPrimaryListProperties: (props) => <PrimaryListPropertiesContent {...props} />,
   editTypeSection: (props) => <TypeSectionContent {...props} />,
+  editTypeVisibility: (props) => <MobileTypeVisibilityEditor typeDefinitions={props.typeDefinitions} onToggleTypeVisibility={props.onToggleTypeVisibility} />,
   editView: (props) => <SingleTextFieldContent config={singleTextFieldConfig(props)} />,
   findInNote: (props) => <MobileEditorFindSheet editorBlocks={props.editorBlocks} editorBullets={props.editorBullets} note={props.selectedNote} replace={false} onClose={props.onClose} onUpdateContent={props.onUpdateNoteContent} />,
   moreActions: (props) => <MoreActionsContent {...props} />,
@@ -1109,6 +1113,7 @@ const actionTitleByAction: Record<MobileWorkspaceAction, () => string> = {
   editProperty: () => mobileText('inspector.title.properties'),
   editPrimaryListProperties: () => mobileText('noteList.properties.customizeColumns'),
   editTypeSection: () => mobileText('sidebar.section.name'),
+  editTypeVisibility: () => mobileText('sidebar.section.showInSidebar'),
   editView: () => mobileText('viewDialog.title.edit'),
   findInNote: () => mobileText('command.note.findInNote'),
   moreActions: () => mobileText('editor.toolbar.moreActions'),

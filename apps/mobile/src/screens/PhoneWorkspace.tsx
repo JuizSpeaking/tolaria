@@ -443,6 +443,7 @@ function PhoneSidebarDrawer({
           onOpenFolderActions={controller.onOpenFolderActions}
           onOpenPrimaryActions={controller.onOpenPrimaryActions}
           onOpenTypeActions={controller.onOpenTypeActions}
+          onOpenTypeVisibility={controller.onOpenTypeVisibility}
           onOpenViewActions={controller.onOpenViewActions}
           onSelectFolder={selectFolder}
           onSelectItem={selectItem}
