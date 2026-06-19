@@ -20,6 +20,7 @@ export type NativeWorkspacePersistenceProof = {
   renamedTypeSchemaRefsHydrated: boolean
   savedViewHydrated: boolean
   typeDefinitionHydrated: boolean
+  updatedViewHydrated: boolean
   vaultConfigHydrated: boolean
 }
 
@@ -69,6 +70,7 @@ export function assertNativeWorkspacePersistenceProofs(
     proofFailure(latest.relationshipSourceRefHydrated, 'workspace.persistence.relationshipSourceRef', 'Relationship target creation rehydrates the saved source note relationship ref'),
     proofFailure(latest.relationshipMovedRefHydrated, 'workspace.persistence.relationshipMovedRef', 'Moved note relationship refs rehydrate from reducer-generated native rewrite writes'),
     proofFailure(latest.savedViewHydrated, 'workspace.persistence.saveView', 'Saved desktop-compatible views rehydrate from native views/*.yml'),
+    proofFailure(latest.updatedViewHydrated, 'workspace.persistence.updateView', 'Updated desktop-compatible views rehydrate from reducer-generated native view writes'),
     proofFailure(latest.deletedViewRemoved, 'workspace.persistence.deleteView', 'Deleted native view files disappear from the mobile snapshot'),
     proofFailure(latest.folderRenameApplied, 'workspace.persistence.renameFolder', 'Renamed native folders rehydrate with the destination path'),
     proofFailure(latest.folderDeleteApplied, 'workspace.persistence.deleteFolder', 'Deleted native folders are absent from the mobile snapshot'),
@@ -124,6 +126,7 @@ function parsedWorkspacePersistenceProof(value: unknown): NativeWorkspacePersist
     renamedTypeSchemaRefsHydrated: value.renamedTypeSchemaRefsHydrated,
     savedViewHydrated: value.savedViewHydrated,
     typeDefinitionHydrated: value.typeDefinitionHydrated,
+    updatedViewHydrated: value.updatedViewHydrated,
     vaultConfigHydrated: value.vaultConfigHydrated,
   }
 }
@@ -154,6 +157,7 @@ const workspacePersistenceProofKeys = [
   'renamedTypeSchemaRefsHydrated',
   'savedViewHydrated',
   'typeDefinitionHydrated',
+  'updatedViewHydrated',
   'vaultConfigHydrated',
 ] satisfies Array<keyof NativeWorkspacePersistenceProof>
 

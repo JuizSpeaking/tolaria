@@ -1,6 +1,6 @@
 import type { Directory, Paths } from 'expo-file-system'
 import { applyMobileWorkspaceEditWithWrites } from '../workspace/mobileWorkspaceEditing'
-import type { MobilePropertyDisplayMode, MobileWorkspaceSnapshot } from '../workspace/mobileWorkspaceModel'
+import type { MobilePropertyDisplayMode, MobileViewDefinition, MobileWorkspaceSnapshot } from '../workspace/mobileWorkspaceModel'
 import type { ReadOnlyWorkspaceRepository, ReadOnlyWorkspaceRequest } from '../workspace/readOnlyWorkspaceRepository'
 import {
   nativeWorkspacePersistenceLogLine,
@@ -31,6 +31,8 @@ const renamedTypeSourceName = 'Rename Source'
 const renamedTypeSourcePath = 'rename-source.md'
 const renamedFolderPath = 'Folders/Proof Queue'
 const typeName = 'Proof Decision'
+const updatedViewName = 'Updated Native Proof'
+const updatedViewSourceName = 'Update Native Proof'
 const workspacePersistencePropertyDisplayModes = {
   Priority: 'number',
   Website: 'url',
@@ -134,7 +136,7 @@ function workspacePersistenceProbeWrites(seedSnapshot: MobileWorkspaceSnapshot) 
   return [
     ...workspacePersistenceNoteAndRelationshipWrites(seedSnapshot),
     ...workspacePersistenceMetadataWrites(seedSnapshot),
-    ...workspacePersistenceViewWrites(),
+    ...workspacePersistenceViewWrites(seedSnapshot),
     workspacePersistenceConfigWrite(),
     ...workspacePersistenceFolderWrites(),
     ...workspacePersistenceTypeWrites(),
@@ -205,8 +207,9 @@ function workspacePersistenceEditWrites(
   return writes
 }
 
-function workspacePersistenceViewWrites() {
+function workspacePersistenceViewWrites(seedSnapshot: MobileWorkspaceSnapshot) {
   return [
+    ...workspacePersistenceViewUpdateWrites(seedSnapshot),
     {
       content: mobilePersistenceViewContent(),
       kind: 'saveView' as const,
@@ -217,6 +220,28 @@ function workspacePersistenceViewWrites() {
       path: 'views/old-native-proof.yml',
     },
   ]
+}
+
+function workspacePersistenceViewUpdateWrites(seedSnapshot: MobileWorkspaceSnapshot) {
+  const view = seedSnapshot.views?.find((candidate) => candidate.definition.name === updatedViewSourceName)
+  if (!view) return []
+
+  return applyMobileWorkspaceEditWithWrites(seedSnapshot, {
+    definition: updatedNativeProofViewDefinition(),
+    type: 'updateView',
+    viewId: view.id,
+  }).writes
+}
+
+function updatedNativeProofViewDefinition(): MobileViewDefinition {
+  return {
+    color: 'purple',
+    filters: { all: [{ field: 'status', op: 'equals', value: 'Active' }] },
+    icon: 'folder',
+    listPropertiesDisplay: ['status', 'Priority'],
+    name: updatedViewName,
+    sort: 'property:Priority:asc',
+  }
 }
 
 function workspacePersistenceConfigWrite() {
@@ -297,6 +322,11 @@ function seedWorkspacePersistenceProbeWrites() {
       path: 'views/old-native-proof.yml',
     },
     {
+      content: updateNativeProofViewContent(),
+      kind: 'saveView' as const,
+      path: 'views/update-native-proof.yml',
+    },
+    {
       content: typeDefinitionContent(oldTypeName, 'gray'),
       kind: 'createNote' as const,
       path: `Types/${oldTypeName}.md`,
@@ -352,6 +382,7 @@ function workspacePersistenceProof(
     renamedTypeSchemaRefsHydrated: renamedTypeSchemaRefsHydrated(snapshot),
     savedViewHydrated: viewExists(snapshot, 'Mobile Persistence'),
     typeDefinitionHydrated: snapshot.typeDefinitions?.[typeName]?.tone === 'green',
+    updatedViewHydrated: updatedViewHydrated(snapshot),
     vaultConfigHydrated: vaultConfigHydrated(snapshot),
   }
 }
@@ -371,6 +402,27 @@ function typeDefinitionExists(snapshot: MobileWorkspaceSnapshot, name: string) {
 
 function viewExists(snapshot: MobileWorkspaceSnapshot, name: string) {
   return snapshot.views?.some((view) => view.definition.name === name) === true
+}
+
+function updatedViewHydrated(snapshot: MobileWorkspaceSnapshot) {
+  const view = snapshot.views?.find((candidate) => candidate.definition.name === updatedViewName)
+  return view?.filename === 'update-native-proof.yml'
+    && view.definition.color === 'purple'
+    && view.definition.icon === 'folder'
+    && view.definition.sort === 'property:Priority:asc'
+    && joinedProperties(view.definition.listPropertiesDisplay) === 'status|Priority'
+    && updatedViewFilterHydrated(view.definition.filters)
+}
+
+function updatedViewFilterHydrated(filters: MobileViewDefinition['filters']) {
+  const nodes = 'all' in filters ? filters.all : []
+  const condition = nodes[0]
+  return nodes.length === 1
+    && condition !== undefined
+    && 'field' in condition
+    && condition.field === 'status'
+    && condition.op === 'equals'
+    && condition.value === 'Active'
 }
 
 function vaultConfigHydrated(snapshot: MobileWorkspaceSnapshot) {
@@ -572,6 +624,23 @@ function oldNativeProofViewContent() {
     'sort: null',
     'filters:',
     '  all: []',
+    '',
+  ].join('\n')
+}
+
+function updateNativeProofViewContent() {
+  return [
+    `name: ${updatedViewSourceName}`,
+    'icon: archive',
+    'color: gray',
+    'sort: null',
+    'listPropertiesDisplay:',
+    '  - status',
+    'filters:',
+    '  all:',
+    '    - field: type',
+    '      op: equals',
+    '      value: Essay',
     '',
   ].join('\n')
 }

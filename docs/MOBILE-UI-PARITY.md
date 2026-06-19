@@ -83,7 +83,7 @@ The same Playwright suite also compares the primary tablet-landscape screen agai
 
 `pnpm mobile:qa:ios-layout` opens the native Expo Go deep link with `layoutProbe=1`, reads `TOLARIA_MOBILE_LAYOUT_METRIC` lines from the iPad Simulator logs, and fails when native React Native row boxes drift from the desktop parity contract. This is mandatory for padding, margin, row-height, indentation, text line boxes, text vertical centering, and count-pill alignment because the Expo web/browser lane can pass while the iPad simulator renders differently.
 
-`pnpm mobile:qa:ios-workspace-persistence` and `pnpm mobile:qa:ios-phone-workspace-persistence` exercise reducer write plans through the native Expo filesystem repository. The proof must cover note create/save/move/delete, folder and saved-view writes, Type definition changes, relationship target creation and wikilink rewrites, note metadata, vault-scoped config, and property display-mode hydration.
+`pnpm mobile:qa:ios-workspace-persistence` and `pnpm mobile:qa:ios-phone-workspace-persistence` exercise reducer write plans through the native Expo filesystem repository. The proof must cover note create/save/move/delete, folder writes, saved-view create/update/delete writes, Type definition changes, relationship target creation and wikilink rewrites, note metadata, vault-scoped config, and property display-mode hydration.
 
 `pnpm mobile:qa:ios-simulator` opens the native Expo Go deep link with `layoutProbe=1`, sets the currently booted iPad Simulator to landscape, and captures it into:
 

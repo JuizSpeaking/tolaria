@@ -70,6 +70,10 @@ describe('native workspace persistence probe', () => {
     ])
   })
 
+  it('reports incomplete saved-view update persistence proofs', () => {
+    expectProofFailures({ updatedViewHydrated: false }, ['workspace.persistence.updateView'])
+  })
+
   it('ignores malformed and incomplete proof lines', () => {
     const logText = [
       'TOLARIA_MOBILE_WORKSPACE_PERSISTENCE_PROBE not-json',
@@ -111,6 +115,7 @@ function passingWorkspaceProof(): NativeWorkspacePersistenceProof {
     renamedTypeSchemaRefsHydrated: true,
     savedViewHydrated: true,
     typeDefinitionHydrated: true,
+    updatedViewHydrated: true,
     vaultConfigHydrated: true,
   }
 }
