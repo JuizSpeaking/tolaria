@@ -138,6 +138,7 @@ type MobileWorkspaceActionSheetProps = {
   onNoteIconChange: (value: string) => void
   onOpenChangeNoteType: () => void
   onOpenCreateChildFolder: () => void
+  onOpenFileInDefaultApp: () => void
   onOpenFindInNote: () => void
   onOpenMoveNoteToFolder: () => void
   onOpenReplaceInNote: () => void
@@ -1035,6 +1036,7 @@ function MoreActionsContent(props: MobileWorkspaceActionSheetProps) {
           onDeleteNote={props.onDeleteNote}
           onEnterNeighborhood={props.onEnterNeighborhood}
           onOpenChangeNoteType={props.onOpenChangeNoteType}
+          onOpenFileInDefaultApp={props.onOpenFileInDefaultApp}
           onOpenFindInNote={props.onOpenFindInNote}
           onOpenMoveNoteToFolder={props.onOpenMoveNoteToFolder}
           onOpenReplaceInNote={props.onOpenReplaceInNote}

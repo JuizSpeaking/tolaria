@@ -7,6 +7,7 @@ import {
 } from '../src/workspace/readOnlyWorkspaceRepository'
 
 const mobileClipboardAttemptsGlobalKey = '__TOLARIA_MOBILE_CLIPBOARD_ATTEMPTS__'
+const mobileFileOpenAttemptsGlobalKey = '__TOLARIA_MOBILE_FILE_OPEN_ATTEMPTS__'
 const mobileFileRevealAttemptsGlobalKey = '__TOLARIA_MOBILE_FILE_REVEAL_ATTEMPTS__'
 
 test.describe('mobile non-markdown file action parity', () => {
@@ -50,6 +51,7 @@ async function assertFileActionSheet(
 ) {
   await page.getByTestId('editor-more-action').click()
   await expect(page.getByTestId('workspace-action-copy-file-path')).toBeVisible()
+  await expect(page.getByTestId('workspace-action-open-default-app')).toBeVisible()
   await expect(page.getByTestId('workspace-action-reveal-file')).toBeVisible()
   await expect(page.getByTestId('workspace-action-copy-deep-link')).toBeVisible()
   await expect(page.getByTestId('workspace-action-table-of-contents')).toBeHidden()
@@ -63,6 +65,15 @@ async function assertFileActionSheet(
   await page.getByTestId('workspace-action-reveal-file').click()
   await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
   await expect(latestGlobalEntry(page, mobileFileRevealAttemptsGlobalKey)).resolves.toEqual({
+    noteId: revealNoteId,
+    path: copiedPath,
+    title: fileTitle,
+  })
+
+  await page.getByTestId('editor-more-action').click()
+  await page.getByTestId('workspace-action-open-default-app').click()
+  await expect(page.getByTestId('workspace-action-sheet')).toBeHidden()
+  await expect(latestGlobalEntry(page, mobileFileOpenAttemptsGlobalKey)).resolves.toEqual({
     noteId: revealNoteId,
     path: copiedPath,
     title: fileTitle,

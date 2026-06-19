@@ -617,6 +617,7 @@ files:
     editor.toolbar.delete: f48134a07b016a1de05d4ba6d2fbfb41
     editor.toolbar.revealFile: 76f4ed52da9937ae432dcf5a108fabb4
     editor.toolbar.copyFilePath: 64c6cec5ca57efbb8c9c93ae5fbccd27
+    editor.toolbar.openFileInDefaultApp: 66e8265021958aa54613b9c17320297e
     editor.toolbar.copyNoteDeepLink: 0fff274a7c47e7c12457c0b7412e86ce
     editor.toolbar.copyNoteGitUrl: 04a732b98f7585e3c3b5474688e0baac
     editor.toolbar.exportPdf: 7a39acf8742a59d1a4f7ae064b6219a0

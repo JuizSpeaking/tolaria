@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "Удалить эту заметку",
   "editor.toolbar.revealFile": "Показать в Finder",
   "editor.toolbar.copyFilePath": "Копировать путь к файлу",
+  "editor.toolbar.openFileInDefaultApp": "Открыть в приложении по умолчанию",
   "editor.toolbar.copyNoteDeepLink": "Копировать диплинк заметки",
   "editor.toolbar.copyNoteGitUrl": "Копировать URL Git",
   "editor.toolbar.exportPdf": "Экспортировать заметку в формате PDF",

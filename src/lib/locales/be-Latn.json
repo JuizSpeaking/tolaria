@@ -617,6 +617,7 @@
   "editor.toolbar.delete": "Vydalić",
   "editor.toolbar.revealFile": "Pakazać u Finder",
   "editor.toolbar.copyFilePath": "Kapijavać šliach",
+  "editor.toolbar.openFileInDefaultApp": "Adkryć u pradvyznačanaj prahramie",
   "editor.toolbar.copyNoteDeepLink": "Kapijavać deep-link natatki",
   "editor.toolbar.copyNoteGitUrl": "Kapijavać Git URL",
   "editor.toolbar.exportPdf": "Ekspartavać natatku ŭ farmacie PDF",

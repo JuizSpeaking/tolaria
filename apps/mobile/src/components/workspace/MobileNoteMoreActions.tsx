@@ -13,6 +13,7 @@ import {
   MagnifyingGlass,
   MapTrifold,
   PencilSimple,
+  ShareNetwork,
   Smiley,
   Star,
   Tag,
@@ -33,6 +34,7 @@ type NoteMoreActionRowsProps = {
   onDeleteNote: () => void
   onEnterNeighborhood: (noteId: string) => void
   onCopyFilePath: () => void
+  onOpenFileInDefaultApp: () => void
   onOpenChangeNoteType: () => void
   onOpenFindInNote: () => void
   onOpenMoveNoteToFolder: () => void
@@ -73,14 +75,26 @@ export function NoteMoreActionRows(props: NoteMoreActionRowsProps) {
 function NonMarkdownFileActionRows({
   onClose,
   onCopyFilePath,
+  onOpenFileInDefaultApp,
   onRevealFile,
-}: Pick<NoteMoreActionRowsProps, 'onClose' | 'onCopyFilePath' | 'onRevealFile'>) {
+}: Pick<NoteMoreActionRowsProps, 'onClose' | 'onCopyFilePath' | 'onOpenFileInDefaultApp' | 'onRevealFile'>) {
   return (
-    <NotePathActionRows
-      onClose={onClose}
-      onCopyFilePath={onCopyFilePath}
-      onRevealFile={onRevealFile}
-    />
+    <>
+      <NotePathActionRows
+        onClose={onClose}
+        onCopyFilePath={onCopyFilePath}
+        onRevealFile={onRevealFile}
+      />
+      <ActionRow
+        icon={<ShareNetwork color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
+        label={mobileText('editor.toolbar.openFileInDefaultApp')}
+        testID="workspace-action-open-default-app"
+        onPress={() => {
+          onOpenFileInDefaultApp()
+          onClose()
+        }}
+      />
+    </>
   )
 }
 

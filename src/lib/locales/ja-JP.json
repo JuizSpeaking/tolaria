@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "このノートを削除",
   "editor.toolbar.revealFile": "Finderで表示",
   "editor.toolbar.copyFilePath": "ファイルパスをコピー",
+  "editor.toolbar.openFileInDefaultApp": "デフォルトアプリで開く",
   "editor.toolbar.copyNoteDeepLink": "ノートのディープリンクをコピー",
   "editor.toolbar.copyNoteGitUrl": "Git URLをコピー",
   "editor.toolbar.exportPdf": "ノートをPDFとしてエクスポート",

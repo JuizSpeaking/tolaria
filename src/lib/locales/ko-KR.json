@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "이 노트 삭제",
   "editor.toolbar.revealFile": "Finder에서 표시",
   "editor.toolbar.copyFilePath": "파일 경로 복사",
+  "editor.toolbar.openFileInDefaultApp": "기본 앱에서 열기",
   "editor.toolbar.copyNoteDeepLink": "노트 딥링크 복사",
   "editor.toolbar.copyNoteGitUrl": "Git URL 복사",
   "editor.toolbar.exportPdf": "노트를 PDF로 내보내기",

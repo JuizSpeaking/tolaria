@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "Excluir esta nota",
   "editor.toolbar.revealFile": "Exibir no Finder",
   "editor.toolbar.copyFilePath": "Copiar caminho do arquivo",
+  "editor.toolbar.openFileInDefaultApp": "Abrir no aplicativo padrão",
   "editor.toolbar.copyNoteDeepLink": "Copiar deeplink da nota",
   "editor.toolbar.copyNoteGitUrl": "Copiar URL do Git",
   "editor.toolbar.exportPdf": "Exportar nota como PDF",

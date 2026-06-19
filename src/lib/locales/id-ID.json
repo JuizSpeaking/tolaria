@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "Hapus catatan ini",
   "editor.toolbar.revealFile": "Tampilkan di Finder",
   "editor.toolbar.copyFilePath": "Salin jalur file",
+  "editor.toolbar.openFileInDefaultApp": "Buka di Aplikasi Default",
   "editor.toolbar.copyNoteDeepLink": "Salin deeplink catatan",
   "editor.toolbar.copyNoteGitUrl": "Salin URL git",
   "editor.toolbar.exportPdf": "Ekspor catatan sebagai PDF",

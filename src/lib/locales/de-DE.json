@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "Diese Notiz löschen",
   "editor.toolbar.revealFile": "Im Finder anzeigen",
   "editor.toolbar.copyFilePath": "Dateipfad kopieren",
+  "editor.toolbar.openFileInDefaultApp": "In Standard-App öffnen",
   "editor.toolbar.copyNoteDeepLink": "Deeplink der Notiz kopieren",
   "editor.toolbar.copyNoteGitUrl": "Git-URL kopieren",
   "editor.toolbar.exportPdf": "Notiz als PDF exportieren",

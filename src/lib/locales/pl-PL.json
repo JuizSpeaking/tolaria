@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "Usuń tę notatkę",
   "editor.toolbar.revealFile": "Pokaż w Finderze",
   "editor.toolbar.copyFilePath": "Kopiuj ścieżkę pliku",
+  "editor.toolbar.openFileInDefaultApp": "Otwórz w domyślnej aplikacji",
   "editor.toolbar.copyNoteDeepLink": "Skopiuj deeplink do notatki",
   "editor.toolbar.copyNoteGitUrl": "Skopiuj adres URL Git",
   "editor.toolbar.exportPdf": "Eksportuj notatkę jako PDF",

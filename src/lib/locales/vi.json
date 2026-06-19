@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "Xóa ghi chú này",
   "editor.toolbar.revealFile": "Hiển thị trong Finder",
   "editor.toolbar.copyFilePath": "Sao chép đường dẫn tệp",
+  "editor.toolbar.openFileInDefaultApp": "Mở trong ứng dụng mặc định",
   "editor.toolbar.copyNoteDeepLink": "Sao chép liên kết sâu của ghi chú",
   "editor.toolbar.copyNoteGitUrl": "Sao chép URL git",
   "editor.toolbar.exportPdf": "Xuất ghi chú dưới dạng PDF",

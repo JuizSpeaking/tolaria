@@ -148,6 +148,7 @@ export type TabletWorkspaceChromeProps = {
   onOpenCreateType: () => void
   onOpenCreateView: () => void
   onOpenFindInNote: () => void
+  onOpenFileInDefaultApp: () => void
   onOpenFolderActions: (selection: MobileSidebarFolderSelection) => void
   onOpenFavoriteActions: (selection: MobileSidebarItemSelection) => void
   onOpenMoveNoteToFolder: () => void

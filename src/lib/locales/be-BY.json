@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "Выдаліць",
   "editor.toolbar.revealFile": "Паказаць у Finder",
   "editor.toolbar.copyFilePath": "Капіяваць шлях",
+  "editor.toolbar.openFileInDefaultApp": "Адкрыць у прыкладанні па змаўчанні",
   "editor.toolbar.copyNoteDeepLink": "Капіяваць дэплінк нататкі",
   "editor.toolbar.copyNoteGitUrl": "Капіраваць URL git",
   "editor.toolbar.exportPdf": "Экспартаваць нататку ў фармаце PDF",

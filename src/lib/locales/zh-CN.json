@@ -615,6 +615,7 @@
   "editor.toolbar.delete": "删除这条笔记",
   "editor.toolbar.revealFile": "在文件管理器中显示",
   "editor.toolbar.copyFilePath": "复制文件路径",
+  "editor.toolbar.openFileInDefaultApp": "在默认应用中打开",
   "editor.toolbar.copyNoteDeepLink": "复制笔记深层链接",
   "editor.toolbar.copyNoteGitUrl": "复制 Git URL",
   "editor.toolbar.exportPdf": "将笔记导出为 PDF",
