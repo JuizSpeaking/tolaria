@@ -27,6 +27,18 @@ describe('native workspace persistence probe', () => {
     ])
   })
 
+  it('reports incomplete note path and bulk persistence proofs', () => {
+    expectProofFailures({
+      bulkEditHydrated: false,
+      renamedNoteFileHydrated: false,
+      titlePropertyRenameHydrated: false,
+    }, [
+      'workspace.persistence.renameNoteFile',
+      'workspace.persistence.titleRename',
+      'workspace.persistence.bulkEdit',
+    ])
+  })
+
   it('keeps native proof log lines compact for simulator log capture', () => {
     const line = nativeWorkspacePersistenceLogLine(passingWorkspaceProof())
 
@@ -151,6 +163,7 @@ function expectProofFailures(
 
 function passingWorkspaceProof(): NativeWorkspacePersistenceProof {
   return {
+    bulkEditHydrated: true,
     createdNoteHydrated: true,
     deletedTypeDefinitionRemoved: true,
     deletedViewRemoved: true,
@@ -177,8 +190,10 @@ function passingWorkspaceProof(): NativeWorkspacePersistenceProof {
     renamedTypeAssignedNoteHydrated: true,
     renamedTypeDefinitionHydrated: true,
     renamedTypeSchemaRefsHydrated: true,
+    renamedNoteFileHydrated: true,
     savedViewHydrated: true,
     textFileContentHydrated: true,
+    titlePropertyRenameHydrated: true,
     typeDefinitionHydrated: true,
     updatedViewHydrated: true,
     updatedTypeDefinitionHydrated: true,

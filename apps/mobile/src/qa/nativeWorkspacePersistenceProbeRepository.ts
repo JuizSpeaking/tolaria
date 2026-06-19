@@ -8,6 +8,13 @@ import {
   nativeWorkspacePersistenceProbeVaultLabel,
   type NativeWorkspacePersistenceProof,
 } from './nativeWorkspacePersistenceProbe'
+import {
+  nativeWorkspaceNotePathProof,
+  nativeWorkspaceNotePathSeedWrites,
+  nativeWorkspaceNotePathWrites,
+  readNativeWorkspaceNotePathContent,
+  type NativeWorkspaceNotePathPersistenceContent,
+} from './nativeWorkspaceNotePathPersistenceProbe'
 
 type ExpoFileSystemModule = {
   Directory: typeof Directory
@@ -117,10 +124,12 @@ async function logWorkspacePersistenceProof(
   const relationshipSourceContent = await readProbeNoteContent(baseRepository, snapshot, relationshipSourcePath, request)
   const metadataContent = await readProbeNoteContent(baseRepository, snapshot, metadataNotePath, request)
   const textFileContent = await readProbeNoteContent(baseRepository, snapshot, textFilePath, request)
+  const notePathContent = await readNativeWorkspaceNotePathContent(baseRepository, snapshot, request)
 
   console.info(nativeWorkspacePersistenceLogLine(workspacePersistenceProof(snapshot, {
     metadataContent,
     movedContent,
+    notePathContent,
     propertyRelationshipContent,
     relationshipSourceContent,
     renamedAssignedContent,
@@ -166,6 +175,7 @@ function workspacePersistenceProbeWrites(seedSnapshot: MobileWorkspaceSnapshot) 
     ...workspacePersistenceViewWrites(seedSnapshot),
     ...workspacePersistenceConfigWrites(seedSnapshot),
     ...workspacePersistenceTextFileWrites(seedSnapshot),
+    ...nativeWorkspaceNotePathWrites(seedSnapshot),
     ...workspacePersistenceFolderWrites(),
     ...workspacePersistenceTypeMoveWrites(seedSnapshot),
     ...workspacePersistenceTypeWrites(),
@@ -472,6 +482,7 @@ function seedWorkspaceNoteWrites() {
       kind: 'createNote' as const,
       path: textFilePath,
     },
+    ...nativeWorkspaceNotePathSeedWrites,
     {
       content: renamedTypeAssignedNoteContent(),
       kind: 'createNote' as const,
@@ -545,6 +556,7 @@ function workspacePersistenceProof(
   content: {
     metadataContent: string | null
     movedContent: string | null
+    notePathContent: NativeWorkspaceNotePathPersistenceContent
     propertyRelationshipContent: string | null
     relationshipSourceContent: string | null
     renamedAssignedContent: string | null
@@ -553,6 +565,7 @@ function workspacePersistenceProof(
   },
 ): NativeWorkspacePersistenceProof {
   return {
+    ...nativeWorkspaceNotePathProof(snapshot, content.notePathContent),
     createdNoteHydrated: snapshotContainsNotePath(snapshot, createdNotePath),
     deletedTypeDefinitionRemoved: !typeDefinitionExists(snapshot, oldTypeName),
     deletedViewRemoved: !viewExists(snapshot, oldViewName),

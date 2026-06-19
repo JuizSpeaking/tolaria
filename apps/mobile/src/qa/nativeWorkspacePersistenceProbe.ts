@@ -2,6 +2,7 @@ type NativeWorkspacePersistenceLogText = string
 type NativeWorkspacePersistenceLine = string
 
 export type NativeWorkspacePersistenceProof = {
+  bulkEditHydrated: boolean
   createdNoteHydrated: boolean
   deletedTypeDefinitionRemoved: boolean
   deletedViewRemoved: boolean
@@ -30,7 +31,9 @@ export type NativeWorkspacePersistenceProof = {
   renamedTypeSchemaRefsHydrated: boolean
   savedViewHydrated: boolean
   textFileContentHydrated: boolean
+  titlePropertyRenameHydrated: boolean
   typeDefinitionHydrated: boolean
+  renamedNoteFileHydrated: boolean
   updatedViewHydrated: boolean
   updatedTypeDefinitionHydrated: boolean
   vaultConfigHydrated: boolean
@@ -75,6 +78,9 @@ export function assertNativeWorkspacePersistenceProofs(
     proofFailure(latest.persistedToNativeRepository, 'workspace.persistence.native', 'Workspace writes ran through the native Expo filesystem repository'),
     proofFailure(latest.createdNoteHydrated, 'workspace.persistence.createNote', 'Created notes rehydrate from the native vault snapshot'),
     proofFailure(latest.movedNoteContentPreserved, 'workspace.persistence.moveNote', 'Saved and moved note content is read back from the native repository'),
+    proofFailure(latest.renamedNoteFileHydrated, 'workspace.persistence.renameNoteFile', 'Explicit note filename renames and inbound wikilink rewrites rehydrate from native filesystem writes'),
+    proofFailure(latest.titlePropertyRenameHydrated, 'workspace.persistence.titleRename', 'Title frontmatter edits rename files and rehydrate rewritten inbound wikilinks from native filesystem writes'),
+    proofFailure(latest.bulkEditHydrated, 'workspace.persistence.bulkEdit', 'Bulk note action writes rehydrate from one native filesystem write batch'),
     proofFailure(latest.textFileContentHydrated, 'workspace.persistence.updateTextFileContent', 'Plain text file edits rehydrate from native filesystem writes'),
     proofFailure(latest.noteChromeMetadataHydrated, 'workspace.persistence.noteChromeMetadata', 'Note icon and width metadata rehydrate from native frontmatter writes'),
     proofFailure(latest.noteStateMetadataHydrated, 'workspace.persistence.noteStateMetadata', 'Note archive, organized, and favorite metadata rehydrate from native frontmatter writes'),
@@ -162,6 +168,7 @@ function workspacePersistenceProofFromValues(values: boolean[]): NativeWorkspace
 }
 
 const workspacePersistenceProofKeys = [
+  'bulkEditHydrated',
   'createdNoteHydrated',
   'deletedTypeDefinitionRemoved',
   'deletedViewRemoved',
@@ -190,7 +197,9 @@ const workspacePersistenceProofKeys = [
   'renamedTypeSchemaRefsHydrated',
   'savedViewHydrated',
   'textFileContentHydrated',
+  'titlePropertyRenameHydrated',
   'typeDefinitionHydrated',
+  'renamedNoteFileHydrated',
   'updatedViewHydrated',
   'updatedTypeDefinitionHydrated',
   'vaultConfigHydrated',

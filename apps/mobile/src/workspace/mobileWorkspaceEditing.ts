@@ -710,7 +710,9 @@ function moveNoteToPath(
   previousNote: MobileNote,
   nextNote: MobileNote,
 ): MobileWorkspaceEditResult {
-  const previousPool = workspaceNotePool(snapshot)
+  const previousPool = snapshot.allNotes
+    ? notesWithDetailedNotes(snapshot.allNotes, snapshot.notes)
+    : snapshot.notes
   const nextPath = noteWritePath(nextNote)
   if (noteWritePath(previousNote) === nextPath) return { snapshot, writes: [] }
 
