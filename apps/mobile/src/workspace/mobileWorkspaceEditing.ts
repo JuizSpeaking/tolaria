@@ -530,11 +530,17 @@ function createNoteRawContent(
   type: NoteTitle,
   defaults: MobileCreateNoteDefaults,
 ): MarkdownContent {
-  return serializeDocument(createNoteFrontmatter(title, type, defaults), createNoteBody(defaults.template))
+  return serializeDocument(createNoteFrontmatter(title, type, defaults), createNoteBody(title, defaults.template))
 }
 
-function createNoteBody(template?: MarkdownContent): MarkdownContent {
-  return template ? `\n${template}` : ''
+function createNoteBody(title: NoteTitle, template?: MarkdownContent): MarkdownContent {
+  if (title) return template ? `\n${template}` : ''
+  if (templateStartsWithH1(template)) return `\n${template}`
+  return template ? `\n# \n\n${template}` : '\n# \n\n'
+}
+
+function templateStartsWithH1(template?: MarkdownContent): boolean {
+  return template?.trimStart().startsWith('# ') ?? false
 }
 
 function createNoteFrontmatter(

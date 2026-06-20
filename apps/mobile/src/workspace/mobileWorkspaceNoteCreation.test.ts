@@ -89,6 +89,8 @@ describe('mobile note creation parity', () => {
         'type: Project',
         '---',
         '',
+        '# ',
+        '',
         '## Objective',
         '',
         'Launch mobile parity.',
@@ -102,6 +104,32 @@ describe('mobile note creation parity', () => {
       kind: 'createNote',
       path: 'untitled-project-1700000000.md',
     }])
+  })
+
+  it('does not prepend an empty H1 when a title-less typed note template starts with H1', () => {
+    const result = applyMobileWorkspaceEditWithWrites(workspaceScenarioForId('default'), {
+      defaults: {
+        template: '\n\n# Week 2026.21\n\nWeekly note\n',
+        type: 'Weekly',
+      },
+      title: '',
+      type: 'createNote',
+    })
+    const note = result.snapshot.notes[0]
+
+    expect(note.rawContent).toBe([
+      '---',
+      'type: Weekly',
+      '---',
+      '',
+      '',
+      '',
+      '# Week 2026.21',
+      '',
+      'Weekly note',
+      '',
+    ].join('\n'))
+    expect(note.rawContent).not.toContain('# \n\n\n\n# Week')
   })
 
   it('plans create writes for new notes', () => {
