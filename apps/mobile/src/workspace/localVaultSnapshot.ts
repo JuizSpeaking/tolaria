@@ -288,7 +288,7 @@ function parseMarkdownVaultEntry(file: LocalVaultFile, fileKind: MobileFileKind)
     body: document.body,
     createdAt: file.createdAt,
     favorite: frontmatterFlag(document.frontmatter, ['_favorite', 'favorite']),
-    favoriteIndex: frontmatterNumber(document.frontmatter, ['_favorite_index']),
+    favoriteIndex: frontmatterNumber(document.frontmatter, ['_favorite_index', 'favorite_index', 'favorite index']),
     fileKind,
     filename,
     id: file.relativePath,

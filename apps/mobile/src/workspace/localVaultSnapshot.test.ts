@@ -146,10 +146,17 @@ _favorite_index: 2
 ---
 # Later Favorite
 `, 20),
+        vaultFile('middle.md', `---
+type: Note
+_favorite: true
+favorite index: 1
+---
+# Middle Favorite
+`, 25),
         vaultFile('first.md', `---
 type: Note
 _favorite: true
-_favorite_index: 0
+favorite_index: 0
 ---
 # First Favorite
 `, 10),
@@ -168,6 +175,7 @@ _archived: true
 
     expect(snapshot.sidebarSections.find((section) => section.id === 'favorites')?.items?.map((item) => item.label)).toEqual([
       'First Favorite',
+      'Middle Favorite',
       'Later Favorite',
       'Unindexed Favorite',
     ])
