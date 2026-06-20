@@ -40,6 +40,10 @@ export const nativeWysiwygFormatCommandProbeActions = [
   'orderedList',
   'taskList',
   'quote',
+  'tableAddColumnAfter',
+  'tableAddRowAfter',
+  'tableDeleteColumn',
+  'tableDeleteRow',
 ] as const satisfies readonly MobileMarkdownFormatAction[]
 
 const nativeWysiwygFormatCommandProbeSpecs = [
@@ -58,6 +62,10 @@ const nativeWysiwygFormatCommandProbeSpecs = [
   { action: 'orderedList', args: [], method: 'toggleOrderedList' },
   { action: 'taskList', args: [], method: 'toggleTaskList' },
   { action: 'quote', args: [], method: 'toggleBlockquote' },
+  { action: 'tableAddColumnAfter', args: [], method: 'addColumnAfter' },
+  { action: 'tableAddRowAfter', args: [], method: 'addRowAfter' },
+  { action: 'tableDeleteColumn', args: [], method: 'deleteColumn' },
+  { action: 'tableDeleteRow', args: [], method: 'deleteRow' },
 ] as const satisfies readonly NativeWysiwygFormatCommandProbeSpec[]
 
 export function nativeWysiwygFormatCommandProof({

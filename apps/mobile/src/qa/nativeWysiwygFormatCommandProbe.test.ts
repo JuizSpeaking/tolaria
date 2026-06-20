@@ -29,6 +29,10 @@ describe('native WYSIWYG format command probe', () => {
       'orderedList',
       'taskList',
       'quote',
+      'tableAddColumnAfter',
+      'tableAddRowAfter',
+      'tableDeleteColumn',
+      'tableDeleteRow',
     ])
   })
 
@@ -97,6 +101,10 @@ describe('native WYSIWYG format command probe', () => {
 
 function completeNativeEditorBridge() {
   return {
+    addColumnAfter: () => undefined,
+    addRowAfter: () => undefined,
+    deleteColumn: () => undefined,
+    deleteRow: () => undefined,
     toggleBlockquote: () => undefined,
     toggleBold: () => undefined,
     toggleBulletList: () => undefined,

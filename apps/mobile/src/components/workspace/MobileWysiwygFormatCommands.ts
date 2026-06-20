@@ -6,6 +6,10 @@ import {
 } from '../../workspace/mobileMarkdownSourceBlocks'
 
 export type NativeWysiwygCommandBridge = {
+  addColumnAfter?: () => void
+  addRowAfter?: () => void
+  deleteColumn?: () => void
+  deleteRow?: () => void
   toggleBlockquote?: () => void
   toggleBold?: () => void
   toggleBulletList?: () => void
@@ -48,9 +52,17 @@ export const nativeWysiwygFormattingActions = [
   'taskList',
   'quote',
   ...nativeWysiwygMarkdownBlockActions,
+  'tableAddColumnAfter',
+  'tableAddRowAfter',
+  'tableDeleteColumn',
+  'tableDeleteRow',
 ] as const satisfies readonly MobileMarkdownFormatAction[]
 
 const nativeWysiwygFormatCommands = [
+  { action: 'tableAddColumnAfter', run: (editor) => editor.addColumnAfter?.() },
+  { action: 'tableAddRowAfter', run: (editor) => editor.addRowAfter?.() },
+  { action: 'tableDeleteColumn', run: (editor) => editor.deleteColumn?.() },
+  { action: 'tableDeleteRow', run: (editor) => editor.deleteRow?.() },
   { action: 'bold', run: (editor) => editor.toggleBold?.() },
   { action: 'bulletList', run: (editor) => editor.toggleBulletList?.() },
   { action: 'code', run: (editor) => editor.toggleCode?.() },

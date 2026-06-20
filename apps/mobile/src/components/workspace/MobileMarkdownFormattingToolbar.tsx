@@ -1,6 +1,8 @@
 import {
   Code,
   CodeBlock,
+  Columns,
+  ColumnsPlusRight,
   ClipboardText,
   FlowArrow,
   LinkSimple,
@@ -11,6 +13,8 @@ import {
   Paperclip,
   Pi,
   Quotes,
+  Rows,
+  RowsPlusBottom,
   ScribbleLoop,
   Table,
   TextB,
@@ -184,7 +188,42 @@ const formattingCommands: FormattingCommand[] = [
     label: mobileText('editor.formatting.table'),
     testID: 'editor-format-table',
   },
+  {
+    action: 'tableAddRowAfter',
+    icon: (color) => <RowsPlusBottom color={color} size={desktopToolbarActionParity.iconSize} />,
+    label: mobileText('editor.table.addRow'),
+    testID: 'editor-format-table-add-row-after',
+  },
+  {
+    action: 'tableAddColumnAfter',
+    icon: (color) => <ColumnsPlusRight color={color} size={desktopToolbarActionParity.iconSize} />,
+    label: mobileText('editor.table.addColumn'),
+    testID: 'editor-format-table-add-column-after',
+  },
+  {
+    action: 'tableDeleteRow',
+    icon: (color) => <Rows color={color} size={desktopToolbarActionParity.iconSize} />,
+    label: mobileText('editor.table.removeRow'),
+    testID: 'editor-format-table-delete-row',
+  },
+  {
+    action: 'tableDeleteColumn',
+    icon: (color) => <Columns color={color} size={desktopToolbarActionParity.iconSize} />,
+    label: mobileText('editor.table.removeColumn'),
+    testID: 'editor-format-table-delete-column',
+  },
 ]
+
+const nativeOnlyFormattingActions = new Set<MobileMarkdownFormatAction>([
+  'tableAddColumnAfter',
+  'tableAddRowAfter',
+  'tableDeleteColumn',
+  'tableDeleteRow',
+])
+
+const sourceMarkdownFormattingActions = formattingCommands
+  .map((command) => command.action)
+  .filter((action) => !nativeOnlyFormattingActions.has(action))
 
 export function MobileMarkdownFormattingToolbar({
   actions,
@@ -197,7 +236,7 @@ export function MobileMarkdownFormattingToolbar({
   metricId?: string
   onFormat: (action: MobileMarkdownFormatAction) => void
 }) {
-  const visibleActions = new Set(actions ?? formattingCommands.map((command) => command.action))
+  const visibleActions = new Set(actions ?? sourceMarkdownFormattingActions)
 
   return (
     <ScrollView

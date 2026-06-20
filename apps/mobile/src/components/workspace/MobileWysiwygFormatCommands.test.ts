@@ -24,6 +24,10 @@ describe('native WYSIWYG format commands', () => {
     ['heading5', 'toggleHeading', [5]],
     ['heading6', 'toggleHeading', [6]],
     ['highlight', 'toggleHighlight', [mobileColors.yellowSoft]],
+    ['tableAddColumnAfter', 'addColumnAfter', []],
+    ['tableAddRowAfter', 'addRowAfter', []],
+    ['tableDeleteColumn', 'deleteColumn', []],
+    ['tableDeleteRow', 'deleteRow', []],
   ] as const)('maps %s to the TenTap %s command', (action, method, args) => {
     const editor = fakeEditor()
 
@@ -64,6 +68,10 @@ type FakeEditorMethod = keyof FakeEditor
 
 function fakeEditor(): FakeEditor {
   return {
+    addColumnAfter: vi.fn(),
+    addRowAfter: vi.fn(),
+    deleteColumn: vi.fn(),
+    deleteRow: vi.fn(),
     toggleBlockquote: vi.fn(),
     toggleBold: vi.fn(),
     toggleBulletList: vi.fn(),
