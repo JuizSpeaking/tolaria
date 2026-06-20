@@ -24,6 +24,8 @@ type EditorBlockReader = (lines: MarkdownLine[], startIndex: number) => EditorBl
 
 const MAX_SNIPPET_LENGTH = 160
 const MAX_EDITOR_BLOCKS = 10
+const markdownSyntaxPattern = /(?:\[\[|\]\(|[*_`>#~]|\[[ xX]\]|^\s*(?:[-*>]|\d+[.)]))/u
+const longTokenPattern = /\S{32,}/u
 const editorBlockReaders: EditorBlockReader[] = [
   readCodeBlock,
   readDividerBlock,
@@ -48,18 +50,27 @@ export function deriveLocalVaultTitle({
 }
 
 export function localVaultSnippet(body: MarkdownBody): SnippetText {
-  const lines = body.split(/\r?\n/)
-  const primary = lines.find(isPrimarySnippetLine)
-  const fallback = lines.find(isFallbackSnippetLine)
-  return truncateSnippet(stripMarkdown(primary ?? fallback ?? ''))
+  let fallback = ''
+  const primary = scanMarkdownLines(body, (line) => {
+    if (isPrimarySnippetLine(line)) return line
+    if (!fallback && isFallbackSnippetLine(line)) fallback = line
+    return undefined
+  })
+
+  return truncateSnippet(stripMarkdown(primary ?? fallback))
 }
 
 export function localVaultOutgoingLinks(body: MarkdownBody): WikilinkTarget[] {
   const links: WikilinkTarget[] = []
   const wikilinkPattern = /\[\[([^\]]+)\]\]/g
-  const searchableBody = blankFencedCodeLines(body)
+  let fenceMarker: string | null = null
 
-  for (const line of searchableBody.split('\n')) {
+  scanMarkdownLines(body, (line) => {
+    const nextFenceMarker = nextMarkdownFenceMarker(line, fenceMarker)
+    const shouldSkip = fenceMarker !== null || nextFenceMarker !== fenceMarker
+    fenceMarker = nextFenceMarker
+    if (shouldSkip) return undefined
+
     wikilinkPattern.lastIndex = 0
     let match = wikilinkPattern.exec(line)
     while (match) {
@@ -67,7 +78,8 @@ export function localVaultOutgoingLinks(body: MarkdownBody): WikilinkTarget[] {
       if (parsed?.target) links.push(parsed.target)
       match = wikilinkPattern.exec(line)
     }
-  }
+    return undefined
+  })
 
   return [...new Set(links)].sort()
 }
@@ -116,7 +128,7 @@ export function localVaultEditorBullets(blocks: MobileEditorBlock[]): string[] {
 }
 
 function firstH1Title(body: MarkdownBody): NoteTitle | null {
-  const firstContentLine = body.split(/\r?\n/).find((line) => line.trim())
+  const firstContentLine = scanMarkdownLines(body, (line) => line.trim() ? line : undefined)
   const match = firstContentLine?.trim().match(/^#\s+(.+)$/)
   return match ? stripMarkdown(match[1]).trim() : null
 }
@@ -152,22 +164,31 @@ function nextMarkdownFenceMarker(line: MarkdownLine, currentMarker: string | nul
   return marker[0] === currentMarker[0] && marker.length >= currentMarker.length ? null : currentMarker
 }
 
-function blankFencedCodeLines(body: MarkdownBody): MarkdownBody {
-  let fenceMarker: string | null = null
-  return body.split('\n').map((line) => {
-    const nextFenceMarker = nextMarkdownFenceMarker(line, fenceMarker)
-    const shouldBlank = fenceMarker !== null || nextFenceMarker !== fenceMarker
-    fenceMarker = nextFenceMarker
-    return shouldBlank ? '' : line
-  }).join('\n')
-}
-
 function isPrimarySnippetLine(line: MarkdownLine): boolean {
   const trimmed = line.trim()
   return Boolean(trimmed)
     && !trimmed.startsWith('#')
     && !trimmed.startsWith('```')
     && !/^[-*_]{3,}$/.test(trimmed)
+}
+
+function scanMarkdownLines<T>(
+  body: MarkdownBody,
+  visit: (line: MarkdownLine) => T | undefined,
+): T | undefined {
+  let start = 0
+
+  while (start <= body.length) {
+    const end = body.indexOf('\n', start)
+    const lineEnd = end === -1 ? body.length : end
+    const rawLine = body.slice(start, lineEnd)
+    const result = visit(rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine)
+    if (result !== undefined) return result
+    if (end === -1) break
+    start = end + 1
+  }
+
+  return undefined
 }
 
 function isFallbackSnippetLine(line: MarkdownLine): boolean {
@@ -181,6 +202,8 @@ function truncateSnippet(text: MarkdownText): SnippetText {
 }
 
 function stripMarkdown(text: MarkdownText): MarkdownText {
+  if (!markdownSyntaxPattern.test(text)) return addSoftBreaks(normalizeSnippetWhitespace(text))
+
   const stripped = text
     .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
     .replace(/\[\[([^\]]+)\]\]/g, '$1')
@@ -206,7 +229,12 @@ function stripInlineMarkdown(text: MarkdownText): MarkdownText {
 }
 
 function addSoftBreaks(text: MarkdownText): MarkdownText {
+  if (!longTokenPattern.test(text)) return text
   return text.replace(/\S{32,}/g, (token) => token.replace(/([/._?&=-])/g, '$1\u200B'))
+}
+
+function normalizeSnippetWhitespace(text: MarkdownText): MarkdownText {
+  return text.replace(/\s+/g, ' ').trim()
 }
 
 function headingBlock(line: MarkdownLine): MobileEditorBlock | null {

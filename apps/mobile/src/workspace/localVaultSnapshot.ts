@@ -111,7 +111,9 @@ type SnapshotFrontmatterValues = Map<string, unknown>
 
 const DEFAULT_MAX_NOTES = 80
 const absoluteDateFormatter = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' })
+const absoluteDateCache = new Map<string, string>()
 const snapshotFrontmatterValueCache = new WeakMap<LocalVaultFrontmatter, SnapshotFrontmatterValues>()
+const snapshotFrontmatterLookupKeyCache = new Map<string, string>()
 const textFileExtensions = new Set([
   'bash',
   'bat',
@@ -394,7 +396,12 @@ function snapshotFrontmatterValues(frontmatter: LocalVaultFrontmatter): Snapshot
 }
 
 function normalizedFrontmatterLookupKey(key: string): string {
-  return key.trim().toLowerCase().replace(/\s+/g, '_')
+  const cached = snapshotFrontmatterLookupKeyCache.get(key)
+  if (cached) return cached
+
+  const normalizedKey = key.trim().toLowerCase().replace(/\s+/g, '_')
+  snapshotFrontmatterLookupKeyCache.set(key, normalizedKey)
+  return normalizedKey
 }
 
 function frontmatterText(frontmatter: LocalVaultFrontmatter, keys: string[]) {
@@ -685,7 +692,14 @@ function relativeDate(timestamp: TimestampMs | null): string {
 
 function absoluteDate(timestamp: TimestampMs | null): string {
   if (!timestamp) return '-'
-  return absoluteDateFormatter.format(new Date(timestamp))
+  const date = new Date(timestamp)
+  const cacheKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+  const cached = absoluteDateCache.get(cacheKey)
+  if (cached) return cached
+
+  const formatted = absoluteDateFormatter.format(date)
+  absoluteDateCache.set(cacheKey, formatted)
+  return formatted
 }
 
 function humanizeRelationshipKey(label: RelationshipLabel): string {

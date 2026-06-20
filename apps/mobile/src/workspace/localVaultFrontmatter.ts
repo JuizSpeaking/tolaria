@@ -418,6 +418,7 @@ const canonicalFrontmatterAliases = new Map([
   ['width', '_width'],
 ])
 const normalizedFrontmatterValueCache = new WeakMap<LocalVaultFrontmatter, NormalizedFrontmatterValues>()
+const normalizedFrontmatterKeyCache = new Map<FrontmatterKey, FrontmatterKey>()
 
 function wikilinkValues(value: LocalVaultFrontmatterValue): string[] {
   if (typeof value === 'string' && value.includes('[[')) return [value]
@@ -506,8 +507,13 @@ function isReservedFrontmatterKey(key: FrontmatterKey): boolean {
 }
 
 function normalizedFrontmatterKey(key: FrontmatterKey): FrontmatterKey {
+  const cached = normalizedFrontmatterKeyCache.get(key)
+  if (cached) return cached
+
   const normalizedKey = key.trim().toLowerCase().replace(/\s+/gu, '_')
-  return canonicalFrontmatterAliases.get(normalizedKey) ?? normalizedKey
+  const canonicalKey = canonicalFrontmatterAliases.get(normalizedKey) ?? normalizedKey
+  normalizedFrontmatterKeyCache.set(key, canonicalKey)
+  return canonicalKey
 }
 
 function stringValue(value: LocalVaultFrontmatterValue | undefined): string | null {
