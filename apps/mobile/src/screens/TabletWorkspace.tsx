@@ -28,6 +28,7 @@ import { useTabletWorkspaceController } from './useTabletWorkspaceController'
 import { useMobileInspectorReferenceGroups } from './useMobileInspectorReferenceGroups'
 
 export function TabletWorkspace({
+  forceDesktopPanels = false,
   initialEditorEditing = false,
   initialEditorEditingMode = 'wysiwyg',
   layoutProbe = false,
@@ -47,6 +48,7 @@ export function TabletWorkspace({
   wysiwygWikilinkInsertProbe = false,
   wysiwygMutationProbe = false,
 }: {
+  forceDesktopPanels?: boolean
   initialEditorEditing?: boolean
   initialEditorEditingMode?: TabletWorkspaceChromeProps['initialEditorEditingMode']
   layoutProbe?: boolean
@@ -67,7 +69,7 @@ export function TabletWorkspace({
   wysiwygMutationProbe?: boolean
 }) {
   const controller = useTabletWorkspaceController({ repository, repositoryRequest, snapshot })
-  const { compactTablet, defaultPropertiesVisible } = useTabletScreenMode()
+  const { compactTablet, defaultPropertiesVisible } = useTabletScreenMode(forceDesktopPanels)
 
   return (
     <View style={styles.shellRoot}>
@@ -96,12 +98,13 @@ export function TabletWorkspace({
   )
 }
 
-function useTabletScreenMode() {
+function useTabletScreenMode(forceDesktopPanels: boolean) {
   const { height, width } = useWindowDimensions()
   const screen = Dimensions.get('screen')
   const nativeIpad = Platform.OS === 'ios' && Platform.isPad
 
   return tabletScreenModeForWindow({
+    forceDesktopPanels,
     height,
     nativeIpad,
     screenHeight: screen.height,

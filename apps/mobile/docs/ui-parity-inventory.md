@@ -129,7 +129,7 @@ Whiteboard editing is covered at the durable Markdown boundary: the mobile More 
 
 React Native Web screenshots are a fast preflight only. Layout-sensitive mobile UI work must also pass the native iOS simulator metric check and produce a simulator screenshot before it is accepted, because spacing, safe-area, and text layout can diverge between web and the actual Expo app.
 
-Native editor screenshots can open `exp://.../--/?layoutProbe=1&editorMode=raw` to mount the same tablet editor directly in raw-edit mode, or `exp://.../--/?layoutProbe=1&editorMode=wysiwyg` to mount the native TenTap editor directly in document-edit mode. These are QA entry points only; they avoid depending on simulator accessibility taps when the goal is to inspect native rendering of edit-only controls. `pnpm mobile:qa:ios-wysiwyg-layout` uses the same WYSIWYG route but fails on missing or drifted native editor/toolbar metrics.
+Native editor screenshots can open `exp://.../--/?layoutProbe=1&editorMode=raw` to mount the same tablet editor directly in raw-edit mode, or `exp://.../--/?layoutProbe=1&editorMode=wysiwyg` to mount the native TenTap editor directly in document-edit mode. These are QA entry points only; they avoid depending on simulator accessibility taps when the goal is to inspect native rendering of edit-only controls. `pnpm mobile:qa:ios-wysiwyg-layout` adds `tabletPanels=all` so the route asserts the full desktop-parity tablet shell plus the native editor metrics instead of accidentally using the responsive inspector-hidden state.
 
 ## Phone Screens
 

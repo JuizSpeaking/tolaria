@@ -83,42 +83,21 @@ export function MobileUiLab() {
     baseRepositoryRequest,
     { workspacePersistenceProbe, wysiwygPersistenceProbe },
   )
-  const { initialEditorEditing, initialEditorEditingMode } = initialMobileEditorStateFromMode(editorMode(searchParams))
-  const layoutProbe = layoutProbeEnabled(searchParams)
-  const metricSinkUrl = layoutProbe ? searchParams.get('metricSink') : null
-  const sourceSelectionProbe = nativeSourceSelectionProbeEnabled(searchParams)
-  const wysiwygAutocompleteProbe = nativeWysiwygAutocompleteProbeEnabled(searchParams)
-  const wysiwygFormatCommandProbe = nativeWysiwygFormatCommandProbeEnabled(searchParams)
-  const wysiwygInputTransformProbe = nativeWysiwygInputTransformProbeEnabled(searchParams)
-  const wysiwygMarkdownBlockProbe = nativeWysiwygMarkdownBlockProbeEnabled(searchParams)
-  const wysiwygTableCommandMutationProbe = nativeWysiwygTableCommandMutationProbeEnabled(searchParams)
-  const wysiwygWikilinkInsertProbe = nativeWysiwygWikilinkInsertProbeEnabled(searchParams)
-  const wysiwygMutationProbe = nativeWysiwygMutationProbeEnabled(searchParams) || wysiwygPersistenceProbe
-  const tableOfContentsProbe = nativeTableOfContentsProbeEnabled(searchParams)
+  const qa = mobileUiQaFlags(searchParams, { wysiwygPersistenceProbe })
+  const metricSinkUrl = qa.layoutProbe ? searchParams.get('metricSink') : null
   const baseSnapshot = repository.readSnapshot(repositoryRequest)
   const snapshot = mobileSnapshotForProbes(baseSnapshot, {
-    tableOfContentsProbe,
-    wysiwygMutationProbe,
+    tableOfContentsProbe: qa.tableOfContentsProbe,
+    wysiwygMutationProbe: qa.wysiwygMutationProbe,
     wysiwygPersistenceProbe,
   })
   const workspaceKey = mobileWorkspaceKey({
-    initialEditorEditing,
-    initialEditorEditingMode,
-    layoutProbe,
+    ...qa,
     qaRun: searchParams.get('qaRun'),
     scenarioId,
     snapshot,
     source,
-    sourceSelectionProbe,
-    tableOfContentsProbe,
     workspacePersistenceProbe,
-    wysiwygAutocompleteProbe,
-    wysiwygFormatCommandProbe,
-    wysiwygInputTransformProbe,
-    wysiwygMarkdownBlockProbe,
-    wysiwygTableCommandMutationProbe,
-    wysiwygWikilinkInsertProbe,
-    wysiwygMutationProbe,
     wysiwygPersistenceProbe,
   })
   const handleOpenNativeVault = useCallback(async () => {
@@ -138,24 +117,25 @@ export function MobileUiLab() {
     return (
       <TabletWorkspace
         key={workspaceKey}
-        initialEditorEditing={initialEditorEditing}
-        initialEditorEditingMode={initialEditorEditingMode}
-        layoutProbe={layoutProbe}
+        forceDesktopPanels={qa.forceDesktopPanels}
+        initialEditorEditing={qa.initialEditorEditing}
+        initialEditorEditingMode={qa.initialEditorEditingMode}
+        layoutProbe={qa.layoutProbe}
         onOpenNativeVault={handleOpenNativeVault}
         repository={repository}
         repositoryRequest={repositoryRequest}
         sourceIdleSave={!editorIdleSaveDisabled(searchParams)}
-        sourceSelectionProbe={sourceSelectionProbe}
+        sourceSelectionProbe={qa.sourceSelectionProbe}
         snapshot={snapshot}
-        tableOfContentsProbe={tableOfContentsProbe}
-        onTableOfContentsScrollProof={tableOfContentsProbe ? handleTableOfContentsScrollProof : undefined}
-        wysiwygAutocompleteProbe={wysiwygAutocompleteProbe}
-        wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
-        wysiwygInputTransformProbe={wysiwygInputTransformProbe}
-        wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
-        wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
-        wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
-        wysiwygMutationProbe={wysiwygMutationProbe}
+        tableOfContentsProbe={qa.tableOfContentsProbe}
+        onTableOfContentsScrollProof={qa.tableOfContentsProbe ? handleTableOfContentsScrollProof : undefined}
+        wysiwygAutocompleteProbe={qa.wysiwygAutocompleteProbe}
+        wysiwygFormatCommandProbe={qa.wysiwygFormatCommandProbe}
+        wysiwygInputTransformProbe={qa.wysiwygInputTransformProbe}
+        wysiwygMarkdownBlockProbe={qa.wysiwygMarkdownBlockProbe}
+        wysiwygTableCommandMutationProbe={qa.wysiwygTableCommandMutationProbe}
+        wysiwygWikilinkInsertProbe={qa.wysiwygWikilinkInsertProbe}
+        wysiwygMutationProbe={qa.wysiwygMutationProbe}
       />
     )
   }
@@ -163,23 +143,23 @@ export function MobileUiLab() {
   return (
     <PhoneWorkspace
       key={workspaceKey}
-      initialEditorEditing={initialEditorEditing}
-      initialEditorEditingMode={initialEditorEditingMode}
+      initialEditorEditing={qa.initialEditorEditing}
+      initialEditorEditingMode={qa.initialEditorEditingMode}
       initialState={currentPhoneState(searchParams)}
-      layoutProbe={layoutProbe}
+      layoutProbe={qa.layoutProbe}
       onOpenNativeVault={handleOpenNativeVault}
       repository={repository}
       repositoryRequest={repositoryRequest}
       sourceIdleSave={!editorIdleSaveDisabled(searchParams)}
-      sourceSelectionProbe={sourceSelectionProbe}
+      sourceSelectionProbe={qa.sourceSelectionProbe}
       snapshot={snapshot}
-      wysiwygAutocompleteProbe={wysiwygAutocompleteProbe}
-      wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
-      wysiwygInputTransformProbe={wysiwygInputTransformProbe}
-      wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
-      wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
-      wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
-      wysiwygMutationProbe={wysiwygMutationProbe}
+      wysiwygAutocompleteProbe={qa.wysiwygAutocompleteProbe}
+      wysiwygFormatCommandProbe={qa.wysiwygFormatCommandProbe}
+      wysiwygInputTransformProbe={qa.wysiwygInputTransformProbe}
+      wysiwygMarkdownBlockProbe={qa.wysiwygMarkdownBlockProbe}
+      wysiwygTableCommandMutationProbe={qa.wysiwygTableCommandMutationProbe}
+      wysiwygWikilinkInsertProbe={qa.wysiwygWikilinkInsertProbe}
+      wysiwygMutationProbe={qa.wysiwygMutationProbe}
     />
   )
 }
@@ -207,6 +187,33 @@ function currentSnapshotSource(
 
 function editorMode(searchParams: URLSearchParams) {
   return searchParams.get('editorMode')
+}
+
+function tabletPanelsMode(searchParams: URLSearchParams) {
+  return searchParams.get('tabletPanels')
+}
+
+function mobileUiQaFlags(
+  searchParams: URLSearchParams,
+  { wysiwygPersistenceProbe }: { wysiwygPersistenceProbe: boolean },
+) {
+  const { initialEditorEditing, initialEditorEditingMode } = initialMobileEditorStateFromMode(editorMode(searchParams))
+
+  return {
+    forceDesktopPanels: tabletPanelsMode(searchParams) === 'all',
+    initialEditorEditing,
+    initialEditorEditingMode,
+    layoutProbe: layoutProbeEnabled(searchParams),
+    sourceSelectionProbe: nativeSourceSelectionProbeEnabled(searchParams),
+    tableOfContentsProbe: nativeTableOfContentsProbeEnabled(searchParams),
+    wysiwygAutocompleteProbe: nativeWysiwygAutocompleteProbeEnabled(searchParams),
+    wysiwygFormatCommandProbe: nativeWysiwygFormatCommandProbeEnabled(searchParams),
+    wysiwygInputTransformProbe: nativeWysiwygInputTransformProbeEnabled(searchParams),
+    wysiwygMarkdownBlockProbe: nativeWysiwygMarkdownBlockProbeEnabled(searchParams),
+    wysiwygMutationProbe: nativeWysiwygMutationProbeEnabled(searchParams) || wysiwygPersistenceProbe,
+    wysiwygTableCommandMutationProbe: nativeWysiwygTableCommandMutationProbeEnabled(searchParams),
+    wysiwygWikilinkInsertProbe: nativeWysiwygWikilinkInsertProbeEnabled(searchParams),
+  }
 }
 
 function mobileRepositoryForProbes({
@@ -337,6 +344,7 @@ function snapshotWithWysiwygMutationProbeContent(snapshot: MobileWorkspaceSnapsh
 function mobileWorkspaceKey({
   initialEditorEditing,
   initialEditorEditingMode,
+  forceDesktopPanels,
   layoutProbe,
   qaRun,
   scenarioId,
@@ -356,6 +364,7 @@ function mobileWorkspaceKey({
 }: {
   initialEditorEditing: boolean
   initialEditorEditingMode: string
+  forceDesktopPanels: boolean
   layoutProbe: boolean
   qaRun: string | null
   scenarioId: string | null
@@ -381,6 +390,7 @@ function mobileWorkspaceKey({
     qaRun ?? 'interactive',
     flagKey(initialEditorEditing, 'raw-editor', 'read-editor'),
     initialEditorEditingMode,
+    flagKey(forceDesktopPanels, 'desktop-panels', 'responsive-panels'),
     flagKey(sourceSelectionProbe, 'source-selection-probe', 'no-source-selection-probe'),
     flagKey(tableOfContentsProbe, 'table-of-contents-probe', 'no-table-of-contents-probe'),
     flagKey(workspacePersistenceProbe, 'workspace-persistence-probe', 'no-workspace-persistence-probe'),

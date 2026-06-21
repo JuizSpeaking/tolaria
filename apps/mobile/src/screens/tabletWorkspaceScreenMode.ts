@@ -8,12 +8,14 @@ const tabletAllPanelsMinWidth = desktopPanelParity.sidebarWidth
   + tabletReadableEditorMinWidth
 
 export function tabletScreenModeForWindow({
+  forceDesktopPanels = false,
   height,
   nativeIpad,
   screenHeight,
   screenWidth,
   width,
 }: {
+  forceDesktopPanels?: boolean
   height: number
   nativeIpad: boolean
   screenHeight: number
@@ -21,7 +23,7 @@ export function tabletScreenModeForWindow({
   width: number
 }) {
   return {
-    compactTablet: !nativeIpad && width < 1080 && width < height && screenWidth < screenHeight,
-    defaultPropertiesVisible: nativeIpad ? width >= tabletAllPanelsMinWidth : true,
+    compactTablet: !forceDesktopPanels && !nativeIpad && width < 1080 && width < height && screenWidth < screenHeight,
+    defaultPropertiesVisible: forceDesktopPanels || (nativeIpad ? width >= tabletAllPanelsMinWidth : true),
   }
 }

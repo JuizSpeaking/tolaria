@@ -34,6 +34,20 @@ describe('tabletScreenModeForWindow', () => {
     })
   })
 
+  it('can force desktop panels for full native layout QA routes', () => {
+    expect(tabletScreenModeForWindow({
+      forceDesktopPanels: true,
+      height: allPanelsMinWidth,
+      nativeIpad: true,
+      screenHeight: allPanelsMinWidth,
+      screenWidth: allPanelsMinWidth - 1,
+      width: allPanelsMinWidth - 1,
+    })).toEqual({
+      compactTablet: false,
+      defaultPropertiesVisible: true,
+    })
+  })
+
   it('keeps existing non-iPad compact tablet behavior', () => {
     expect(tabletScreenModeForWindow({
       height: 1200,

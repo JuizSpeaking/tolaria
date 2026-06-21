@@ -26,7 +26,7 @@
     "mobile:qa:ios-phone-layout:list": "node apps/mobile/scripts/assert-ios-layout-metrics.mjs --phone-state list --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&phoneState=list' --wait 3000",
     "mobile:qa:ios-phone-layout:properties": "node apps/mobile/scripts/assert-ios-layout-metrics.mjs --phone-state properties --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&phoneState=properties' --wait 3000",
     "mobile:qa:ios-phone-layout:sidebar": "node apps/mobile/scripts/assert-ios-layout-metrics.mjs --phone-state sidebar --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&phoneState=sidebar' --wait 3000",
-    "mobile:qa:ios-wysiwyg-layout": "node apps/mobile/scripts/assert-ios-layout-metrics.mjs --require-wysiwyg --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg' --wait 5000",
+    "mobile:qa:ios-wysiwyg-layout": "node apps/mobile/scripts/assert-ios-layout-metrics.mjs --require-wysiwyg --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg&tabletPanels=all' --wait 5000",
     "mobile:qa:ios-wysiwyg-mutation": "node apps/mobile/scripts/assert-ios-layout-metrics.mjs --require-wysiwyg --require-wysiwyg-mutation --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg' --wait 6500",
     "mobile:qa:ios-wysiwyg-persistence": "node apps/mobile/scripts/assert-ios-layout-metrics.mjs --require-wysiwyg --require-wysiwyg-persistence --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg' --wait 7000",
     "mobile:qa:ios-wysiwyg-autocomplete": "node apps/mobile/scripts/assert-ios-wysiwyg-autocomplete.mjs --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg' --wait 5500",
