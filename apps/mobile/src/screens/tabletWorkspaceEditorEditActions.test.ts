@@ -86,11 +86,7 @@ describe('tablet workspace editor edit actions', () => {
       noteId: textFile.id,
       type: 'updateTextFileContent',
     })
-    expect(editorContentUpdateEdit(snapshot, 'missing.md', 'fallback\n')).toEqual({
-      content: 'fallback\n',
-      noteId: 'missing.md',
-      type: 'updateNoteContent',
-    })
+    expect(editorContentUpdateEdit(snapshot, 'missing.md', 'fallback\n')).toBeNull()
     expect(editorContentUpdateEdit(snapshot, ' ', 'fallback\n')).toBeNull()
   })
 })

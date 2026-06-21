@@ -51,6 +51,8 @@ export function editorContentUpdateEdit(
   if (!trimmedNoteId) return null
 
   const note = workspaceNotes(snapshot).find((candidate) => candidate.id === trimmedNoteId)
+  if (!note) return null
+
   return note && mobileNoteActionMode(note) === 'text-file'
     ? { content, noteId: trimmedNoteId, type: 'updateTextFileContent' }
     : { content, noteId: trimmedNoteId, type: 'updateNoteContent' }
