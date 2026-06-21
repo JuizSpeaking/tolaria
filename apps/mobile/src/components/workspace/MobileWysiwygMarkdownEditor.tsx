@@ -8,6 +8,7 @@ type MobileWysiwygMarkdownEditorProps = MobileMarkdownSourceEditorProps & {
   wysiwygFormatCommandProbe?: boolean
   wysiwygInputTransformProbe?: boolean
   wysiwygMarkdownBlockProbe?: boolean
+  wysiwygMathEditProbe?: boolean
   wysiwygTableCommandMutationProbe?: boolean
   wysiwygWikilinkInsertProbe?: boolean
   wysiwygMutationProbe?: boolean
@@ -21,6 +22,7 @@ export function MobileWysiwygMarkdownEditor({
   wysiwygFormatCommandProbe,
   wysiwygInputTransformProbe,
   wysiwygMarkdownBlockProbe,
+  wysiwygMathEditProbe,
   wysiwygTableCommandMutationProbe,
   wysiwygWikilinkInsertProbe,
   wysiwygMutationProbe,
@@ -33,6 +35,7 @@ export function MobileWysiwygMarkdownEditor({
   void wysiwygFormatCommandProbe
   void wysiwygInputTransformProbe
   void wysiwygMarkdownBlockProbe
+  void wysiwygMathEditProbe
   void wysiwygTableCommandMutationProbe
   void wysiwygWikilinkInsertProbe
   void wysiwygMutationProbe

@@ -39,6 +39,8 @@
     "mobile:qa:ios-phone-wysiwyg-input-transforms": "node apps/mobile/scripts/assert-ios-wysiwyg-input-transforms.mjs --phone --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg&phoneState=editor' --wait 5500",
     "mobile:qa:ios-wysiwyg-markdown-blocks": "node apps/mobile/scripts/assert-ios-wysiwyg-markdown-blocks.mjs --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg' --wait 6500",
     "mobile:qa:ios-phone-wysiwyg-markdown-blocks": "node apps/mobile/scripts/assert-ios-wysiwyg-markdown-blocks.mjs --phone --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg&phoneState=editor' --wait 6500",
+    "mobile:qa:ios-wysiwyg-math-edit": "node apps/mobile/scripts/assert-ios-wysiwyg-math-edit.mjs --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg' --wait 6000",
+    "mobile:qa:ios-phone-wysiwyg-math-edit": "node apps/mobile/scripts/assert-ios-wysiwyg-math-edit.mjs --phone --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg&phoneState=editor' --wait 6000",
     "mobile:qa:ios-wysiwyg-wikilink": "node apps/mobile/scripts/assert-ios-wysiwyg-wikilink-insert.mjs --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg' --wait 5500",
     "mobile:qa:ios-phone-wysiwyg-wikilink": "node apps/mobile/scripts/assert-ios-wysiwyg-wikilink-insert.mjs --phone --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg&phoneState=editor' --wait 5500",
     "mobile:qa:ios-wysiwyg-external-link": "node apps/mobile/scripts/assert-ios-wysiwyg-external-link.mjs --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=wysiwyg' --wait 6000",

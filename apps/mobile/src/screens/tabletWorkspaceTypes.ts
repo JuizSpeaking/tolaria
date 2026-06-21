@@ -262,6 +262,7 @@ export type TabletWorkspaceChromeProps = {
   wysiwygFormatCommandProbe?: boolean
   wysiwygInputTransformProbe?: boolean
   wysiwygMarkdownBlockProbe?: boolean
+  wysiwygMathEditProbe?: boolean
   wysiwygTableCommandMutationProbe?: boolean
   wysiwygWikilinkInsertProbe?: boolean
   typePropertyOptions: string[]

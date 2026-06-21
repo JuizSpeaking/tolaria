@@ -91,6 +91,7 @@ import {
   publishNativeWysiwygTableCommandMutationProof,
   useNativeWysiwygTableCommandMutationProbe,
 } from './MobileWysiwygTableCommandMutationProbe.native'
+import { useNativeWysiwygMathEditProbe } from './MobileWysiwygMathEditProbe.native'
 
 type MobileWysiwygMarkdownEditorProps = {
   blocks: MobileEditorBlock[]
@@ -108,6 +109,7 @@ type MobileWysiwygMarkdownEditorProps = {
   wysiwygFormatCommandProbe?: boolean
   wysiwygInputTransformProbe?: boolean
   wysiwygMarkdownBlockProbe?: boolean
+  wysiwygMathEditProbe?: boolean
   wysiwygTableCommandMutationProbe?: boolean
   wysiwygWikilinkInsertProbe?: boolean
   wysiwygMutationProbe?: boolean
@@ -249,6 +251,7 @@ export function MobileWysiwygMarkdownEditor({
   wysiwygFormatCommandProbe = false,
   wysiwygInputTransformProbe = false,
   wysiwygMarkdownBlockProbe = false,
+  wysiwygMathEditProbe = false,
   wysiwygTableCommandMutationProbe = false,
   wysiwygWikilinkInsertProbe = false,
   wysiwygMutationProbe = false,
@@ -282,6 +285,7 @@ export function MobileWysiwygMarkdownEditor({
     wysiwygFormatCommandProbe,
     wysiwygInputTransformProbe,
     wysiwygMarkdownBlockProbe,
+    wysiwygMathEditProbe,
     wysiwygTableCommandMutationProbe,
     wysiwygWikilinkInsertProbe,
     wysiwygMutationProbe,
@@ -599,6 +603,7 @@ function useNativeTentapEditorBridge({
   wysiwygFormatCommandProbe = false,
   wysiwygInputTransformProbe = false,
   wysiwygMarkdownBlockProbe = false,
+  wysiwygMathEditProbe = false,
   wysiwygTableCommandMutationProbe = false,
   wysiwygWikilinkInsertProbe = false,
   wysiwygMutationProbe = false,
@@ -675,6 +680,7 @@ function useNativeTentapEditorBridge({
   })
   useNativeWysiwygInputTransformProbe({ enabled: wysiwygInputTransformProbe, refs })
   useNativeWysiwygFormatCommandProbe({ enabled: wysiwygFormatCommandProbe, refs })
+  useNativeWysiwygMathEditProbe({ enabled: wysiwygMathEditProbe, refs, vaultRootUri })
   useNativeWysiwygDeferredInsertionProbe({
     enabled: wysiwygMarkdownBlockProbe,
     flushEditorDocument,

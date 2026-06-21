@@ -37,6 +37,9 @@ import {
   nativeWysiwygMarkdownBlockProbeEnabled,
 } from '../qa/nativeWysiwygMarkdownBlockProbe'
 import {
+  nativeWysiwygMathEditProbeEnabled,
+} from '../qa/nativeWysiwygMathEditProbe'
+import {
   nativeWysiwygTableCommandMutationProbeEnabled,
 } from '../qa/nativeWysiwygTableCommandMutationProbe'
 import {
@@ -162,6 +165,7 @@ export function MobileUiLab() {
         wysiwygFormatCommandProbe={qa.wysiwygFormatCommandProbe}
         wysiwygInputTransformProbe={qa.wysiwygInputTransformProbe}
         wysiwygMarkdownBlockProbe={qa.wysiwygMarkdownBlockProbe}
+        wysiwygMathEditProbe={qa.wysiwygMathEditProbe}
         wysiwygTableCommandMutationProbe={qa.wysiwygTableCommandMutationProbe}
         wysiwygWikilinkInsertProbe={qa.wysiwygWikilinkInsertProbe}
         wysiwygMutationProbe={qa.wysiwygMutationProbe}
@@ -188,6 +192,7 @@ export function MobileUiLab() {
       wysiwygFormatCommandProbe={qa.wysiwygFormatCommandProbe}
       wysiwygInputTransformProbe={qa.wysiwygInputTransformProbe}
       wysiwygMarkdownBlockProbe={qa.wysiwygMarkdownBlockProbe}
+      wysiwygMathEditProbe={qa.wysiwygMathEditProbe}
       wysiwygTableCommandMutationProbe={qa.wysiwygTableCommandMutationProbe}
       wysiwygWikilinkInsertProbe={qa.wysiwygWikilinkInsertProbe}
       wysiwygMutationProbe={qa.wysiwygMutationProbe}
@@ -244,6 +249,7 @@ function mobileUiQaFlags(
     wysiwygFormatCommandProbe: nativeWysiwygFormatCommandProbeEnabled(searchParams),
     wysiwygInputTransformProbe: nativeWysiwygInputTransformProbeEnabled(searchParams),
     wysiwygMarkdownBlockProbe: nativeWysiwygMarkdownBlockProbeEnabled(searchParams),
+    wysiwygMathEditProbe: nativeWysiwygMathEditProbeEnabled(searchParams),
     wysiwygMutationProbe: nativeWysiwygMutationProbeEnabled(searchParams) || wysiwygPersistenceProbe,
     wysiwygTableCommandMutationProbe: nativeWysiwygTableCommandMutationProbeEnabled(searchParams),
     wysiwygWikilinkInsertProbe: nativeWysiwygWikilinkInsertProbeEnabled(searchParams),
@@ -394,6 +400,7 @@ function mobileWorkspaceKey({
   wysiwygFormatCommandProbe,
   wysiwygInputTransformProbe,
   wysiwygMarkdownBlockProbe,
+  wysiwygMathEditProbe,
   wysiwygTableCommandMutationProbe,
   wysiwygWikilinkInsertProbe,
   wysiwygMutationProbe,
@@ -417,6 +424,7 @@ function mobileWorkspaceKey({
   wysiwygFormatCommandProbe: boolean
   wysiwygInputTransformProbe: boolean
   wysiwygMarkdownBlockProbe: boolean
+  wysiwygMathEditProbe: boolean
   wysiwygTableCommandMutationProbe: boolean
   wysiwygWikilinkInsertProbe: boolean
   wysiwygMutationProbe: boolean
@@ -441,6 +449,7 @@ function mobileWorkspaceKey({
     flagKey(wysiwygFormatCommandProbe, 'wysiwyg-format-command-probe', 'no-wysiwyg-format-command-probe'),
     flagKey(wysiwygInputTransformProbe, 'wysiwyg-input-transform-probe', 'no-wysiwyg-input-transform-probe'),
     flagKey(wysiwygMarkdownBlockProbe, 'wysiwyg-markdown-block-probe', 'no-wysiwyg-markdown-block-probe'),
+    flagKey(wysiwygMathEditProbe, 'wysiwyg-math-edit-probe', 'no-wysiwyg-math-edit-probe'),
     flagKey(wysiwygTableCommandMutationProbe, 'wysiwyg-table-command-mutation-probe', 'no-wysiwyg-table-command-mutation-probe'),
     flagKey(wysiwygWikilinkInsertProbe, 'wysiwyg-wikilink-insert-probe', 'no-wysiwyg-wikilink-insert-probe'),
     flagKey(wysiwygMutationProbe, 'wysiwyg-mutation-probe', 'no-wysiwyg-mutation-probe'),

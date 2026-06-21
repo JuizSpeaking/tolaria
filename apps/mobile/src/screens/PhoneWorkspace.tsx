@@ -60,6 +60,7 @@ export function PhoneWorkspace({
   wysiwygFormatCommandProbe = false,
   wysiwygInputTransformProbe = false,
   wysiwygMarkdownBlockProbe = false,
+  wysiwygMathEditProbe = false,
   wysiwygTableCommandMutationProbe = false,
   wysiwygWikilinkInsertProbe = false,
   wysiwygMutationProbe = false,
@@ -80,6 +81,7 @@ export function PhoneWorkspace({
   wysiwygFormatCommandProbe?: boolean
   wysiwygInputTransformProbe?: boolean
   wysiwygMarkdownBlockProbe?: boolean
+  wysiwygMathEditProbe?: boolean
   wysiwygTableCommandMutationProbe?: boolean
   wysiwygWikilinkInsertProbe?: boolean
   wysiwygMutationProbe?: boolean
@@ -181,6 +183,7 @@ export function PhoneWorkspace({
           wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
           wysiwygInputTransformProbe={wysiwygInputTransformProbe}
           wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
+          wysiwygMathEditProbe={wysiwygMathEditProbe}
           wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
           wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
           wysiwygMutationProbe={wysiwygMutationProbe}
@@ -424,6 +427,7 @@ function phoneWorkspaceDragPreview({
       wysiwygFormatCommandProbe={false}
       wysiwygInputTransformProbe={false}
       wysiwygMarkdownBlockProbe={false}
+      wysiwygMathEditProbe={false}
       wysiwygTableCommandMutationProbe={false}
       wysiwygWikilinkInsertProbe={false}
       wysiwygMutationProbe={false}
@@ -454,6 +458,7 @@ type PhoneWorkspaceStateViewProps = {
   wysiwygFormatCommandProbe: boolean
   wysiwygInputTransformProbe: boolean
   wysiwygMarkdownBlockProbe: boolean
+  wysiwygMathEditProbe: boolean
   wysiwygTableCommandMutationProbe: boolean
   wysiwygWikilinkInsertProbe: boolean
   wysiwygMutationProbe: boolean
@@ -623,6 +628,7 @@ function PhoneEditorScreen({
   wysiwygFormatCommandProbe,
   wysiwygInputTransformProbe,
   wysiwygMarkdownBlockProbe,
+  wysiwygMathEditProbe,
   wysiwygTableCommandMutationProbe,
   wysiwygWikilinkInsertProbe,
   wysiwygMutationProbe,
@@ -658,6 +664,7 @@ function PhoneEditorScreen({
         wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
         wysiwygInputTransformProbe={wysiwygInputTransformProbe}
         wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
+        wysiwygMathEditProbe={wysiwygMathEditProbe}
         wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
         wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
         wysiwygMutationProbe={wysiwygMutationProbe}
@@ -707,6 +714,7 @@ function PhoneEditorBody({
   wysiwygFormatCommandProbe,
   wysiwygInputTransformProbe,
   wysiwygMarkdownBlockProbe,
+  wysiwygMathEditProbe,
   wysiwygTableCommandMutationProbe,
   wysiwygWikilinkInsertProbe,
   wysiwygMutationProbe,
@@ -726,6 +734,7 @@ function PhoneEditorBody({
   wysiwygFormatCommandProbe: boolean
   wysiwygInputTransformProbe: boolean
   wysiwygMarkdownBlockProbe: boolean
+  wysiwygMathEditProbe: boolean
   wysiwygTableCommandMutationProbe: boolean
   wysiwygWikilinkInsertProbe: boolean
   wysiwygMutationProbe: boolean
@@ -754,6 +763,7 @@ function PhoneEditorBody({
       wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
       wysiwygInputTransformProbe={wysiwygInputTransformProbe}
       wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
+      wysiwygMathEditProbe={wysiwygMathEditProbe}
       wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
       wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
       wysiwygMutationProbe={wysiwygMutationProbe}

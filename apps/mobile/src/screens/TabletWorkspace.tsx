@@ -47,6 +47,7 @@ export function TabletWorkspace({
   wysiwygFormatCommandProbe = false,
   wysiwygInputTransformProbe = false,
   wysiwygMarkdownBlockProbe = false,
+  wysiwygMathEditProbe = false,
   wysiwygTableCommandMutationProbe = false,
   wysiwygWikilinkInsertProbe = false,
   wysiwygMutationProbe = false,
@@ -69,6 +70,7 @@ export function TabletWorkspace({
   wysiwygFormatCommandProbe?: boolean
   wysiwygInputTransformProbe?: boolean
   wysiwygMarkdownBlockProbe?: boolean
+  wysiwygMathEditProbe?: boolean
   wysiwygTableCommandMutationProbe?: boolean
   wysiwygWikilinkInsertProbe?: boolean
   wysiwygMutationProbe?: boolean
@@ -95,6 +97,7 @@ export function TabletWorkspace({
         wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
         wysiwygInputTransformProbe={wysiwygInputTransformProbe}
         wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
+        wysiwygMathEditProbe={wysiwygMathEditProbe}
         wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
         wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
         wysiwygMutationProbe={wysiwygMutationProbe}
@@ -320,6 +323,7 @@ type TabletEditorPanelHostProps = Pick<
   | 'wysiwygFormatCommandProbe'
   | 'wysiwygInputTransformProbe'
   | 'wysiwygMarkdownBlockProbe'
+  | 'wysiwygMathEditProbe'
   | 'wysiwygTableCommandMutationProbe'
   | 'wysiwygWikilinkInsertProbe'
   | 'wysiwygMutationProbe'
@@ -354,6 +358,7 @@ function TabletEditorPanelHost({
   wysiwygFormatCommandProbe,
   wysiwygInputTransformProbe,
   wysiwygMarkdownBlockProbe,
+  wysiwygMathEditProbe,
   wysiwygTableCommandMutationProbe,
   wysiwygWikilinkInsertProbe,
   wysiwygMutationProbe,
@@ -383,6 +388,7 @@ function TabletEditorPanelHost({
       wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
       wysiwygInputTransformProbe={wysiwygInputTransformProbe}
       wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
+      wysiwygMathEditProbe={wysiwygMathEditProbe}
       wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
       wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
       wysiwygMutationProbe={wysiwygMutationProbe}

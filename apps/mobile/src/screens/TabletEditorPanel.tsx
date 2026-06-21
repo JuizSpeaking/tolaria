@@ -74,6 +74,7 @@ type TabletEditorPanelProps = {
   wysiwygFormatCommandProbe?: boolean
   wysiwygInputTransformProbe?: boolean
   wysiwygMarkdownBlockProbe?: boolean
+  wysiwygMathEditProbe?: boolean
   wysiwygTableCommandMutationProbe?: boolean
   wysiwygWikilinkInsertProbe?: boolean
   wysiwygMutationProbe?: boolean
@@ -123,6 +124,7 @@ type EditorContentProps = {
   wysiwygFormatCommandProbe?: boolean
   wysiwygInputTransformProbe?: boolean
   wysiwygMarkdownBlockProbe?: boolean
+  wysiwygMathEditProbe?: boolean
   wysiwygTableCommandMutationProbe?: boolean
   wysiwygWikilinkInsertProbe?: boolean
   wysiwygMutationProbe?: boolean
@@ -161,6 +163,7 @@ export function TabletEditorPanel(props: TabletEditorPanelProps) {
     wysiwygFormatCommandProbe = false,
     wysiwygInputTransformProbe = false,
     wysiwygMarkdownBlockProbe = false,
+    wysiwygMathEditProbe = false,
     wysiwygTableCommandMutationProbe = false,
     wysiwygWikilinkInsertProbe = false,
     wysiwygMutationProbe = false,
@@ -224,6 +227,7 @@ export function TabletEditorPanel(props: TabletEditorPanelProps) {
     wysiwygFormatCommandProbe,
     wysiwygInputTransformProbe,
     wysiwygMarkdownBlockProbe,
+    wysiwygMathEditProbe,
     wysiwygTableCommandMutationProbe,
     wysiwygMutationProbe,
     wysiwygWikilinkInsertProbe,
@@ -479,6 +483,7 @@ function EditorContent({
   wysiwygFormatCommandProbe = false,
   wysiwygInputTransformProbe = false,
   wysiwygMarkdownBlockProbe = false,
+  wysiwygMathEditProbe = false,
   wysiwygTableCommandMutationProbe = false,
   wysiwygWikilinkInsertProbe = false,
   wysiwygMutationProbe = false,
@@ -521,6 +526,7 @@ function EditorContent({
         wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
         wysiwygInputTransformProbe={wysiwygInputTransformProbe}
         wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
+        wysiwygMathEditProbe={wysiwygMathEditProbe}
         wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
         wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
         wysiwygMutationProbe={wysiwygMutationProbe}
