@@ -16,6 +16,8 @@ export type NativeSourceSelectionProof = {
   personReplacementPreserved: boolean
   replacementCursor: number
   replacementPreserved: boolean
+  slashAutocompleteCursor: number
+  slashAutocompletePreserved: boolean
   wikilinkReplacementPreserved: boolean
 }
 
@@ -53,6 +55,7 @@ export function assertNativeSourceSelectionProofs(
     proofFailure(latest.personReplacementPreserved, 'editor.source.selection.personReplacement', 'Person mention autocomplete inserts the desktop-compatible wikilink target'),
     proofFailure(latest.emojiAutocompletePreserved, 'editor.source.selection.emojiAutocomplete', 'Emoji shortcode autocomplete remains active after native source edits'),
     proofFailure(latest.emojiReplacementPreserved, 'editor.source.selection.emojiReplacement', 'Emoji shortcode autocomplete inserts the selected emoji'),
+    proofFailure(latest.slashAutocompletePreserved, 'editor.source.selection.slashAutocomplete', 'Slash-command autocomplete remains active after native source edits'),
   ].filter((failure): failure is NativeSourceSelectionAssertionFailure => failure !== null)
 }
 

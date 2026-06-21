@@ -8,6 +8,7 @@ import { mobileColors, mobileRadius, mobileSpace, mobileType } from '../../ui/to
 import {
   activeMobileEmojiShortcodeQuery,
   activeMobilePersonMentionQuery,
+  activeMobileSlashCommandQuery,
   activeMobileWikilinkQuery,
   mobilePersonMentionAutocompleteSuggestions,
   mobileWikilinkAutocompleteSuggestions,
@@ -48,8 +49,14 @@ import {
 import type { MobileEditorBlock, MobileNote } from '../../workspace/mobileWorkspaceModel'
 import { nativeSourceSelectionProof } from '../../qa/nativeSourceSelectionProbe'
 import { nativeSourceSelectionLogLine } from '../../qa/nativeSourceSelectionLog'
+import { mobileText } from '../../i18n/mobileText'
 import { MobileMarkdownFormattingToolbar } from './MobileMarkdownFormattingToolbar'
-import { mobileWysiwygEmojiPickerSuggestions } from './MobileWysiwygWikilinkPickerModel'
+import type { NativeWysiwygSlashCommandAction } from './MobileWysiwygWikilinkBridgeModel'
+import {
+  mobileWysiwygEmojiPickerSuggestions,
+  mobileWysiwygSlashCommandPickerSuggestions,
+  type MobileWysiwygSlashCommandSuggestion,
+} from './MobileWysiwygWikilinkPickerModel'
 
 export type MobileMarkdownSourceEditorProps = {
   blocks: MobileEditorBlock[]
@@ -65,15 +72,39 @@ export type MobileMarkdownSourceEditorProps = {
   sourceSelectionProbe?: boolean
 }
 
-type InlineAutocompleteKind = 'emoji' | 'personMention' | 'wikilink'
+type InlineAutocompleteKind = 'emoji' | 'personMention' | 'slashCommand' | 'wikilink'
 type MarkdownInlineAutocompleteSuggestion = {
   chipLabel: string
   emoji?: string
   id: string
   note?: MobileNote
+  slashAction?: NativeWysiwygSlashCommandAction
   title: string
 }
+type MarkdownInlineAutocompleteReplacement = {
+  selection: MobileMarkdownTextSelection
+  text: string
+}
 type TimerHandle = ReturnType<typeof setTimeout>
+
+const sourceSlashCommandLabelKeys = {
+  bulletList: 'editor.formatting.bulletList',
+  codeBlock: 'editor.formatting.codeBlock',
+  divider: 'editor.formatting.divider',
+  heading1: 'editor.formatting.heading1',
+  heading2: 'editor.formatting.heading2',
+  heading3: 'editor.formatting.heading3',
+  heading4: 'editor.formatting.heading4',
+  heading5: 'editor.formatting.heading5',
+  heading6: 'editor.formatting.heading6',
+  mathBlock: 'editor.formatting.mathBlock',
+  mermaid: 'editor.formatting.mermaid',
+  orderedList: 'editor.formatting.orderedList',
+  quote: 'editor.formatting.quote',
+  table: 'editor.formatting.table',
+  taskList: 'editor.formatting.taskList',
+  whiteboard: 'editor.formatting.whiteboard',
+} as const satisfies Record<NativeWysiwygSlashCommandAction, Parameters<typeof mobileText>[0]>
 
 export function MobileMarkdownSourceEditor(props: MobileMarkdownSourceEditorProps) {
   const {
@@ -414,7 +445,7 @@ function useMarkdownInlineAutocomplete({
     })
     if (!replacement) return
 
-    const nextSelection = { end: replacement.cursor, start: replacement.cursor }
+    const nextSelection = replacement.selection
     onUpdateContent(noteId, replacement.text)
     setSelection(nextSelection)
     setControlledSelection(nextSelection)
@@ -454,9 +485,17 @@ function markdownInlineAutocompleteState(
   }
 
   const emojiMatch = activeMobileEmojiShortcodeQuery(content, cursor)
+  if (emojiMatch) {
+    return {
+      kind: 'emoji' as const,
+      suggestions: emojiAutocompleteSuggestions(emojiMatch.query),
+    }
+  }
+
+  const slashCommandMatch = activeMobileSlashCommandQuery(content, cursor)
   return {
-    kind: emojiMatch ? 'emoji' as const : null,
-    suggestions: emojiMatch ? emojiAutocompleteSuggestions(emojiMatch.query) : [],
+    kind: slashCommandMatch ? 'slashCommand' as const : null,
+    suggestions: slashCommandMatch ? slashCommandAutocompleteSuggestions(slashCommandMatch.query) : [],
   }
 }
 
@@ -472,24 +511,40 @@ function markdownInlineAutocompleteReplacement({
   kind: InlineAutocompleteKind | null
   sourceNote: MobileNote
   suggestion: MarkdownInlineAutocompleteSuggestion
-}) {
+}): MarkdownInlineAutocompleteReplacement | null {
   if (kind === null) return null
   if (kind === 'emoji') {
     return suggestion.emoji
-      ? replaceActiveMobileEmojiShortcodeQuery(content, cursor, suggestion.emoji)
+      ? replacementFromCursor(replaceActiveMobileEmojiShortcodeQuery(content, cursor, suggestion.emoji))
+      : null
+  }
+  if (kind === 'slashCommand') {
+    return suggestion.slashAction
+      ? replaceActiveMobileSlashCommandQueryWithFormat(content, cursor, suggestion.slashAction)
       : null
   }
   if (!suggestion.note) return null
 
   const target = mobileWikilinkAutocompleteTarget(suggestion.note, sourceNote)
   return kind === 'personMention'
-    ? replaceActiveMobilePersonMentionQuery(content, cursor, target)
-    : replaceActiveMobileWikilinkQuery(content, cursor, target)
+    ? replacementFromCursor(replaceActiveMobilePersonMentionQuery(content, cursor, target))
+    : replacementFromCursor(replaceActiveMobileWikilinkQuery(content, cursor, target))
+}
+
+function replacementFromCursor(
+  result: { cursor: number; text: string } | null,
+): MarkdownInlineAutocompleteReplacement | null {
+  if (!result) return null
+  return {
+    selection: { end: result.cursor, start: result.cursor },
+    text: result.text,
+  }
 }
 
 function hasActiveInlineAutocomplete(text: string, cursor: number): boolean {
   if (activeMobileWikilinkQuery(text, cursor)) return true
   if (activeMobilePersonMentionQuery(text, cursor)) return true
+  if (activeMobileSlashCommandQuery(text, cursor)) return true
   return activeMobileEmojiShortcodeQuery(text, cursor) !== null
 }
 
@@ -499,11 +554,13 @@ function textStartSelection(): MobileMarkdownTextSelection {
 
 function inlineAutocompleteTestId(kind: InlineAutocompleteKind | null): string {
   if (kind === 'emoji') return 'editor-emoji-suggestions'
+  if (kind === 'slashCommand') return 'editor-slash-command-suggestions'
   return kind === 'personMention' ? 'editor-person-mention-suggestions' : 'editor-wikilink-suggestions'
 }
 
 function inlineAutocompleteRowTestIdPrefix(kind: InlineAutocompleteKind | null): string {
   if (kind === 'emoji') return 'editor-emoji-suggestion'
+  if (kind === 'slashCommand') return 'editor-slash-command-suggestion'
   return kind === 'personMention' ? 'editor-person-mention-suggestion' : 'editor-wikilink-suggestion'
 }
 
@@ -523,6 +580,51 @@ function emojiAutocompleteSuggestions(query: string): MarkdownInlineAutocomplete
     id: entry.name,
     title: entry.name,
   }))
+}
+
+function slashCommandAutocompleteSuggestions(query: string): MarkdownInlineAutocompleteSuggestion[] {
+  return mobileWysiwygSlashCommandPickerSuggestions(query).map((suggestion) => ({
+    chipLabel: slashCommandChipLabel(suggestion),
+    id: suggestion.action,
+    slashAction: suggestion.action,
+    title: mobileText(sourceSlashCommandLabelKeys[suggestion.action]),
+  }))
+}
+
+function replaceActiveMobileSlashCommandQueryWithFormat(
+  content: string,
+  cursor: number,
+  action: NativeWysiwygSlashCommandAction,
+): MarkdownInlineAutocompleteReplacement | null {
+  const match = activeMobileSlashCommandQuery(content, cursor)
+  if (!match) return null
+
+  const result = applyMobileMarkdownFormat(
+    sourceWithoutActiveSlashCommand({ content, match }),
+    { end: match.start, start: match.start },
+    action,
+  )
+  return {
+    selection: result.selection,
+    text: result.text,
+  }
+}
+
+function sourceWithoutActiveSlashCommand({
+  content,
+  match,
+}: {
+  content: string
+  match: { cursor: number; start: number }
+}): string {
+  const before = content.slice(0, match.start)
+  const after = content.slice(match.cursor)
+  if (before.endsWith(' ') && after.startsWith(' ')) return `${before}${after.slice(1)}`
+  return `${before}${after}`
+}
+
+function slashCommandChipLabel(suggestion: MobileWysiwygSlashCommandSuggestion): string {
+  return `/${suggestion.keywords[0] ?? suggestion.action}`
 }
 
 function testIdSegment(value: string) {

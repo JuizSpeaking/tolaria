@@ -1,6 +1,7 @@
 import {
   activeMobileEmojiShortcodeQuery,
   activeMobilePersonMentionQuery,
+  activeMobileSlashCommandQuery,
   activeMobileWikilinkQuery,
   replaceActiveMobileEmojiShortcodeQuery,
   replaceActiveMobilePersonMentionQuery,
@@ -34,6 +35,7 @@ export function nativeSourceSelectionProof(): NativeSourceSelectionProof {
   )
   const personAutocompleteCursor = selectionAfter('Assign @Ma today', 'Assign @Mar today', 10)
   const emojiAutocompleteCursor = selectionAfter('Mood :roc today', 'Mood :rock today', 9)
+  const slashAutocompleteCursor = selectionAfter('Insert /ta today', 'Insert /tab today', 10)
   const personReplacement = replaceActiveMobilePersonMentionQuery(
     'Assign @Mar today',
     personAutocompleteCursor,
@@ -60,6 +62,8 @@ export function nativeSourceSelectionProof(): NativeSourceSelectionProof {
     personReplacementPreserved: personReplacement?.text === 'Assign [[People/Maria Rossi]] today',
     replacementCursor,
     replacementPreserved: replacementCursor === 25,
+    slashAutocompleteCursor,
+    slashAutocompletePreserved: activeMobileSlashCommandQuery('Insert /tab today', slashAutocompleteCursor)?.query === 'tab',
     wikilinkReplacementPreserved: wikilinkReplacement?.text === 'Links [[projects/alpha]] today',
   }
 }

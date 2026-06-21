@@ -122,6 +122,16 @@ async function applyPhoneFormattingCommands(page: Page) {
   await page.getByTestId('editor-format-table').click()
   await expect(input).toHaveValue(/\| Column \| Value \|/u)
 
+  await input.fill('# Phone Editor Commands\n\n/table')
+  await expect(page.getByTestId('editor-slash-command-suggestions')).toBeVisible()
+  await page.getByTestId('editor-slash-command-suggestion-table').click()
+  await expect(input).toHaveValue('# Phone Editor Commands\n\n| Column | Value |\n| --- | --- |\n| Item | Detail |')
+
+  await input.fill('# Phone Editor Commands\n\n/h2')
+  await expect(page.getByTestId('editor-slash-command-suggestions')).toBeVisible()
+  await page.getByTestId('editor-slash-command-suggestion-heading2').click()
+  await expect(input).toHaveValue('# Phone Editor Commands\n\n## ')
+
   await input.fill('# Phone Editor Commands\n\n')
   await page.getByTestId('editor-format-math-block').scrollIntoViewIfNeeded()
   await page.getByTestId('editor-format-math-block').click()
