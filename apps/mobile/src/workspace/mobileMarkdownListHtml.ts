@@ -5,6 +5,7 @@ export type MobileMarkdownListItem = {
   depth: number
   kind?: MobileMarkdownListKind
   markerNumber?: number
+  paragraphs?: string[]
   text: string
 }
 
@@ -53,10 +54,7 @@ function renderNextListChunk(options: ListRenderOptions): RenderListResult | nul
   if (item.kind !== options.kind) return null
 
   const child = renderChildList({ ...options, index: options.index + 1 })
-  return {
-    html: listItemHtml(options.kind, item, options.inlineHtml(item.text), child.html),
-    nextIndex: child.nextIndex,
-  }
+  return { html: listItemHtml(options.kind, item, options.inlineHtml, child.html), nextIndex: child.nextIndex }
 }
 
 function renderChildList(options: ListRenderOptions): RenderListResult {
@@ -84,17 +82,24 @@ function listCloseTag(kind: MobileMarkdownListKind): string {
 function listItemHtml(
   kind: MobileMarkdownListKind,
   item: MobileMarkdownListItem,
-  content: string,
+  inlineHtml: InlineHtmlRenderer,
   children: string,
 ): string {
-  if (kind !== 'task') return `<li><p>${content}</p>${children}</li>`
+  const paragraphs = listItemParagraphsHtml(item, inlineHtml)
+  if (kind !== 'task') return `<li>${paragraphs}${children}</li>`
 
   const checkedAttr = item.checked ? 'true' : 'false'
   const inputChecked = item.checked ? ' checked="checked"' : ''
   return [
     `<li data-type="taskItem" data-checked="${checkedAttr}">`,
     `<label><input type="checkbox"${inputChecked}><span></span></label>`,
-    `<div><p>${content}</p>${children}</div>`,
+    `<div>${paragraphs}${children}</div>`,
     '</li>',
   ].join('')
+}
+
+function listItemParagraphsHtml(item: MobileMarkdownListItem, inlineHtml: InlineHtmlRenderer): string {
+  return [item.text, ...(item.paragraphs ?? [])]
+    .map((paragraph) => `<p>${inlineHtml(paragraph)}</p>`)
+    .join('')
 }

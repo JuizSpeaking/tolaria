@@ -46,6 +46,7 @@ type ReadHtmlBlockResult = { html: HtmlSnippet; nextIndex: number }
 type InlineMarkdownSpan = { endIndex: number; html: HtmlSnippet }
 type InlineMarkdownTokenReader = (markdown: MarkdownLine, index: number) => InlineMarkdownSpan | null
 type ReadListSourceLinesResult = {
+  baseIndent: number
   hasContinuation: boolean
   hasHardBreak: boolean
   lines: MarkdownLines
@@ -391,7 +392,7 @@ function readIndentedTextSourceBlock(lines: MarkdownLines, startIndex: number): 
 
 function readListContinuationSourceBlock(lines: MarkdownLines, startIndex: number): ReadHtmlBlockResult | null {
   const source = readListSourceLines(lines, startIndex)
-  if (!source?.hasContinuation) return null
+  if (!source?.hasContinuation || !hasUnsupportedListContinuationSource(source)) return null
 
   return sourceLinesParagraphBlock(source.lines, source.nextIndex)
 }
@@ -401,6 +402,12 @@ function readListHardBreakSourceBlock(lines: MarkdownLines, startIndex: number):
   if (!source?.hasHardBreak) return null
 
   return sourceLinesParagraphBlock(source.lines, source.nextIndex)
+}
+
+function hasUnsupportedListContinuationSource(source: ReadListSourceLinesResult): boolean {
+  return source.lines.some((line) => (
+    isListContinuationSourceLine(line, source.baseIndent) && hasInlineMarkdownImageSource(line)
+  ))
 }
 
 function readListSourceLines(lines: MarkdownLines, startIndex: number): ReadListSourceLinesResult | null {
@@ -424,7 +431,7 @@ function readListSourceLines(lines: MarkdownLines, startIndex: number): ReadList
     index += 1
   }
 
-  return { hasContinuation, hasHardBreak, lines: sourceLines, nextIndex: index }
+  return { baseIndent, hasContinuation, hasHardBreak, lines: sourceLines, nextIndex: index }
 }
 
 function readListSourceLine(
@@ -492,9 +499,15 @@ function readList(lines: MarkdownLines, startIndex: number): ReadHtmlBlockResult
   const depth = first.depth
 
   while (index < lines.length) {
-    const current = listLine(lines[index] ?? '')
-    if (!current || current.depth < depth || (current.depth === depth && current.kind !== kind)) break
-    items.push(current)
+    const line = lines[index] ?? ''
+    const current = listLine(line)
+    if (current) {
+      if (current.depth < depth || (current.depth === depth && current.kind !== kind)) break
+      items.push(current)
+      index += 1
+      continue
+    }
+    if (!appendListContinuation(items, line)) break
     index += 1
   }
 
@@ -502,6 +515,17 @@ function readList(lines: MarkdownLines, startIndex: number): ReadHtmlBlockResult
     html: mobileMarkdownListHtml(kind, items, inlineMarkdownToHtml),
     nextIndex: index,
   }
+}
+
+function appendListContinuation(items: MobileMarkdownListItem[], line: MarkdownLine): boolean {
+  const item = items[items.length - 1]
+  if (!item || !isListContinuationSourceLine(line, listIndentLength(item))) return false
+  item.paragraphs = [...(item.paragraphs ?? []), line.trim()]
+  return true
+}
+
+function listIndentLength(item: MobileMarkdownListItem): number {
+  return item.depth * 2
 }
 
 function readParagraph(lines: MarkdownLines, startIndex: number): ReadParagraphResult {

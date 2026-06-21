@@ -6,11 +6,12 @@ import {
 } from './mobileDocumentContent'
 
 describe('mobile document list continuations', () => {
-  it('keeps list items with continuation lines editable as source', () => {
+  it('hydrates list items with continuation lines as structured list item paragraphs', () => {
     const html = mobileMarkdownBodyToTentapHtml('- Provide instructions\n  Teach your AI agent the workflow context\n- Run workflow\n')
 
-    expect(html).toBe('<p>- Provide instructions<br>  Teach your AI agent the workflow context<br>- Run workflow</p>')
-    expect(html).not.toContain('<ul>')
+    expect(html).toBe(
+      '<ul><li><p>Provide instructions</p><p>Teach your AI agent the workflow context</p></li><li><p>Run workflow</p></li></ul>',
+    )
   })
 
   it('keeps list items with indented images editable as source', () => {
@@ -20,11 +21,26 @@ describe('mobile document list continuations', () => {
     expect(html).not.toContain('<img')
   })
 
-  it('keeps list continuation source lines after native saves', () => {
+  it('serializes structured list item paragraphs as desktop markdown continuations after native saves', () => {
     const document: TiptapJsonNode = {
       type: 'doc',
       content: [
-        paragraphNode('- Provide instructions', '  Teach your AI agent the workflow context', '- Run workflow'),
+        {
+          type: 'bulletList',
+          content: [
+            {
+              type: 'listItem',
+              content: [
+                paragraphNode('Provide instructions'),
+                paragraphNode('Teach your AI agent the workflow context'),
+              ],
+            },
+            {
+              type: 'listItem',
+              content: [paragraphNode('Run workflow')],
+            },
+          ],
+        },
       ],
     }
 
