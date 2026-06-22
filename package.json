@@ -59,6 +59,7 @@
     "mobile:qa:ios-editing": "node apps/mobile/scripts/assert-ios-editing-qa.mjs",
     "mobile:qa:ios-editing:tablet": "node apps/mobile/scripts/assert-ios-editing-qa.mjs --tablet",
     "mobile:qa:ios-editing:phone": "node apps/mobile/scripts/assert-ios-editing-qa.mjs --phone",
+    "mobile:dev-vault": "node apps/mobile/scripts/serve-local-vault.mjs",
     "mobile:qa:screenshots": "pnpm mobile:export:web && playwright test --config apps/mobile/playwright.config.ts",
     "mobile:start": "pnpm --filter @tolaria/mobile start",
     "mobile:ios": "pnpm --filter @tolaria/mobile ios",

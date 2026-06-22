@@ -655,9 +655,11 @@ function testIdSegment(value: string) {
 
 const editorStyles = StyleSheet.create({
   container: {
+    flex: 1,
     gap: mobileSpace.md,
   },
   input: {
+    flex: 1,
     minHeight: 420,
     borderColor: mobileColors.borderStrong,
     borderRadius: mobileRadius.md,

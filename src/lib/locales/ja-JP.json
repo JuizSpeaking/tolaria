@@ -797,6 +797,8 @@
   "status.vault.notFound": "ボールトが見つかりません：{path}",
   "status.vault.reloading": "Vault を再読み込み中...",
   "status.vault.reloadingTooltip": "ディスクから Vault を再読み込み中",
+  "status.vault.devBridgeMissingUrl": "ローカルのVaultブリッジを読み込むには、devVaultUrlまたはEXPO_PUBLIC_TOLARIA_DEV_VAULT_URLを設定してください。",
+  "status.vault.devBridgeFailed": "ローカルVaultブリッジに失敗しました",
   "status.vault.remove": "{label}をリストから削除",
   "status.vault.removeConfirmTitle": "ボールトを削除しますか？",
   "status.vault.removeConfirmMessage": "これにより、{label}がTolariaのボルトリストから削除されます。ディスク上のファイルは削除されません。",

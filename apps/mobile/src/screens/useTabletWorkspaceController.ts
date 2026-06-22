@@ -264,7 +264,10 @@ export function useTabletWorkspaceController({
     saveSelectedEdit,
     updateReadOnlyForm,
   })
-  const actionSheetActions = actionSheetWorkspaceActions(workspaceActionsContext)
+  const actionSheetActions = actionSheetWorkspaceActions({
+    ...workspaceActionsContext,
+    onCreateNoteDirect: createActions.onCreateNote,
+  })
   useHydrateSelectedNote({ applyEdit, repository, repositoryRequest, selectedNote })
 
   return {
@@ -396,6 +399,7 @@ function mobileHydrationType(note: MobileNote): 'hydrateNoteContent' | 'hydrateT
 function actionSheetWorkspaceActions({
   closeAction,
   navigation,
+  onCreateNoteDirect,
   selectedNote,
   setOpenAction,
   updateReadOnlyForm,
@@ -403,6 +407,7 @@ function actionSheetWorkspaceActions({
 }: {
   closeAction: () => void
   navigation: TabletWorkspaceNavigation
+  onCreateNoteDirect: (titleOverride?: string) => void
   selectedNote: MobileNote | null
   setOpenAction: SetOpenAction
   updateReadOnlyForm: ReadOnlyFormUpdater
@@ -412,7 +417,7 @@ function actionSheetWorkspaceActions({
 
   return {
     onCloseAction: closeAction,
-    ...coreWorkspaceActionOpeners({ navigation, openAction, setOpenAction, updateReadOnlyForm, workspaceSnapshot }),
+    ...coreWorkspaceActionOpeners({ navigation, onCreateNoteDirect, openAction, setOpenAction, updateReadOnlyForm, workspaceSnapshot }),
     ...noteWorkspaceActionOpeners({ openAction, selectedNote, setOpenAction }),
     ...sidebarWorkspaceActionOpeners({ setOpenAction, updateReadOnlyForm, workspaceSnapshot }),
   }
@@ -420,12 +425,14 @@ function actionSheetWorkspaceActions({
 
 function coreWorkspaceActionOpeners({
   navigation,
+  onCreateNoteDirect,
   openAction,
   setOpenAction,
   updateReadOnlyForm,
   workspaceSnapshot,
 }: {
   navigation: TabletWorkspaceNavigation
+  onCreateNoteDirect: (titleOverride?: string) => void
   openAction: ReturnType<typeof workspaceActionOpener>
   setOpenAction: SetOpenAction
   updateReadOnlyForm: ReadOnlyFormUpdater
@@ -440,7 +447,7 @@ function coreWorkspaceActionOpeners({
       setOpenAction,
       updateReadOnlyForm,
     }),
-    onOpenCreateNote: () => setOpenAction('createNote'),
+    onOpenCreateNote: () => onCreateNoteDirect(''),
     onOpenCreateType: () => openAction('createType', [{ key: 'typeName', value: '' }]),
     onOpenCreateTypeWithName: (typeName: string) => openAction('createType', [{ key: 'typeName', value: typeName }]),
     onOpenCreateView: () => openCreateView({ setOpenAction, updateReadOnlyForm }),

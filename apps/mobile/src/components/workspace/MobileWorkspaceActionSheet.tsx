@@ -9,7 +9,7 @@ import { MobileListRow } from '../../ui/MobileListRow'
 import { MobilePanel, MobileToolbar, MobileToolbarSpacer, MobileToolbarTitle } from '../../ui/MobilePanel'
 import { MobileTextInput } from '../../ui/MobileTextInput'
 import { desktopPanelParity, desktopToolbarActionParity } from '../../ui/desktopParity'
-import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
+import { mobileColors, mobileRadius, mobileSpace, mobileType } from '../../ui/tokens'
 import type { MobileEditorBlock, MobileNote, MobileSidebarIcon, MobileTone, MobileTypeDefinitions, MobileViewFilterGroup } from '../../workspace/mobileWorkspaceModel'
 import type {
   MobileTypeSchemaProperty,
@@ -285,7 +285,7 @@ export function MobileWorkspaceActionSheet(props: MobileWorkspaceActionSheetProp
   return (
     <View style={styles.overlay} testID="workspace-action-sheet">
       <Pressable accessibilityLabel={mobileText('common.cancel')} style={styles.backdrop} testID="workspace-action-sheet-backdrop" onPress={props.onClose} />
-      <MobilePanel style={styles.sheet} testID={`workspace-action-sheet-${props.action}`}>
+      <MobilePanel style={sheetStyles.sheet} testID={`workspace-action-sheet-${props.action}`}>
         <MobileToolbar testID="workspace-action-sheet-toolbar">
           <MobileToolbarTitle title={actionTitle(props.action, props.propertyName)} />
           <MobileToolbarSpacer />
@@ -1186,6 +1186,7 @@ const styles = StyleSheet.create({
     gap: mobileSpace.xs,
   },
   content: {
+    alignSelf: 'stretch',
     gap: mobileSpace.md,
     padding: mobileSpace.md,
   },
@@ -1279,11 +1280,16 @@ const styles = StyleSheet.create({
     fontSize: mobileType.caption,
     fontWeight: '500',
   },
+})
+
+const sheetStyles = StyleSheet.create({
   sheet: {
     maxHeight: 620,
     maxWidth: 520,
     width: '92%',
+    backgroundColor: mobileColors.card,
     borderColor: mobileColors.borderStrong,
+    borderRadius: mobileRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     shadowColor: '#000000',

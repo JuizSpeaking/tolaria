@@ -797,6 +797,8 @@
   "status.vault.notFound": "Хранилище не найдено: {path}",
   "status.vault.reloading": "Перезагрузка хранилища...",
   "status.vault.reloadingTooltip": "Перезагрузка хранилища с диска",
+  "status.vault.devBridgeMissingUrl": "Установите devVaultUrl или EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL, чтобы загрузить локальный мост хранилища.",
+  "status.vault.devBridgeFailed": "Ошибка локального моста хранилища",
   "status.vault.remove": "Удалить {label} из списка",
   "status.vault.removeConfirmTitle": "Удалить хранилище?",
   "status.vault.removeConfirmMessage": "Это приведет к удалению {label} из списка хранилищ Tolaria. Файлы на диске не удаляются.",

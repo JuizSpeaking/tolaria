@@ -7,7 +7,7 @@ import { createFileSystemWorkspaceRepository } from './fileSystemWorkspaceReposi
 
 export type ReadOnlyWorkspaceRequest = {
   scenarioId?: string | null
-  source?: 'fixture' | 'host' | 'native'
+  source?: 'dev' | 'fixture' | 'host' | 'native'
   vaultAlias?: string | null
   vaultLabel?: string | null
   vaultRootUri?: string | null

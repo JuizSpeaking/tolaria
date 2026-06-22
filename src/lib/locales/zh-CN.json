@@ -797,6 +797,8 @@
   "status.vault.notFound": "未找到仓库：{path}",
   "status.vault.reloading": "正在重新加载 Vault...",
   "status.vault.reloadingTooltip": "正在从磁盘重新加载 Vault",
+  "status.vault.devBridgeMissingUrl": "设置 devVaultUrl 或 EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL 以加载本地 Vault 网桥。",
+  "status.vault.devBridgeFailed": "本地 Vault 桥接失败",
   "status.vault.remove": "从列表移除 {label}",
   "status.vault.removeConfirmTitle": "要删除保管库吗？",
   "status.vault.removeConfirmMessage": "此操作会将{label}从 Tolaria 的 Vault 列表中删除。磁盘上的文件不会被删除。",

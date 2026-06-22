@@ -797,6 +797,8 @@
   "status.vault.notFound": "Brankas tidak ditemukan: {path}",
   "status.vault.reloading": "Memuat ulang brankas...",
   "status.vault.reloadingTooltip": "Memuat ulang brankas dari disk",
+  "status.vault.devBridgeMissingUrl": "Atur devVaultUrl atau EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL untuk memuat jembatan vault lokal.",
+  "status.vault.devBridgeFailed": "Jembatan vault lokal gagal",
   "status.vault.remove": "Hapus {label} dari daftar",
   "status.vault.removeConfirmTitle": "Hapus brankas?",
   "status.vault.removeConfirmMessage": "Ini menghapus {label} dari daftar brankas Tolaria. File di disk tidak dihapus.",

@@ -214,6 +214,7 @@ const styles = StyleSheet.create({
     maxHeight: 520,
     maxWidth: 540,
     width: '92%',
+    backgroundColor: mobileColors.card,
     borderColor: mobileColors.borderStrong,
     borderRadius: mobileRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,

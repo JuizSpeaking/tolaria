@@ -17,6 +17,7 @@ import { useHorizontalSwipe } from '../ui/useHorizontalSwipe'
 import { useMobileEditorCommandRegistry, type RegisterMobileEditorCommands } from '../workspace/mobileEditorCommands'
 import { mobileNoteIdForWikilinkTarget } from '../workspace/mobileWikilinks'
 import { buildMobileCommandPaletteCommands } from '../workspace/mobileCommandPalette'
+import { useMobileWorkspaceKeyboardShortcuts } from '../workspace/mobileWorkspaceKeyboardShortcuts'
 import { logNativeMobileCommandPaletteProof } from '../qa/nativeMobileCommandPaletteProbe'
 import {
   mobileTableOfContentsHeadingTargetId,
@@ -132,6 +133,11 @@ function TabletWorkspaceChrome(props: TabletWorkspaceChromeProps) {
   const suggestionNotes = snapshot.allNotes ?? snapshot.notes
   const openCommandPalette = useCallback(() => setCommandPaletteOpen(true), [])
   const closeCommandPalette = useCallback(() => setCommandPaletteOpen(false), [])
+  useMobileWorkspaceKeyboardShortcuts({
+    onCreateNote: props.onOpenCreateNote,
+    onOpenCommandPalette: openCommandPalette,
+    onOpenSearch: props.onOpenSearch,
+  })
   const commandPaletteCommands = useMemo(() => buildMobileCommandPaletteCommands({
     ...props,
     onOpenCommandPalette: openCommandPalette,

@@ -797,6 +797,8 @@
   "status.vault.notFound": "未找到倉庫：{path}",
   "status.vault.reloading": "正在重新載入 Vault……",
   "status.vault.reloadingTooltip": "正在從磁碟重新載入 Vault",
+  "status.vault.devBridgeMissingUrl": "設定 devVaultUrl 或 EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL 以載入本機 Vault Bridge。",
+  "status.vault.devBridgeFailed": "本地 Vault Bridge 失敗",
   "status.vault.remove": "從列表移除 {label}",
   "status.vault.removeConfirmTitle": "要移除密室嗎？",
   "status.vault.removeConfirmMessage": "此操作會將 {label} 從 Tolaria 的密室清單中移除。磁碟上的檔案不會被刪除。",

@@ -797,6 +797,8 @@
   "status.vault.notFound": "Vault nicht gefunden: {path}",
   "status.vault.reloading": "Vault wird neu geladen …",
   "status.vault.reloadingTooltip": "Vault von der Festplatte neu laden",
+  "status.vault.devBridgeMissingUrl": "Setze devVaultUrl oder EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL, um die lokale Vault-Bridge zu laden.",
+  "status.vault.devBridgeFailed": "Lokale Vault-Bridge fehlgeschlagen",
   "status.vault.remove": "{label} aus der Liste entfernen",
   "status.vault.removeConfirmTitle": "Vault entfernen?",
   "status.vault.removeConfirmMessage": "Dadurch wird {label} aus der Tolaria-Vault-Liste entfernt. Dateien auf der Festplatte werden nicht gelöscht.",

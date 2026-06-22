@@ -797,6 +797,8 @@
   "status.vault.notFound": "Vault non trovato: {path}",
   "status.vault.reloading": "Ricaricamento del vault in corso...",
   "status.vault.reloadingTooltip": "Ricaricamento del vault dal disco in corso...",
+  "status.vault.devBridgeMissingUrl": "Imposta devVaultUrl o EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL per caricare il bridge del vault locale.",
+  "status.vault.devBridgeFailed": "Bridge del vault locale non riuscito",
   "status.vault.remove": "Rimuovi {label} dall'elenco",
   "status.vault.removeConfirmTitle": "Rimuovere il vault?",
   "status.vault.removeConfirmMessage": "Questa operazione rimuove {label} dall'elenco dei vault di Tolaria. I file presenti sul disco non vengono eliminati.",

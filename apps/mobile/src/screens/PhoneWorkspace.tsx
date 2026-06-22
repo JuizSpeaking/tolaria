@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import {
   CaretLeft,
   Command,
@@ -18,6 +18,7 @@ import { mobileColors, mobileSpace } from '../ui/tokens'
 import { useHorizontalSwipe } from '../ui/useHorizontalSwipe'
 import { useMobileEditorCommandRegistry, type RegisterMobileEditorCommands } from '../workspace/mobileEditorCommands'
 import { mobileNoteIdForWikilinkTarget } from '../workspace/mobileWikilinks'
+import { useMobileWorkspaceKeyboardShortcuts } from '../workspace/mobileWorkspaceKeyboardShortcuts'
 import type { MobileNote, MobileWorkspaceSnapshot } from '../workspace/mobileWorkspaceModel'
 import type { MobileTableOfContentsTarget } from '../workspace/mobileTableOfContents'
 import {
@@ -43,28 +44,7 @@ import {
 
 export type { PhoneWorkspaceState } from './phoneWorkspaceTransitions'
 
-export function PhoneWorkspace({
-  initialEditorEditing = false,
-  initialEditorEditingMode = 'wysiwyg',
-  commandPaletteProbe = false,
-  initialState = 'list',
-  layoutProbe = false,
-  onOpenNativeVault,
-  repository = fixtureReadOnlyWorkspaceRepository,
-  repositoryRequest,
-  sourceIdleSave = true,
-  sourceSelectionProbe = false,
-  snapshot,
-  wysiwygAutocompleteProbe = false,
-  wysiwygExternalLinkProbe = false,
-  wysiwygFormatCommandProbe = false,
-  wysiwygInputTransformProbe = false,
-  wysiwygMarkdownBlockProbe = false,
-  wysiwygMathEditProbe = false,
-  wysiwygTableCommandMutationProbe = false,
-  wysiwygWikilinkInsertProbe = false,
-  wysiwygMutationProbe = false,
-}: {
+type PhoneWorkspaceProps = {
   initialEditorEditing?: boolean
   initialEditorEditingMode?: EditorEditingMode
   commandPaletteProbe?: boolean
@@ -85,15 +65,147 @@ export function PhoneWorkspace({
   wysiwygTableCommandMutationProbe?: boolean
   wysiwygWikilinkInsertProbe?: boolean
   wysiwygMutationProbe?: boolean
-}) {
+}
+
+type PhoneWorkspaceChromeProps = PhoneWorkspaceProps & {
+  controller: PhoneWorkspaceController
+}
+
+type PhoneWorkspaceEditorOptions = {
+  initialEditorEditing: boolean
+  initialEditorEditingMode: EditorEditingMode
+  layoutProbe: boolean
+  sourceIdleSave: boolean
+  sourceSelectionProbe: boolean
+  wysiwygAutocompleteProbe: boolean
+  wysiwygExternalLinkProbe: boolean
+  wysiwygFormatCommandProbe: boolean
+  wysiwygInputTransformProbe: boolean
+  wysiwygMarkdownBlockProbe: boolean
+  wysiwygMathEditProbe: boolean
+  wysiwygTableCommandMutationProbe: boolean
+  wysiwygWikilinkInsertProbe: boolean
+  wysiwygMutationProbe: boolean
+}
+
+export function PhoneWorkspace(props: PhoneWorkspaceProps) {
+  const { repository = fixtureReadOnlyWorkspaceRepository, repositoryRequest, snapshot } = props
   const controller = useTabletWorkspaceController({ repository, repositoryRequest, snapshot })
+  return <PhoneWorkspaceChrome {...props} controller={controller} />
+}
+
+function PhoneWorkspaceChrome(props: PhoneWorkspaceChromeProps) {
+  const {
+    commandPaletteProbe = false,
+    controller,
+    initialState = 'list',
+    onOpenNativeVault,
+  } = props
+  const options = phoneWorkspaceEditorOptions(props)
   const { phoneState, previousPhoneState, setPhoneState } = usePhoneState(initialState)
   const [sourceModeRequest, setSourceModeRequest] = useState(0)
   const { width } = useWindowDimensions()
   const dragPreview = usePhoneDragPreview(phoneState, width)
   const editorCommandRegistry = useMobileEditorCommandRegistry()
-  const [tableOfContentsTarget, setTableOfContentsTarget] = useState<PhoneTableOfContentsTargetRequest | null>(null)
-  const phoneLayoutProbe = useMobileLayoutProbe(layoutProbe)
+  const tableOfContents = usePhoneTableOfContentsTarget(setPhoneState)
+  const phoneLayoutProbe = useMobileLayoutProbe(options.layoutProbe)
+  const navigation = usePhoneWorkspaceNavigation({ controller, setPhoneState, setSourceModeRequest })
+  const commandPalette = usePhoneCommandPalette({
+    controller,
+    onOpenNativeVault,
+    onPastePlainText: editorCommandRegistry.commands.pastePlainText,
+    onSaveActiveEditor: editorCommandRegistry.commands.save,
+    onToggleRawEditor: editorCommandRegistry.commands.toggleRawEditor,
+    openEditor: navigation.openEditor,
+    openList: navigation.openList,
+    openNeighborhoodList: navigation.openNeighborhoodList,
+    openProperties: navigation.openProperties,
+    openSidebar: navigation.openSidebar,
+    phoneState,
+  })
+  useMobileWorkspaceKeyboardShortcuts({
+    onCreateNote: controller.onOpenCreateNote,
+    onOpenCommandPalette: commandPalette.open,
+    onOpenSearch: controller.onOpenSearch,
+  })
+  usePhoneCommandPaletteProof(commandPalette.commands, commandPaletteProbe)
+  const createRelationshipTargetAndOpenEditor = useCreateRelationshipTargetAndOpenEditor(controller, setPhoneState)
+  const transitionSwipeHandlers = usePhoneSwipeHandlers({
+    openEditor: navigation.openEditor,
+    openList: navigation.openList,
+    openProperties: navigation.openProperties,
+    openSidebar: navigation.openSidebar,
+    phoneState,
+  })
+  const suggestionNotes = controller.snapshot.allNotes ?? controller.snapshot.notes
+  const preview = phoneWorkspaceDragPreview({
+    controller,
+    dragPreview,
+    options,
+    openEditor: navigation.openEditor,
+    openSourceEditor: navigation.openSourceEditor,
+    openCommandPalette: commandPalette.open,
+    openList: navigation.openList,
+    openProperties: navigation.openProperties,
+    openSidebar: navigation.openSidebar,
+    suggestionNotes,
+    sourceModeRequest,
+  })
+
+  return (
+    <PhoneWorkspaceRoot
+      commandPaletteElement={commandPalette.element}
+      controller={controller}
+      createRelationshipTargetAndOpenEditor={createRelationshipTargetAndOpenEditor}
+      dragPreview={dragPreview}
+      editorCommandRegistry={editorCommandRegistry}
+      navigation={navigation}
+      openCommandPalette={commandPalette.open}
+      options={options}
+      phoneLayoutProbe={phoneLayoutProbe.probe}
+      phoneState={phoneState}
+      previousPhoneState={previousPhoneState}
+      preview={preview}
+      selectTableOfContentsTarget={tableOfContents.select}
+      sourceModeRequest={sourceModeRequest}
+      suggestionNotes={suggestionNotes}
+      tableOfContentsTarget={tableOfContents.target}
+      transitionSwipeHandlers={transitionSwipeHandlers}
+      onOpenNativeVault={onOpenNativeVault}
+    />
+  )
+}
+
+function phoneWorkspaceEditorOptions(props: PhoneWorkspaceProps): PhoneWorkspaceEditorOptions {
+  return {
+    initialEditorEditing: props.initialEditorEditing ?? false,
+    initialEditorEditingMode: props.initialEditorEditingMode ?? 'wysiwyg',
+    layoutProbe: props.layoutProbe ?? false,
+    sourceIdleSave: props.sourceIdleSave ?? true,
+    sourceSelectionProbe: props.sourceSelectionProbe ?? false,
+    wysiwygAutocompleteProbe: props.wysiwygAutocompleteProbe ?? false,
+    wysiwygExternalLinkProbe: props.wysiwygExternalLinkProbe ?? false,
+    wysiwygFormatCommandProbe: props.wysiwygFormatCommandProbe ?? false,
+    wysiwygInputTransformProbe: props.wysiwygInputTransformProbe ?? false,
+    wysiwygMarkdownBlockProbe: props.wysiwygMarkdownBlockProbe ?? false,
+    wysiwygMathEditProbe: props.wysiwygMathEditProbe ?? false,
+    wysiwygMutationProbe: props.wysiwygMutationProbe ?? false,
+    wysiwygTableCommandMutationProbe: props.wysiwygTableCommandMutationProbe ?? false,
+    wysiwygWikilinkInsertProbe: props.wysiwygWikilinkInsertProbe ?? false,
+  }
+}
+
+type PhoneWorkspaceNavigation = ReturnType<typeof usePhoneWorkspaceNavigation>
+
+function usePhoneWorkspaceNavigation({
+  controller,
+  setPhoneState,
+  setSourceModeRequest,
+}: {
+  controller: PhoneWorkspaceController
+  setPhoneState: (nextState: PhoneWorkspaceState) => void
+  setSourceModeRequest: Dispatch<SetStateAction<number>>
+}) {
   const openList = useCallback(() => setPhoneState('list'), [setPhoneState])
   const openSidebar = useCallback(() => setPhoneState('sidebar'), [setPhoneState])
   const openProperties = useCallback(() => setPhoneState('properties'), [setPhoneState])
@@ -104,62 +216,94 @@ export function PhoneWorkspace({
   const openSourceEditor = useCallback(() => {
     setSourceModeRequest((current) => current + 1)
     setPhoneState('editor')
-  }, [setPhoneState])
+  }, [setPhoneState, setSourceModeRequest])
   const openNeighborhoodList = useCallback((noteId: string) => {
     controller.onEnterNeighborhood(noteId)
     setPhoneState('list')
   }, [controller, setPhoneState])
-  const commandPalette = usePhoneCommandPalette({
-    controller,
-    onOpenNativeVault,
-    onPastePlainText: editorCommandRegistry.commands.pastePlainText,
-    onSaveActiveEditor: editorCommandRegistry.commands.save,
-    onToggleRawEditor: editorCommandRegistry.commands.toggleRawEditor,
+
+  return {
     openEditor,
     openList,
     openNeighborhoodList,
     openProperties,
     openSidebar,
-    phoneState,
-  })
+    openSourceEditor,
+  }
+}
+
+function usePhoneCommandPaletteProof(commands: ReturnType<typeof buildMobileCommandPaletteCommands>, enabled: boolean) {
   useEffect(() => {
-    if (commandPaletteProbe) logNativeMobileCommandPaletteProof(commandPalette.commands)
-  }, [commandPalette.commands, commandPaletteProbe])
-  const createRelationshipTargetAndOpenEditor = useCallback(() => {
+    if (enabled) logNativeMobileCommandPaletteProof(commands)
+  }, [commands, enabled])
+}
+
+function useCreateRelationshipTargetAndOpenEditor(
+  controller: PhoneWorkspaceController,
+  setPhoneState: (nextState: PhoneWorkspaceState) => void,
+) {
+  return useCallback(() => {
     controller.onCreateRelationshipTarget()
     setPhoneState('editor')
   }, [controller, setPhoneState])
-  const selectTableOfContentsTarget = useCallback((target: MobileTableOfContentsTarget) => {
-    setTableOfContentsTarget((current) => ({
-      ...target,
+}
+
+function usePhoneTableOfContentsTarget(setPhoneState: (nextState: PhoneWorkspaceState) => void) {
+  const [target, setTarget] = useState<PhoneTableOfContentsTargetRequest | null>(null)
+  const select = useCallback((nextTarget: MobileTableOfContentsTarget) => {
+    setTarget((current) => ({
+      ...nextTarget,
       requestId: (current?.requestId ?? 0) + 1,
     }))
     setPhoneState('editor')
   }, [setPhoneState])
-  const transitionSwipeHandlers = usePhoneSwipeHandlers({
-    openEditor,
-    openList,
-    openProperties,
-    openSidebar,
-    phoneState,
-  })
-  const suggestionNotes = controller.snapshot.allNotes ?? controller.snapshot.notes
-  const preview = phoneWorkspaceDragPreview({
-    controller,
-    dragPreview,
-    initialEditorEditing,
-    initialEditorEditingMode,
-    openEditor,
-    openSourceEditor,
-    openCommandPalette: commandPalette.open,
-    openList,
-    openProperties,
-    openSidebar,
-    suggestionNotes,
-    sourceModeRequest,
-  })
+
+  return { select, target }
+}
+
+type PhoneWorkspaceRootProps = {
+  commandPaletteElement: ReactNode
+  controller: PhoneWorkspaceController
+  createRelationshipTargetAndOpenEditor: () => void
+  dragPreview: PhoneSwipePreview
+  editorCommandRegistry: ReturnType<typeof useMobileEditorCommandRegistry>
+  navigation: PhoneWorkspaceNavigation
+  openCommandPalette: () => void
+  options: PhoneWorkspaceEditorOptions
+  phoneLayoutProbe: MobileLayoutProbe
+  phoneState: PhoneWorkspaceState
+  previousPhoneState: PhoneWorkspaceState
+  preview: ReactNode
+  selectTableOfContentsTarget: (target: MobileTableOfContentsTarget) => void
+  sourceModeRequest: number
+  suggestionNotes: MobileNote[]
+  tableOfContentsTarget: PhoneTableOfContentsTargetRequest | null
+  transitionSwipeHandlers: ReturnType<typeof usePhoneSwipeHandlers>
+  onOpenNativeVault?: () => void
+}
+
+function PhoneWorkspaceRoot({
+  commandPaletteElement,
+  controller,
+  createRelationshipTargetAndOpenEditor,
+  dragPreview,
+  editorCommandRegistry,
+  navigation,
+  openCommandPalette,
+  options,
+  phoneLayoutProbe,
+  phoneState,
+  previousPhoneState,
+  preview,
+  selectTableOfContentsTarget,
+  sourceModeRequest,
+  suggestionNotes,
+  tableOfContentsTarget,
+  transitionSwipeHandlers,
+  onOpenNativeVault,
+}: PhoneWorkspaceRootProps) {
   return (
-    <View {...phoneLayoutProbe.probe('phone.root')} style={styles.root}>
+    <View {...phoneLayoutProbe('phone.root')} style={styles.root}>
       <PhoneWorkspaceTransition
         dragX={dragPreview.dragX}
         preview={preview}
@@ -169,48 +313,35 @@ export function PhoneWorkspace({
       >
         <PhoneWorkspaceStateView
           controller={controller}
-          initialEditorEditing={initialEditorEditing}
-          initialEditorEditingMode={initialEditorEditingMode}
-          layoutProbe={layoutProbe}
-          openEditor={openEditor}
-          openSourceEditor={openSourceEditor}
-          openCommandPalette={commandPalette.open}
-          openList={openList}
-          openProperties={openProperties}
-          openSidebar={openSidebar}
-          phoneLayoutProbe={phoneLayoutProbe.probe}
+          options={options}
+          openEditor={navigation.openEditor}
+          openSourceEditor={navigation.openSourceEditor}
+          openCommandPalette={openCommandPalette}
+          openList={navigation.openList}
+          openProperties={navigation.openProperties}
+          openSidebar={navigation.openSidebar}
+          phoneLayoutProbe={phoneLayoutProbe}
           phoneState={phoneState}
           phoneSwipePreview={dragPreview}
           onRegisterEditorCommands={editorCommandRegistry.register}
-          sourceIdleSave={sourceIdleSave}
           sourceModeRequest={sourceModeRequest}
-          sourceSelectionProbe={sourceSelectionProbe}
           suggestionNotes={suggestionNotes}
           tableOfContentsTarget={tableOfContentsTarget}
-          wysiwygAutocompleteProbe={wysiwygAutocompleteProbe}
-          wysiwygExternalLinkProbe={wysiwygExternalLinkProbe}
-          wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
-          wysiwygInputTransformProbe={wysiwygInputTransformProbe}
-          wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
-          wysiwygMathEditProbe={wysiwygMathEditProbe}
-          wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
-          wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
-          wysiwygMutationProbe={wysiwygMutationProbe}
         />
       </PhoneWorkspaceTransition>
       <WorkspaceActionSheetHost
         {...controller}
         compactTablet
         defaultPropertiesVisible={false}
-        initialEditorEditing={initialEditorEditing}
-        layoutProbe={layoutProbe}
+        initialEditorEditing={options.initialEditorEditing}
+        layoutProbe={options.layoutProbe}
         suggestionNotes={suggestionNotes}
         onCreateRelationshipTarget={createRelationshipTargetAndOpenEditor}
-        onEnterNeighborhood={openNeighborhoodList}
+        onEnterNeighborhood={navigation.openNeighborhoodList}
         onSelectTableOfContentsTarget={selectTableOfContentsTarget}
       />
       <MobileSyncStatusBar sync={controller.snapshot.sync} onOpenLocalVault={onOpenNativeVault} />
-      {commandPalette.element}
+      {commandPaletteElement}
     </View>
   )
 }
@@ -391,8 +522,7 @@ type PhoneSwipePreview = ReturnType<typeof usePhoneDragPreview>
 function phoneWorkspaceDragPreview({
   controller,
   dragPreview,
-  initialEditorEditing,
-  initialEditorEditingMode,
+  options,
   openEditor,
   openSourceEditor,
   openCommandPalette,
@@ -404,8 +534,7 @@ function phoneWorkspaceDragPreview({
 }: {
   controller: PhoneWorkspaceController
   dragPreview: PhoneSwipePreview
-  initialEditorEditing: boolean
-  initialEditorEditingMode: EditorEditingMode
+  options: PhoneWorkspaceEditorOptions
   openEditor: (noteId?: string) => void
   openSourceEditor: () => void
   openCommandPalette: () => void
@@ -420,9 +549,7 @@ function phoneWorkspaceDragPreview({
   return (
     <PhoneWorkspaceStateView
       controller={controller}
-      initialEditorEditing={initialEditorEditing}
-      initialEditorEditingMode={initialEditorEditingMode}
-      layoutProbe={false}
+      options={phoneWorkspacePreviewOptions(options)}
       openEditor={openEditor}
       openSourceEditor={openSourceEditor}
       openCommandPalette={openCommandPalette}
@@ -432,29 +559,33 @@ function phoneWorkspaceDragPreview({
       phoneLayoutProbe={disabledPhoneLayoutProbe}
       phoneState={dragPreview.previewState}
       phoneSwipePreview={dragPreview}
-      sourceIdleSave
       sourceModeRequest={sourceModeRequest}
-      sourceSelectionProbe={false}
       suggestionNotes={suggestionNotes}
       tableOfContentsTarget={null}
-      wysiwygAutocompleteProbe={false}
-      wysiwygExternalLinkProbe={false}
-      wysiwygFormatCommandProbe={false}
-      wysiwygInputTransformProbe={false}
-      wysiwygMarkdownBlockProbe={false}
-      wysiwygMathEditProbe={false}
-      wysiwygTableCommandMutationProbe={false}
-      wysiwygWikilinkInsertProbe={false}
-      wysiwygMutationProbe={false}
     />
   )
 }
 
+function phoneWorkspacePreviewOptions(options: PhoneWorkspaceEditorOptions): PhoneWorkspaceEditorOptions {
+  return {
+    ...options,
+    layoutProbe: false,
+    sourceSelectionProbe: false,
+    wysiwygAutocompleteProbe: false,
+    wysiwygExternalLinkProbe: false,
+    wysiwygFormatCommandProbe: false,
+    wysiwygInputTransformProbe: false,
+    wysiwygMarkdownBlockProbe: false,
+    wysiwygMathEditProbe: false,
+    wysiwygMutationProbe: false,
+    wysiwygTableCommandMutationProbe: false,
+    wysiwygWikilinkInsertProbe: false,
+  }
+}
+
 type PhoneWorkspaceStateViewProps = {
   controller: PhoneWorkspaceController
-  initialEditorEditing: boolean
-  initialEditorEditingMode: EditorEditingMode
-  layoutProbe: boolean
+  options: PhoneWorkspaceEditorOptions
   openEditor: (noteId?: string) => void
   openSourceEditor: () => void
   openCommandPalette: () => void
@@ -465,20 +596,9 @@ type PhoneWorkspaceStateViewProps = {
   phoneState: PhoneWorkspaceState
   phoneSwipePreview: PhoneSwipePreview
   onRegisterEditorCommands?: RegisterMobileEditorCommands
-  sourceIdleSave: boolean
   sourceModeRequest: number
-  sourceSelectionProbe: boolean
   suggestionNotes: MobileNote[]
   tableOfContentsTarget: PhoneTableOfContentsTargetRequest | null
-  wysiwygAutocompleteProbe: boolean
-  wysiwygExternalLinkProbe: boolean
-  wysiwygFormatCommandProbe: boolean
-  wysiwygInputTransformProbe: boolean
-  wysiwygMarkdownBlockProbe: boolean
-  wysiwygMathEditProbe: boolean
-  wysiwygTableCommandMutationProbe: boolean
-  wysiwygWikilinkInsertProbe: boolean
-  wysiwygMutationProbe: boolean
 }
 
 const disabledPhoneLayoutProbe: MobileLayoutProbe = () => ({})
@@ -501,7 +621,7 @@ function phoneSwipePreviewHandlers(phoneSwipePreview: PhoneSwipePreview) {
 
 function PhoneNoteListScreen({
   controller,
-  layoutProbe,
+  options,
   openCommandPalette,
   openEditor,
   openSidebar,
@@ -524,7 +644,7 @@ function PhoneNoteListScreen({
         }}
         displayPropertyKeys={controller.noteListProperties}
         fullWidth
-        layoutProbe={layoutProbe}
+        layoutProbe={options.layoutProbe}
         leading={(
           <View style={styles.leadingActions}>
             <MobileIconButton accessibilityLabel={mobileText('sidebar.action.expand')} testID="phone-sidebar-action" onPress={openSidebar}>
@@ -555,7 +675,7 @@ function PhoneNoteListScreen({
 
 function PhoneSidebarDrawer({
   controller,
-  layoutProbe,
+  options,
   openCommandPalette,
   openEditor,
   openList,
@@ -582,7 +702,7 @@ function PhoneSidebarDrawer({
           compact
           displayPropertyKeys={controller.noteListProperties}
           fullWidth
-          layoutProbe={layoutProbe}
+          layoutProbe={options.layoutProbe}
           neighborhood={controller.noteListNeighborhood}
           noteListFilter={controller.noteListFilter}
           noteListFilterCounts={controller.noteListFilterCounts}
@@ -603,7 +723,7 @@ function PhoneSidebarDrawer({
         <MobileWorkspaceSidebar
           activeFolderId={controller.activeFolderId}
           activeItemId={controller.activeItemId}
-          layoutProbe={layoutProbe}
+          layoutProbe={options.layoutProbe}
           sections={controller.snapshot.sidebarSections}
           title={controller.snapshot.source?.label}
           onCreateFolder={controller.onOpenCreateFolder}
@@ -627,29 +747,16 @@ function PhoneSidebarDrawer({
 
 function PhoneEditorScreen({
   controller,
-  initialEditorEditing,
-  initialEditorEditingMode,
-  layoutProbe,
+  options,
   openList,
   openCommandPalette,
   openProperties,
   onRegisterEditorCommands,
   phoneLayoutProbe,
   phoneSwipePreview,
-  sourceIdleSave,
   sourceModeRequest,
-  sourceSelectionProbe,
   suggestionNotes,
   tableOfContentsTarget,
-  wysiwygAutocompleteProbe,
-  wysiwygExternalLinkProbe,
-  wysiwygFormatCommandProbe,
-  wysiwygInputTransformProbe,
-  wysiwygMarkdownBlockProbe,
-  wysiwygMathEditProbe,
-  wysiwygTableCommandMutationProbe,
-  wysiwygWikilinkInsertProbe,
-  wysiwygMutationProbe,
 }: PhoneWorkspaceStateViewProps) {
   const swipeHandlers = useHorizontalSwipe({
     ...phoneSwipePreviewHandlers(phoneSwipePreview),
@@ -668,25 +775,12 @@ function PhoneEditorScreen({
       />
       <PhoneEditorBody
         controller={controller}
-        initialEditorEditing={initialEditorEditing}
-        initialEditorEditingMode={initialEditorEditingMode}
-        layoutProbe={layoutProbe}
         notes={suggestionNotes}
         onNavigateWikilink={handleNavigateWikilink}
         onRegisterEditorCommands={onRegisterEditorCommands}
-        sourceIdleSave={sourceIdleSave}
+        options={options}
         sourceModeRequest={sourceModeRequest}
-        sourceSelectionProbe={sourceSelectionProbe}
         tableOfContentsTarget={tableOfContentsTarget}
-        wysiwygAutocompleteProbe={wysiwygAutocompleteProbe}
-        wysiwygExternalLinkProbe={wysiwygExternalLinkProbe}
-        wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
-        wysiwygInputTransformProbe={wysiwygInputTransformProbe}
-        wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
-        wysiwygMathEditProbe={wysiwygMathEditProbe}
-        wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
-        wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
-        wysiwygMutationProbe={wysiwygMutationProbe}
       />
     </View>
   )
@@ -719,46 +813,20 @@ function PhoneEditorTopBar({
 
 function PhoneEditorBody({
   controller,
-  initialEditorEditing,
-  initialEditorEditingMode,
-  layoutProbe,
   notes,
   onNavigateWikilink,
   onRegisterEditorCommands,
-  sourceIdleSave,
+  options,
   sourceModeRequest,
-  sourceSelectionProbe,
   tableOfContentsTarget,
-  wysiwygAutocompleteProbe,
-  wysiwygExternalLinkProbe,
-  wysiwygFormatCommandProbe,
-  wysiwygInputTransformProbe,
-  wysiwygMarkdownBlockProbe,
-  wysiwygMathEditProbe,
-  wysiwygTableCommandMutationProbe,
-  wysiwygWikilinkInsertProbe,
-  wysiwygMutationProbe,
 }: {
   controller: PhoneWorkspaceController
-  initialEditorEditing: boolean
-  initialEditorEditingMode: EditorEditingMode
-  layoutProbe: boolean
   notes: MobileNote[]
   onNavigateWikilink: (target: string) => void
   onRegisterEditorCommands?: RegisterMobileEditorCommands
-  sourceIdleSave: boolean
+  options: PhoneWorkspaceEditorOptions
   sourceModeRequest: number
-  sourceSelectionProbe: boolean
   tableOfContentsTarget: PhoneTableOfContentsTargetRequest | null
-  wysiwygAutocompleteProbe: boolean
-  wysiwygExternalLinkProbe: boolean
-  wysiwygFormatCommandProbe: boolean
-  wysiwygInputTransformProbe: boolean
-  wysiwygMarkdownBlockProbe: boolean
-  wysiwygMathEditProbe: boolean
-  wysiwygTableCommandMutationProbe: boolean
-  wysiwygWikilinkInsertProbe: boolean
-  wysiwygMutationProbe: boolean
 }) {
   const sourceModeRequested = sourceModeRequest > 0
 
@@ -768,9 +836,9 @@ function PhoneEditorBody({
       blocks={controller.editorBlocks}
       bullets={controller.editorBullets}
       compact
-      initialEditing={sourceModeRequested || initialEditorEditing}
-      initialEditingMode={sourceModeRequested ? 'source' : initialEditorEditingMode}
-      layoutProbe={layoutProbe}
+      initialEditing={sourceModeRequested || options.initialEditorEditing}
+      initialEditingMode={sourceModeRequested ? 'source' : options.initialEditorEditingMode}
+      layoutProbe={options.layoutProbe}
       note={controller.selectedNote}
       notes={notes}
       onNavigateWikilink={onNavigateWikilink}
@@ -778,26 +846,26 @@ function PhoneEditorBody({
       onRegisterEditorCommands={onRegisterEditorCommands}
       onToggleFavorite={controller.onToggleFavorite}
       onUpdateContent={controller.onUpdateNoteContent}
-      sourceIdleSave={sourceIdleSave}
-      sourceSelectionProbe={sourceSelectionProbe}
+      sourceIdleSave={options.sourceIdleSave}
+      sourceSelectionProbe={options.sourceSelectionProbe}
       tableOfContentsTarget={tableOfContentsTarget}
       vaultRootUri={controller.vaultRootUri}
-      wysiwygAutocompleteProbe={wysiwygAutocompleteProbe}
-      wysiwygExternalLinkProbe={wysiwygExternalLinkProbe}
-      wysiwygFormatCommandProbe={wysiwygFormatCommandProbe}
-      wysiwygInputTransformProbe={wysiwygInputTransformProbe}
-      wysiwygMarkdownBlockProbe={wysiwygMarkdownBlockProbe}
-      wysiwygMathEditProbe={wysiwygMathEditProbe}
-      wysiwygTableCommandMutationProbe={wysiwygTableCommandMutationProbe}
-      wysiwygWikilinkInsertProbe={wysiwygWikilinkInsertProbe}
-      wysiwygMutationProbe={wysiwygMutationProbe}
+      wysiwygAutocompleteProbe={options.wysiwygAutocompleteProbe}
+      wysiwygExternalLinkProbe={options.wysiwygExternalLinkProbe}
+      wysiwygFormatCommandProbe={options.wysiwygFormatCommandProbe}
+      wysiwygInputTransformProbe={options.wysiwygInputTransformProbe}
+      wysiwygMarkdownBlockProbe={options.wysiwygMarkdownBlockProbe}
+      wysiwygMathEditProbe={options.wysiwygMathEditProbe}
+      wysiwygTableCommandMutationProbe={options.wysiwygTableCommandMutationProbe}
+      wysiwygWikilinkInsertProbe={options.wysiwygWikilinkInsertProbe}
+      wysiwygMutationProbe={options.wysiwygMutationProbe}
     />
   )
 }
 
 function PhonePropertiesScreen({
   controller,
-  layoutProbe,
+  options,
   openEditor,
   openSourceEditor,
   openCommandPalette,
@@ -824,7 +892,7 @@ function PhonePropertiesScreen({
       <MobilePropertiesPanel
         compact
         fullWidth
-        layoutProbe={layoutProbe}
+        layoutProbe={options.layoutProbe}
         note={controller.selectedNote}
         typeDefinitions={controller.snapshot.typeDefinitions}
         onAddProperty={controller.onAddProperty}

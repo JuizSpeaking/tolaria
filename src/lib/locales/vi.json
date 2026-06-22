@@ -797,6 +797,8 @@
   "status.vault.notFound": "Không tìm thấy kho: {path}",
   "status.vault.reloading": "Đang tải lại kho...",
   "status.vault.reloadingTooltip": "Đang tải lại kho từ đĩa",
+  "status.vault.devBridgeMissingUrl": "Đặt devVaultUrl hoặc EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL để tải cầu vault cục bộ.",
+  "status.vault.devBridgeFailed": "Cầu vault cục bộ không thành công",
   "status.vault.remove": "Xóa {label} khỏi danh sách",
   "status.vault.removeConfirmTitle": "Xóa khóa?",
   "status.vault.removeConfirmMessage": "Thao tác này sẽ xóa {label} khỏi danh sách vault của Tolaria. Các tệp trên ổ đĩa sẽ không bị xóa.",

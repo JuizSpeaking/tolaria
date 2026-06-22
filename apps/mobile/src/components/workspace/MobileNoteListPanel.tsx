@@ -9,7 +9,7 @@ import { MobileChip } from '../../ui/MobileChip'
 import { MobileIconButton } from '../../ui/MobileIconButton'
 import { MobileListRow } from '../../ui/MobileListRow'
 import { MobilePanel, MobileToolbar, MobileToolbarSpacer, MobileToolbarTitle } from '../../ui/MobilePanel'
-import { desktopPanelParity, desktopToolbarActionParity, desktopToolbarParity } from '../../ui/desktopParity'
+import { desktopPanelParity, desktopToolbarActionParity } from '../../ui/desktopParity'
 import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
 import { mobileNoteRowChips } from '../../workspace/mobileNoteDisplay'
 import type { MobileNeighborhood, MobileNeighborhoodGroup } from '../../workspace/mobileNeighborhood'
@@ -80,7 +80,6 @@ export function MobileNoteListPanel(props: MobileNoteListPanelProps) {
     propertyDisplayModes,
     searchQuery,
     selectedNoteId,
-    subtitle,
     title = mobileCopy.inbox,
     typeDefinitions,
   } = props
@@ -99,7 +98,6 @@ export function MobileNoteListPanel(props: MobileNoteListPanelProps) {
         {leading}
         <View style={styles.toolbarTitleBlock}>
           <MobileToolbarTitle testID="note-list-toolbar-title" title={title} />
-          <Text style={styles.toolbarSubtitle} testID="note-list-toolbar-subtitle">{subtitle}</Text>
         </View>
         <MobileToolbarSpacer />
         <MobileIconButton accessibilityLabel={mobileCopy.searchNotes} testID="note-list-search-action" onPress={onOpenSearch}>
@@ -110,13 +108,6 @@ export function MobileNoteListPanel(props: MobileNoteListPanelProps) {
         </MobileIconButton>
       </MobileToolbar>
       {searchQuery ? <SearchPill searchQuery={searchQuery} /> : null}
-      {noteListFilterVisible && noteListFilterCounts && onNoteListFilterChange ? (
-        <NoteListFilterPills
-          active={noteListFilter}
-          counts={noteListFilterCounts}
-          onChange={onNoteListFilterChange}
-        />
-      ) : null}
       <NoteListContent
         activeNoteId={activeNoteId}
         bulkSelection={bulkSelection}
@@ -130,6 +121,13 @@ export function MobileNoteListPanel(props: MobileNoteListPanelProps) {
         selectedNoteId={selectedNoteId}
         typeDefinitions={typeDefinitions}
       />
+      {noteListFilterVisible && noteListFilterCounts && onNoteListFilterChange ? (
+        <NoteListFilterPills
+          active={noteListFilter}
+          counts={noteListFilterCounts}
+          onChange={onNoteListFilterChange}
+        />
+      ) : null}
       <BulkSelectionBar bulkActions={bulkActions} bulkSelection={bulkSelection} />
       {layoutProbeEnabled ? <MobileLayoutProbeReadout metrics={layoutProbe.metrics} testID="note-list-layout-metrics" /> : null}
     </MobilePanel>
@@ -619,16 +617,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   filterPill: {
-    minHeight: 24,
+    minHeight: 28,
     alignItems: 'center',
     borderRadius: 999,
     flexDirection: 'row',
     gap: mobileSpace.xs,
-    paddingHorizontal: mobileSpace.sm,
-    paddingVertical: 2,
+    justifyContent: 'center',
+    paddingHorizontal: mobileSpace.md,
+    paddingVertical: mobileSpace.xs,
   },
   filterPillActive: {
-    backgroundColor: mobileColors.graySoft,
+    backgroundColor: mobileColors.primary,
   },
   filterPillCount: {
     color: mobileColors.textMuted,
@@ -637,18 +636,20 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   filterPillCountActive: {
-    color: mobileColors.textMuted,
+    color: mobileColors.textInverse,
   },
   filterPillPressed: {
     backgroundColor: mobileColors.selected,
   },
   filterPills: {
-    minHeight: 42,
+    minHeight: 48,
     alignItems: 'center',
-    borderBottomColor: mobileColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    borderTopColor: mobileColors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    gap: mobileSpace.xs,
+    gap: mobileSpace.sm,
+    backgroundColor: mobileColors.card,
     paddingHorizontal: mobileSpace.lg,
     paddingVertical: mobileSpace.sm,
   },
@@ -658,7 +659,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   filterPillTextActive: {
-    color: mobileColors.text,
+    color: mobileColors.textInverse,
   },
   groupCount: {
     color: mobileColors.textMuted,
@@ -698,11 +699,6 @@ const styles = StyleSheet.create({
     color: mobileColors.text,
     fontSize: mobileType.body,
     fontWeight: '500',
-  },
-  toolbarSubtitle: {
-    color: mobileColors.textMuted,
-    fontSize: desktopToolbarParity.subtitleFontSize,
-    fontWeight: desktopToolbarParity.subtitleFontWeight,
   },
   toolbarTitleBlock: {
     minWidth: 0,

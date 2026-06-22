@@ -797,6 +797,8 @@
   "status.vault.notFound": "Cofre não encontrado: {path}",
   "status.vault.reloading": "Recarregando o cofre...",
   "status.vault.reloadingTooltip": "Recarregando o vault a partir do disco",
+  "status.vault.devBridgeMissingUrl": "Defina devVaultUrl ou EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL para carregar a ponte do vault local.",
+  "status.vault.devBridgeFailed": "Falha na ponte do vault local",
   "status.vault.remove": "Remover {label} da lista",
   "status.vault.removeConfirmTitle": "Remover cofre?",
   "status.vault.removeConfirmMessage": "Isso remove {label} da lista de cofres do Tolaria. Os arquivos no disco não são excluídos.",

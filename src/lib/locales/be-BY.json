@@ -797,6 +797,8 @@
   "status.vault.notFound": "Сховішча не знойдзена: {path}",
   "status.vault.reloading": "Перазагрузка...",
   "status.vault.reloadingTooltip": "Перазагрузка сховішча з дыска",
+  "status.vault.devBridgeMissingUrl": "Усталюйце devVaultUrl або EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL, каб загрузіць лакальны мост сховішча.",
+  "status.vault.devBridgeFailed": "Лакальны мост сховішча не спрацаваў",
   "status.vault.remove": "Выдаліць {label} са спісу",
   "status.vault.removeConfirmTitle": "Выдаліць сховішча?",
   "status.vault.removeConfirmMessage": "Гэта выдаліць {label} са спісу сховішчаў Tolaria. Файлы на дыску не будуць выдалены.",

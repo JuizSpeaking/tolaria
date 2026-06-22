@@ -797,6 +797,8 @@
   "status.vault.notFound": "No se encontró el almacén: {path}",
   "status.vault.reloading": "Volviendo a cargar el vault...",
   "status.vault.reloadingTooltip": "Volviendo a cargar el repositorio desde el disco",
+  "status.vault.devBridgeMissingUrl": "Establezca devVaultUrl o EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL para cargar el puente de almacén local.",
+  "status.vault.devBridgeFailed": "Error en el puente de almacén local",
   "status.vault.remove": "Eliminar {label} de la lista",
   "status.vault.removeConfirmTitle": "¿Eliminar el repositorio?",
   "status.vault.removeConfirmMessage": "Esto elimina {label} de la lista de vaults de Tolaria. Los archivos en el disco no se eliminan.",

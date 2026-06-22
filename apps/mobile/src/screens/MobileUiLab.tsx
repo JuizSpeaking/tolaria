@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Linking, useWindowDimensions } from 'react-native'
+import { Linking, StyleSheet, useWindowDimensions, View } from 'react-native'
 import { PhoneWorkspace, type PhoneWorkspaceState } from './PhoneWorkspace'
 import { TabletWorkspace } from './TabletWorkspace'
 import { readOnlyWorkspaceRepository, type ReadOnlyWorkspaceRequest } from '../workspace/readOnlyWorkspaceRepository'
+import {
+  createDevVaultWorkspaceRepository,
+  fetchDevVaultWorkspaceState,
+  type DevVaultWorkspaceState,
+} from '../workspace/devVaultWorkspaceRepository'
 import {
   pickNativeWorkspaceDirectory,
   type NativeWorkspaceSelection,
@@ -75,6 +80,14 @@ import {
   localVaultEditorBullets,
   localVaultSnippet,
 } from '../workspace/localVaultMarkdown'
+import { Text } from '../components/ui/text'
+import { mobileText } from '../i18n/mobileText'
+import { mobileColors, mobileSpace, mobileType } from '../ui/tokens'
+
+type DevVaultLoadState =
+  | { status: 'idle' | 'loading' }
+  | { message: string; status: 'error' }
+  | { state: DevVaultWorkspaceState; status: 'ready' }
 
 export function MobileUiLab() {
   const { width } = useWindowDimensions()
@@ -83,26 +96,17 @@ export function MobileUiLab() {
   const [nativeWorkspace, setNativeWorkspace] = useState<NativeWorkspaceSelection | null>(null)
   const workspacePersistenceProbe = nativeWorkspacePersistenceProbeEnabled(searchParams)
   const wysiwygPersistenceProbe = nativeWysiwygPersistenceProbeEnabled(searchParams)
-  const scenarioId = currentScenarioId(searchParams)
-  const source = currentSnapshotSource(searchParams, nativeWorkspace)
-  const baseRepositoryRequest = {
-    scenarioId,
-    source,
-    vaultAlias: currentVaultAlias(searchParams, nativeWorkspace),
-    vaultLabel: currentVaultLabel(searchParams, nativeWorkspace),
-    vaultRootUri: currentVaultRootUri(searchParams, nativeWorkspace),
-  }
-  const repository = mobileRepositoryForProbes({ workspacePersistenceProbe, wysiwygPersistenceProbe })
-  const repositoryRequest = mobileRepositoryRequestForProbes(
-    baseRepositoryRequest,
-    { workspacePersistenceProbe, wysiwygPersistenceProbe },
-  )
+  const workspaceSource = useMobileUiWorkspaceSource({
+    nativeWorkspace,
+    searchParams,
+    workspacePersistenceProbe,
+    wysiwygPersistenceProbe,
+  })
+  const { devVault, devVaultUrl, repository, repositoryRequest, scenarioId, source } = workspaceSource
   const qa = mobileUiQaFlags(searchParams, { wysiwygPersistenceProbe })
   const metricSinkUrl = qa.layoutProbe ? searchParams.get('metricSink') : null
   const actionAdapterProbeRunKey = searchParams.get('qaRun') ?? 'interactive'
-  const actionAdapterProbeLastRunKey = useRef<string | null>(null)
-  const baseSnapshot = repository.readSnapshot(repositoryRequest)
-  const snapshot = mobileSnapshotForProbes(baseSnapshot, {
+  const snapshot = mobileSnapshotForProbes(workspaceSource.baseSnapshot, {
     tableOfContentsProbe: qa.tableOfContentsProbe,
     wysiwygMutationProbe: qa.wysiwygMutationProbe,
     wysiwygPersistenceProbe,
@@ -128,20 +132,18 @@ export function MobileUiLab() {
     setMobileLayoutMetricSinkUrl(metricSinkUrl)
     return () => setMobileLayoutMetricSinkUrl(null)
   }, [metricSinkUrl])
+  useMobileActionAdapterProbe({
+    devVaultStatus: devVault.status,
+    enabled: qa.mobileActionAdapterProbe,
+    repositoryRequest,
+    runKey: actionAdapterProbeRunKey,
+    snapshot,
+    source,
+  })
 
-  useEffect(() => {
-    if (!qa.mobileActionAdapterProbe) return
-    if (actionAdapterProbeLastRunKey.current === actionAdapterProbeRunKey) return
-
-    actionAdapterProbeLastRunKey.current = actionAdapterProbeRunKey
-    void nativeMobileActionAdapterProof({ repositoryRequest, snapshot })
-      .then((proof) => {
-        console.info(nativeMobileActionAdapterLogLine(proof))
-      })
-      .catch((error) => {
-        console.warn('[mobile-action-adapter-probe] Failed to collect proof:', error)
-      })
-  }, [actionAdapterProbeRunKey, qa.mobileActionAdapterProbe, repositoryRequest, snapshot])
+  if (source === 'dev' && devVault.status !== 'ready') {
+    return <DevVaultStatusScreen state={devVault} url={devVaultUrl} />
+  }
 
   if (isWideEnoughForTablet) {
     return (
@@ -218,7 +220,13 @@ function currentSnapshotSource(
 ): NonNullable<ReadOnlyWorkspaceRequest['source']> {
   if (nativeWorkspace) return 'native'
   if (searchParams.get('source') === 'native-vault') return 'native'
+  if (devVaultSourceRequested(searchParams)) return 'dev'
   return searchParams.get('source') === 'host-vault' ? 'host' : 'fixture'
+}
+
+function devVaultSourceRequested(searchParams: URLSearchParams) {
+  const source = searchParams.get('source')
+  return source === 'dev-vault' || source === 'local-vault'
 }
 
 function editorMode(searchParams: URLSearchParams) {
@@ -233,7 +241,7 @@ function mobileUiQaFlags(
   searchParams: URLSearchParams,
   { wysiwygPersistenceProbe }: { wysiwygPersistenceProbe: boolean },
 ) {
-  const { initialEditorEditing, initialEditorEditingMode } = initialMobileEditorStateFromMode(editorMode(searchParams))
+  const { initialEditorEditing, initialEditorEditingMode } = initialEditorState(searchParams)
 
   return {
     forceDesktopPanels: tabletPanelsMode(searchParams) === 'all',
@@ -253,6 +261,16 @@ function mobileUiQaFlags(
     wysiwygMutationProbe: nativeWysiwygMutationProbeEnabled(searchParams) || wysiwygPersistenceProbe,
     wysiwygTableCommandMutationProbe: nativeWysiwygTableCommandMutationProbeEnabled(searchParams),
     wysiwygWikilinkInsertProbe: nativeWysiwygWikilinkInsertProbeEnabled(searchParams),
+  }
+}
+
+function initialEditorState(searchParams: URLSearchParams) {
+  const requestedMode = editorMode(searchParams)
+  if (requestedMode) return initialMobileEditorStateFromMode(requestedMode)
+
+  return {
+    initialEditorEditing: true,
+    initialEditorEditingMode: 'wysiwyg' as const,
   }
 }
 
@@ -283,12 +301,57 @@ function mobileRepositoryRequestForProbes(
   return request
 }
 
+function useMobileUiWorkspaceSource({
+  nativeWorkspace,
+  searchParams,
+  workspacePersistenceProbe,
+  wysiwygPersistenceProbe,
+}: {
+  nativeWorkspace: NativeWorkspaceSelection | null
+  searchParams: URLSearchParams
+  workspacePersistenceProbe: boolean
+  wysiwygPersistenceProbe: boolean
+}) {
+  const scenarioId = currentScenarioId(searchParams)
+  const source = currentSnapshotSource(searchParams, nativeWorkspace)
+  const devVaultUrl = currentDevVaultUrl(searchParams)
+  const devVault = useDevVaultWorkspaceState(source === 'dev', devVaultUrl)
+  const repositoryRequest = mobileRepositoryRequestForProbes({
+    scenarioId,
+    source,
+    vaultAlias: currentVaultAlias(searchParams, nativeWorkspace),
+    vaultLabel: currentVaultLabel(searchParams, nativeWorkspace),
+    vaultRootUri: currentVaultRootUri(searchParams, nativeWorkspace),
+  }, { workspacePersistenceProbe, wysiwygPersistenceProbe })
+  const probeRepository = mobileRepositoryForProbes({ workspacePersistenceProbe, wysiwygPersistenceProbe })
+  const repository = source === 'dev' && devVault.status === 'ready'
+    ? createDevVaultWorkspaceRepository(devVault.state)
+    : probeRepository
+  const baseSnapshot = source === 'dev' && devVault.status === 'ready'
+    ? devVault.state.snapshot
+    : repository.readSnapshot(repositoryRequest)
+
+  return {
+    baseSnapshot,
+    devVault,
+    devVaultUrl,
+    repository,
+    repositoryRequest,
+    scenarioId,
+    source,
+  }
+}
+
 function currentVaultRootUri(
   searchParams: URLSearchParams,
   nativeWorkspace: NativeWorkspaceSelection | null,
 ): string | null {
   if (nativeWorkspace) return nativeWorkspace.vaultRootUri
   return searchParams.get('vaultUri') || envValue('EXPO_PUBLIC_TOLARIA_NATIVE_VAULT_URI')
+}
+
+function currentDevVaultUrl(searchParams: URLSearchParams): string | null {
+  return searchParams.get('devVaultUrl') || envValue('EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL')
 }
 
 function currentVaultLabel(
@@ -479,6 +542,106 @@ function firstNoteId(snapshot: ReturnType<typeof readOnlyWorkspaceRepository.rea
   return snapshot.notes[0]?.id ?? 'empty'
 }
 
+function DevVaultStatusScreen({
+  state,
+  url,
+}: {
+  state: Exclude<DevVaultLoadState, { status: 'ready' }>
+  url: string | null
+}) {
+  const title = state.status === 'error'
+    ? mobileText('ai.workspace.status.error')
+    : mobileText('status.vault.reloading')
+  const detail = state.status === 'error'
+    ? state.message
+    : url ?? mobileText('status.vault.devBridgeMissingUrl')
+
+  return (
+    <View style={devVaultStyles.root} testID="dev-vault-status">
+      <Text style={devVaultStyles.title}>{title}</Text>
+      <Text selectable style={devVaultStyles.detail}>{detail}</Text>
+    </View>
+  )
+}
+
+function useDevVaultWorkspaceState(
+  enabled: boolean,
+  url: string | null,
+): DevVaultLoadState {
+  const [state, setState] = useState<DevVaultLoadState>({ status: 'idle' })
+
+  useEffect(() => {
+    if (!enabled) {
+      return scheduleDevVaultState(setState, { status: 'idle' })
+    }
+    if (!url?.trim()) {
+      return scheduleDevVaultState(setState, { message: mobileText('status.vault.devBridgeMissingUrl'), status: 'error' })
+    }
+
+    const controller = new AbortController()
+    const cancelLoadingState = scheduleDevVaultState(setState, { status: 'loading' })
+    void fetchDevVaultWorkspaceState(url, controller.signal)
+      .then((nextState) => {
+        if (!controller.signal.aborted) setState({ state: nextState, status: 'ready' })
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) setState({ message: devVaultErrorMessage(error), status: 'error' })
+      })
+
+    return () => {
+      cancelLoadingState()
+      controller.abort()
+    }
+  }, [enabled, url])
+
+  return state
+}
+
+function scheduleDevVaultState(
+  setState: (state: DevVaultLoadState) => void,
+  state: DevVaultLoadState,
+) {
+  const timer = setTimeout(() => setState(state), 0)
+  return () => clearTimeout(timer)
+}
+
+function devVaultErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : mobileText('status.vault.devBridgeFailed')
+}
+
+function useMobileActionAdapterProbe({
+  devVaultStatus,
+  enabled,
+  repositoryRequest,
+  runKey,
+  snapshot,
+  source,
+}: {
+  devVaultStatus: DevVaultLoadState['status']
+  enabled: boolean
+  repositoryRequest: ReadOnlyWorkspaceRequest
+  runKey: string
+  snapshot: MobileWorkspaceSnapshot
+  source: NonNullable<ReadOnlyWorkspaceRequest['source']>
+}) {
+  const lastRunKey = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (source === 'dev' && devVaultStatus !== 'ready') return
+    if (!enabled) return
+    if (lastRunKey.current === runKey) return
+
+    lastRunKey.current = runKey
+    void nativeMobileActionAdapterProof({ repositoryRequest, snapshot })
+      .then((proof) => {
+        console.info(nativeMobileActionAdapterLogLine(proof))
+      })
+      .catch((error) => {
+        console.warn('[mobile-action-adapter-probe] Failed to collect proof:', error)
+      })
+  }, [devVaultStatus, enabled, repositoryRequest, runKey, snapshot, source])
+}
+
 function useMobileUiSearchParams() {
   const [nativeSearch, setNativeSearch] = useState('')
   const webSearch = currentWebSearch()
@@ -528,3 +691,26 @@ function envValue(name: string) {
   const processGlobal = globalThis as { process?: { env?: Record<string, string | undefined> } }
   return processGlobal.process?.env?.[name] ?? null
 }
+
+const devVaultStyles = StyleSheet.create({
+  detail: {
+    maxWidth: 520,
+    color: mobileColors.textMuted,
+    fontSize: mobileType.body,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  root: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: mobileSpace.sm,
+    backgroundColor: mobileColors.app,
+    padding: mobileSpace.xxl,
+  },
+  title: {
+    color: mobileColors.text,
+    fontSize: mobileType.title,
+    fontWeight: '600',
+  },
+})

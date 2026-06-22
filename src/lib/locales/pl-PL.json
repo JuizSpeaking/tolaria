@@ -797,6 +797,8 @@
   "status.vault.notFound": "Sejf nie znaleziony: {path}",
   "status.vault.reloading": "Przeładowywanie sejfu...",
   "status.vault.reloadingTooltip": "Przeładowywanie sejfu z dysku",
+  "status.vault.devBridgeMissingUrl": "Ustaw devVaultUrl lub EXPO_PUBLIC_TOLARIA_DEV_VAULT_URL, aby załadować lokalny most do skarbca.",
+  "status.vault.devBridgeFailed": "Lokalny most do skarbca nie powiódł się",
   "status.vault.remove": "Usuń {label} z listy",
   "status.vault.removeConfirmTitle": "Usunąć skarbiec?",
   "status.vault.removeConfirmMessage": "Spowoduje to usunięcie {label} z listy skarbców Tolarii. Pliki na dysku nie zostaną usunięte.",
