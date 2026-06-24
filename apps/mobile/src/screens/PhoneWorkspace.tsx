@@ -892,6 +892,7 @@ function PhoneEditorBody({
       sourceIdleSave={options.sourceIdleSave}
       sourceSelectionProbe={options.sourceSelectionProbe}
       tableOfContentsTarget={tableOfContentsTarget}
+      typeDefinitions={controller.snapshot.typeDefinitions}
       vaultRootUri={controller.vaultRootUri}
       wysiwygAutocompleteProbe={options.wysiwygAutocompleteProbe}
       wysiwygExternalLinkProbe={options.wysiwygExternalLinkProbe}

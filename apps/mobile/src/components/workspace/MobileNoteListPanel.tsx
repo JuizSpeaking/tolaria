@@ -16,7 +16,6 @@ import type { MobileNeighborhood, MobileNeighborhoodGroup } from '../../workspac
 import type { MobileNote, MobilePropertyDisplayMode, MobileTypeDefinitions } from '../../workspace/mobileWorkspaceModel'
 import { MobileNoteListBulkActionBar } from './MobileNoteListBulkActionBar'
 import { MobileTypeIcon } from './MobileWorkspaceIcons'
-import { mobileTypeConfiguredIcon } from './MobileWorkspaceIconNames'
 import { mobileNoteListToolbarChrome } from './MobileNoteListPanelChrome'
 import {
   addMobileNoteListSelection,
@@ -458,11 +457,11 @@ function noteRow({
       title={note.title}
       trailing={(
         <MobileTypeIcon
-          configuredIcon={mobileTypeConfiguredIcon(note.type, typeDefinitions)}
           fileKind={note.fileKind}
           size={16}
           tone={note.typeTone}
           type={note.type}
+          typeDefinitions={typeDefinitions}
         />
       )}
       onLongPress={onBeginSelection ? () => onBeginSelection(note.id) : undefined}

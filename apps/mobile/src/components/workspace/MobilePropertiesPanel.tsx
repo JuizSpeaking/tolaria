@@ -20,7 +20,6 @@ import {
   type MobileInspectorRelationshipSlot,
 } from '../../workspace/mobileInspectorSchema'
 import { MobileTypeIcon } from './MobileWorkspaceIcons'
-import { mobileTypeConfiguredIcon } from './MobileWorkspaceIconNames'
 import { chipTone, noteTypeColor, noteTypeSoftColor, statusTone, tagTone } from './mobileWorkspaceTone'
 import { MobileFrontmatterStateNotice } from './MobileFrontmatterStateNotice'
 import { mobileRelationshipValueMetricSegments } from './MobilePropertiesPanelModel'
@@ -613,10 +612,10 @@ function RelationshipValues({
               }}
             >
               <MobileTypeIcon
-                configuredIcon={mobileTypeConfiguredIcon(value.type, typeDefinitions)}
                 size={desktopRelationshipParity.iconSize}
                 tone={value.typeTone}
                 type={value.type}
+                typeDefinitions={typeDefinitions}
               />
               <Text
                 numberOfLines={1}
@@ -697,11 +696,11 @@ function ReferenceValues({
           onPress={() => onSelectNote(note.id)}
         >
           <MobileTypeIcon
-            configuredIcon={mobileTypeConfiguredIcon(note.type, typeDefinitions)}
             fileKind={note.fileKind}
             size={desktopRelationshipParity.iconSize}
             tone={note.typeTone}
             type={note.type}
+            typeDefinitions={typeDefinitions}
           />
           <Text numberOfLines={1} style={[referenceStyles.text, relationshipTextTone(note.typeTone)]}>
             {note.title}

@@ -8,7 +8,7 @@ import { MobileListRow } from '../../ui/MobileListRow'
 import { MobilePanel, MobileToolbar, MobileToolbarSpacer, MobileToolbarTitle } from '../../ui/MobilePanel'
 import { MobileTextInput } from '../../ui/MobileTextInput'
 import { mobileColors, mobileSpace } from '../../ui/tokens'
-import type { MobileNote } from '../../workspace/mobileWorkspaceModel'
+import type { MobileNote, MobileTypeDefinitions } from '../../workspace/mobileWorkspaceModel'
 import { MobileTypeIcon } from './MobileWorkspaceIcons'
 import {
   mobileWysiwygEmojiPayloadForEntry,
@@ -30,6 +30,7 @@ type MobileWysiwygWikilinkPickerProps = {
   onSelect: (payload: NativeWysiwygWikilinkPayload) => void
   onSelectEmoji: (payload: NativeWysiwygPlainTextPayload) => void
   sourceNote?: MobileNote | null
+  typeDefinitions: MobileTypeDefinitions | null | undefined
 }
 
 export function MobileWysiwygWikilinkPicker({
@@ -40,6 +41,7 @@ export function MobileWysiwygWikilinkPicker({
   onSelect,
   onSelectEmoji,
   sourceNote = null,
+  typeDefinitions,
 }: MobileWysiwygWikilinkPickerProps) {
   const [query, setQuery] = useState(initialQuery)
   const suggestions = useMemo(
@@ -91,7 +93,7 @@ export function MobileWysiwygWikilinkPicker({
                 subtitle={note.snippet}
                 testID={`editor-wysiwyg-wikilink-suggestion-${testIdSegment(note.id)}`}
                 title={note.title}
-                trailing={<MobileTypeIcon size={16} tone={note.typeTone} type={note.type} />}
+                trailing={<MobileTypeIcon size={16} tone={note.typeTone} type={note.type} typeDefinitions={typeDefinitions} />}
                 onPress={() => onSelect(mobileWysiwygWikilinkPayloadForNote(note, sourceNote))}
               />
             ))}

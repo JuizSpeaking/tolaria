@@ -22,7 +22,7 @@ export function MoreActionsContent(props: MobileWorkspaceActionSheetProps) {
 
   return (
     <MoreActionsScroll>
-      <SelectedNoteSummary note={selectedNote} />
+      <SelectedNoteSummary note={selectedNote} typeDefinitions={props.typeDefinitions} />
       <SelectedNoteActionRows note={selectedNote} props={props} />
       {isMobileMarkdownActionNote(selectedNote) ? <MarkdownNoteMoreActionRows note={selectedNote} props={props} /> : null}
       <DeepLinkActionRow onClose={props.onClose} onCopyDeepLink={props.onCopyDeepLink} />
@@ -143,10 +143,16 @@ function DeepLinkActionRow({
   )
 }
 
-function SelectedNoteSummary({ note }: { note: MobileNote }) {
+function SelectedNoteSummary({
+  note,
+  typeDefinitions,
+}: {
+  note: MobileNote
+  typeDefinitions: MobileWorkspaceActionSheetProps['typeDefinitions']
+}) {
   return (
     <View style={styles.summary} testID="workspace-action-sheet-note-summary">
-      <MobileTypeIcon size={desktopToolbarActionParity.iconSize} tone={note.typeTone} type={note.type} />
+      <MobileTypeIcon size={desktopToolbarActionParity.iconSize} tone={note.typeTone} type={note.type} typeDefinitions={typeDefinitions} />
       <Text numberOfLines={1} style={styles.summaryTitle}>{note.title}</Text>
       {note.favorite ? <Star color={mobileColors.primary} size={desktopToolbarActionParity.iconSize} weight="fill" /> : null}
       <MobileChip label={note.type} tone={chipTone(note.typeTone)} />

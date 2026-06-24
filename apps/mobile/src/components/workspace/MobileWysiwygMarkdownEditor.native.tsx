@@ -13,7 +13,7 @@ import {
 import { nativeWysiwygDocumentWithInputTransforms } from '../../workspace/mobileWysiwygInputTransforms'
 import { readMobileClipboardText } from '../../workspace/mobileClipboard'
 import { mobileHtmlWithResolvedAttachmentUris } from '../../workspace/mobileAttachmentUris'
-import type { MobileEditorBlock, MobileNote } from '../../workspace/mobileWorkspaceModel'
+import type { MobileEditorBlock, MobileNote, MobileTypeDefinitions } from '../../workspace/mobileWorkspaceModel'
 import { probeProps, type MobileLayoutProbe } from '../../qa/mobileLayoutProbe'
 import { mobileColors, mobileSpace } from '../../ui/tokens'
 import { MobileMarkdownFormattingToolbar } from './MobileMarkdownFormattingToolbar'
@@ -101,6 +101,7 @@ type MobileWysiwygMarkdownEditorProps = {
   onRegisterEditorCommands?: RegisterMobileEditorCommands
   onUpdateContent: (noteId: string, content: string) => void
   vaultRootUri?: string | null
+  typeDefinitions: MobileTypeDefinitions | null | undefined
   wysiwygAutocompleteProbe?: boolean
   wysiwygExternalLinkProbe?: boolean
   wysiwygFormatCommandProbe?: boolean
@@ -149,7 +150,7 @@ type NativeWysiwygInputTransformProbeRun = {
   editor: ContentSettableEditorBridge & SelectionSettableEditorBridge
   step: NativeWysiwygInputTransformProbeStep
 }
-type NativeTentapEditorBridgeOptions = Omit<MobileWysiwygMarkdownEditorProps, 'notes'> & {
+type NativeTentapEditorBridgeOptions = Omit<MobileWysiwygMarkdownEditorProps, 'notes' | 'typeDefinitions'> & {
   initialDocumentContent: string
   onInlineAutocomplete: NativeWysiwygInlineAutocompleteHandler
 }
@@ -172,6 +173,7 @@ type NativeTentapEditorSurfaceProps = {
   onRegisterEditorCommands?: RegisterMobileEditorCommands
   pickerState: NativeWysiwygPickerState | null
   sourceNote: MobileNote
+  typeDefinitions: MobileTypeDefinitions | null | undefined
 }
 type NativeWysiwygExternalLinkSheetState = {
   initialUrl: string
@@ -243,6 +245,7 @@ export function MobileWysiwygMarkdownEditor({
   onImportAttachment,
   onRegisterEditorCommands,
   onUpdateContent,
+  typeDefinitions,
   vaultRootUri = null,
   wysiwygAutocompleteProbe = false,
   wysiwygExternalLinkProbe = false,
@@ -307,6 +310,7 @@ export function MobileWysiwygMarkdownEditor({
       onRegisterEditorCommands={onRegisterEditorCommands}
       pickerState={pickerState}
       sourceNote={note}
+      typeDefinitions={typeDefinitions}
       externalLinkState={externalLinkState}
       onCloseExternalLinkSheet={handleCloseExternalLinkSheet}
       onCloseWikilinkPicker={handleCloseWikilinkPicker}
@@ -335,6 +339,7 @@ function NativeTentapEditorSurface({
   onRegisterEditorCommands,
   pickerState,
   sourceNote,
+  typeDefinitions,
 }: NativeTentapEditorSurfaceProps) {
   const actions = useNativeTentapEditorSurfaceActions({
     editor,
@@ -382,6 +387,7 @@ function NativeTentapEditorSurface({
         notes={notes}
         pickerState={pickerState}
         sourceNote={sourceNote}
+        typeDefinitions={typeDefinitions}
         onClose={onCloseWikilinkPicker}
       />
       <NativeWysiwygExternalLinkOverlay
@@ -469,12 +475,14 @@ function NativeWysiwygPickerOverlay({
   notes,
   pickerState,
   sourceNote,
+  typeDefinitions,
   onClose,
 }: {
   actions: NativeTentapEditorSurfaceActions
   notes: MobileNote[]
   pickerState: NativeWysiwygPickerState | null
   sourceNote: MobileNote
+  typeDefinitions: MobileTypeDefinitions | null | undefined
   onClose: () => void
 }) {
   if (!pickerState) return null
@@ -486,6 +494,7 @@ function NativeWysiwygPickerOverlay({
       kind={pickerState.kind}
       notes={notes}
       sourceNote={sourceNote}
+      typeDefinitions={typeDefinitions}
       onClose={onClose}
       onSelect={actions.handleInsertWikilink}
       onSelectEmoji={actions.handleInsertEmoji}

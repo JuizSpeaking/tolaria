@@ -1,25 +1,25 @@
 import { StyleSheet } from 'react-native'
 import { Text } from '../ui/text'
-import type { MobileFileKind, MobileTone } from '../../workspace/mobileWorkspaceModel'
+import type { MobileFileKind, MobileTone, MobileTypeDefinitions } from '../../workspace/mobileWorkspaceModel'
 import {
   mobilePhosphorIconElement,
   requiredMobilePhosphorIcon,
 } from './MobileWorkspaceIconResolver'
-import { mobileTypeIconCandidates } from './MobileWorkspaceIconNames'
+import { mobileTypeConfiguredIcon, mobileTypeIconCandidates } from './MobileWorkspaceIconNames'
 import { noteTypeColor } from './mobileWorkspaceTone'
 
 export function MobileTypeIcon({
-  configuredIcon,
   size,
   tone,
   type,
+  typeDefinitions,
   fileKind,
 }: {
-  configuredIcon?: string | null
   fileKind?: MobileFileKind
   size: number
   tone: MobileTone
   type: string
+  typeDefinitions: MobileTypeDefinitions | null | undefined
 }) {
   const color = noteTypeColor(tone)
 
@@ -31,7 +31,7 @@ export function MobileTypeIcon({
     return <FileTextIcon color={color} size={size} />
   }
 
-  for (const icon of mobileTypeIconCandidates(type, configuredIcon)) {
+  for (const icon of mobileTypeIconCandidates(type, mobileTypeConfiguredIcon(type, typeDefinitions))) {
     const iconElement = mobilePhosphorIconElement(icon, { color, size })
     if (iconElement) return iconElement
   }

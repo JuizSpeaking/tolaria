@@ -203,6 +203,7 @@ function TabletWorkspaceChrome(props: TabletWorkspaceChromeProps) {
         gestures={gestures}
         suggestionNotes={suggestionNotes}
         tableOfContentsTarget={tableOfContentsTarget}
+        typeDefinitions={snapshot.typeDefinitions}
         onRegisterEditorCommands={editorCommandRegistry.register}
         onNavigateWikilink={handleNavigateWikilink}
       />
@@ -398,6 +399,7 @@ type TabletEditorPanelHostProps = Pick<
   onRegisterEditorCommands?: RegisterMobileEditorCommands
   suggestionNotes: MobileNote[]
   tableOfContentsTarget: TabletTableOfContentsTargetRequest | null
+  typeDefinitions: MobileWorkspaceSnapshot['typeDefinitions']
 }
 
 function TabletEditorPanelHost({
@@ -419,6 +421,7 @@ function TabletEditorPanelHost({
   sourceSelectionProbe,
   suggestionNotes,
   tableOfContentsTarget,
+  typeDefinitions,
   vaultRootUri,
   wysiwygAutocompleteProbe,
   wysiwygExternalLinkProbe,
@@ -450,6 +453,7 @@ function TabletEditorPanelHost({
       sourceIdleSave={sourceIdleSave}
       sourceSelectionProbe={sourceSelectionProbe}
       tableOfContentsTarget={tableOfContentsTarget}
+      typeDefinitions={typeDefinitions}
       vaultRootUri={vaultRootUri}
       wysiwygAutocompleteProbe={wysiwygAutocompleteProbe}
       wysiwygExternalLinkProbe={wysiwygExternalLinkProbe}

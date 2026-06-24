@@ -27,7 +27,7 @@ import { desktopEditorParity, desktopToolbarActionParity } from '../ui/desktopPa
 import { mobileColors, mobileSpace, mobileType } from '../ui/tokens'
 import { MobileLayoutProbeReadout } from '../qa/MobileLayoutProbeReadout'
 import { useMobileLayoutProbe, type MobileLayoutProbe } from '../qa/mobileLayoutProbe'
-import type { MobileEditorBlock, MobileNote } from '../workspace/mobileWorkspaceModel'
+import type { MobileEditorBlock, MobileNote, MobileTypeDefinitions } from '../workspace/mobileWorkspaceModel'
 import {
   type MobileTableOfContentsTarget,
 } from '../workspace/mobileTableOfContents'
@@ -68,6 +68,7 @@ type TabletEditorPanelProps = {
   sourceIdleSave?: boolean
   sourceSelectionProbe?: boolean
   tableOfContentsTarget?: MobileTableOfContentsTarget | null
+  typeDefinitions?: MobileTypeDefinitions
   vaultRootUri?: string | null
   wysiwygAutocompleteProbe?: boolean
   wysiwygExternalLinkProbe?: boolean
@@ -89,6 +90,7 @@ type EditorToolbarProps = {
   onOpenMoreActions: () => void
   onToggleSourceMode: () => void
   onToggleFavorite: () => void
+  typeDefinitions?: MobileTypeDefinitions
 }
 
 type EditorPanelBodyProps = {
@@ -110,6 +112,7 @@ type EditorContentProps = {
   notes: MobileNote[]
   layoutProbe: MobileLayoutProbe
   plainText: boolean
+  typeDefinitions?: MobileTypeDefinitions
   onNavigateWikilink: (target: string) => void
   onImportAttachment?: MobileAttachmentImporter
   onOpenLink: MobileAttachmentLinkOpener
@@ -158,6 +161,7 @@ export function TabletEditorPanel(props: TabletEditorPanelProps) {
     sourceIdleSave = true,
     sourceSelectionProbe = false,
     tableOfContentsTarget = null,
+    typeDefinitions,
     vaultRootUri = null,
     wysiwygAutocompleteProbe = false,
     wysiwygExternalLinkProbe = false,
@@ -210,6 +214,7 @@ export function TabletEditorPanel(props: TabletEditorPanelProps) {
     plainText,
     sourceIdleSave,
     sourceSelectionProbe,
+    typeDefinitions,
     vaultRootUri,
     wysiwygAutocompleteProbe,
     wysiwygExternalLinkProbe,
@@ -233,6 +238,7 @@ export function TabletEditorPanel(props: TabletEditorPanelProps) {
         onOpenMoreActions={onOpenMoreActions}
         onToggleSourceMode={toggleSourceMode}
         onToggleFavorite={onToggleFavorite}
+        typeDefinitions={typeDefinitions}
       />
       <EditorPanelBody
         compact={compact}
@@ -258,7 +264,7 @@ function EditorPanelBody({
   if (fileMode === 'binary') {
     return (
       <ScrollView contentContainerStyle={panelStyles.filePreviewContent} testID="editor-scroll">
-        <MobileFilePreviewFallback note={note} />
+        <MobileFilePreviewFallback note={note} typeDefinitions={contentProps.typeDefinitions} />
       </ScrollView>
     )
   }
@@ -347,6 +353,7 @@ function EditorToolbar({
   onOpenMoreActions,
   onToggleSourceMode,
   onToggleFavorite,
+  typeDefinitions,
 }: EditorToolbarProps) {
   const chipLabel = editorToolbarChipLabel(fileMode)
 
@@ -354,7 +361,7 @@ function EditorToolbar({
     <MobileToolbar testID="editor-toolbar">
       {leading}
       <FileText color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />
-      <EditorToolbarIcon fileMode={fileMode} note={note} />
+      <EditorToolbarIcon fileMode={fileMode} note={note} typeDefinitions={typeDefinitions} />
       <MobileToolbarTitle testID="editor-toolbar-title" title={note.title} />
       {chipLabel ? <MobileChip label={chipLabel} tone="gray" /> : null}
       <EditorToolbarActions
@@ -373,7 +380,8 @@ function EditorToolbar({
 function EditorToolbarIcon({
   fileMode,
   note,
-}: Pick<EditorToolbarProps, 'fileMode' | 'note'>) {
+  typeDefinitions,
+}: Pick<EditorToolbarProps, 'fileMode' | 'note' | 'typeDefinitions'>) {
   if (fileMode === 'markdown') {
     return (
       <MobileNoteIcon
@@ -385,7 +393,7 @@ function EditorToolbarIcon({
     )
   }
 
-  return <MobileTypeIcon fileKind={note.fileKind} size={desktopToolbarActionParity.iconSize} tone={note.typeTone} type={note.type} />
+  return <MobileTypeIcon fileKind={note.fileKind} size={desktopToolbarActionParity.iconSize} tone={note.typeTone} type={note.type} typeDefinitions={typeDefinitions} />
 }
 
 function EditorToolbarActions(props: EditorToolbarProps) {
@@ -453,6 +461,7 @@ function EditorContent({
   onUpdateContent,
   sourceIdleSave,
   sourceSelectionProbe = false,
+  typeDefinitions,
   vaultRootUri = null,
   wysiwygAutocompleteProbe = false,
   wysiwygExternalLinkProbe = false,
@@ -496,6 +505,7 @@ function EditorContent({
         onImportAttachment={onImportAttachment}
         onRegisterEditorCommands={onRegisterEditorCommands}
         onUpdateContent={onUpdateContent}
+        typeDefinitions={typeDefinitions}
         vaultRootUri={vaultRootUri}
         wysiwygAutocompleteProbe={wysiwygAutocompleteProbe}
         wysiwygExternalLinkProbe={wysiwygExternalLinkProbe}
@@ -554,10 +564,16 @@ function readModeContentStyle(note: MobileNote, compact: boolean) {
   ]
 }
 
-function MobileFilePreviewFallback({ note }: { note: MobileNote }) {
+function MobileFilePreviewFallback({
+  note,
+  typeDefinitions,
+}: {
+  note: MobileNote
+  typeDefinitions?: MobileTypeDefinitions
+}) {
   return (
     <View style={panelStyles.filePreviewFallback} testID="file-preview-fallback">
-      <MobileTypeIcon fileKind={note.fileKind} size={32} tone={note.typeTone} type={note.type} />
+      <MobileTypeIcon fileKind={note.fileKind} size={32} tone={note.typeTone} type={note.type} typeDefinitions={typeDefinitions} />
       <Text style={panelStyles.filePreviewTitle}>{mobileText('filePreview.previewUnavailable')}</Text>
       <Text style={panelStyles.filePreviewDescription}>{mobileText('filePreview.previewUnavailableDescription')}</Text>
     </View>

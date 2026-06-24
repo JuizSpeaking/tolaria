@@ -1,4 +1,5 @@
 import type { MobileLayoutProbe } from '../../qa/mobileLayoutProbe'
+import type { MobileTypeDefinitions } from '../../workspace/mobileWorkspaceModel'
 import { MobileMarkdownSourceEditor, type MobileMarkdownSourceEditorProps } from './MobileMarkdownSourceEditor'
 
 type MobileWysiwygMarkdownEditorProps = MobileMarkdownSourceEditorProps & {
@@ -13,6 +14,7 @@ type MobileWysiwygMarkdownEditorProps = MobileMarkdownSourceEditorProps & {
   wysiwygWikilinkInsertProbe?: boolean
   wysiwygMutationProbe?: boolean
   vaultRootUri?: string | null
+  typeDefinitions?: MobileTypeDefinitions
 }
 
 export function MobileWysiwygMarkdownEditor({
@@ -27,6 +29,7 @@ export function MobileWysiwygMarkdownEditor({
   wysiwygWikilinkInsertProbe,
   wysiwygMutationProbe,
   vaultRootUri,
+  typeDefinitions,
   ...props
 }: MobileWysiwygMarkdownEditorProps) {
   void layoutProbe
@@ -40,5 +43,6 @@ export function MobileWysiwygMarkdownEditor({
   void wysiwygWikilinkInsertProbe
   void wysiwygMutationProbe
   void vaultRootUri
+  void typeDefinitions
   return <MobileMarkdownSourceEditor {...props} />
 }

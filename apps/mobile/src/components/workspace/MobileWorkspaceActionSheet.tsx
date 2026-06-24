@@ -42,7 +42,6 @@ import {
   shouldShowMobileRelationshipCreateTarget,
 } from '../../workspace/mobileWorkspaceSuggestions'
 import { MobileTypeIcon } from './MobileWorkspaceIcons'
-import { mobileTypeConfiguredIcon } from './MobileWorkspaceIconNames'
 import { MobileMetadataPicker } from './MobileMetadataPicker'
 import { MobileSortPicker } from './MobileSortPicker'
 import { MobilePropertyValueEditor } from './MobilePropertyValueEditor'
@@ -425,10 +424,10 @@ function SearchContent({
             title={note.title}
             trailing={(
               <MobileTypeIcon
-                configuredIcon={mobileTypeConfiguredIcon(note.type, typeDefinitions)}
                 size={16}
                 tone={note.typeTone}
                 type={note.type}
+                typeDefinitions={typeDefinitions}
               />
             )}
             onPress={() => selectResult(note)}
@@ -973,10 +972,10 @@ function AddRelationshipContent({
               onPress={() => onRelationshipNoteSelect(note.title, `[[${mobileWikilinkTargetForNote(note, selectedNote)}]]`)}
             >
               <MobileTypeIcon
-                configuredIcon={mobileTypeConfiguredIcon(note.type, typeDefinitions)}
                 size={16}
                 tone={note.typeTone}
                 type={note.type}
+                typeDefinitions={typeDefinitions}
               />
               <Text numberOfLines={1} style={styles.suggestionTitle}>{note.title}</Text>
               <MobileChip label={note.type} tone={chipTone(note.typeTone)} />
