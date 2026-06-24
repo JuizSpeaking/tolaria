@@ -64,6 +64,7 @@ import {
   mobileWorkspaceRelationshipTargetMaxSuggestions,
   mobileWorkspaceFormSheetAutoFocus,
   mobileWorkspaceFormSheetMaxSuggestions,
+  mobileWorkspaceSuggestionRowLayoutContract,
 } from './MobileWorkspaceActionSheetModel'
 
 export type MobileWorkspaceAction =
@@ -1266,13 +1267,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   suggestionRow: {
-    minHeight: 34,
+    minHeight: mobileWorkspaceSuggestionRowLayoutContract.minHeight,
     alignItems: 'center',
     flexDirection: 'row',
-    gap: mobileSpace.sm,
-    borderRadius: 6,
-    paddingHorizontal: mobileSpace.sm,
-    paddingVertical: mobileSpace.xs,
+    gap: mobileWorkspaceSuggestionRowLayoutContract.gap,
+    backgroundColor: mobileColors.control,
+    borderColor: mobileColors.border,
+    borderRadius: mobileWorkspaceSuggestionRowLayoutContract.radius,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: mobileWorkspaceSuggestionRowLayoutContract.paddingHorizontal,
+    paddingVertical: mobileWorkspaceSuggestionRowLayoutContract.paddingVertical,
   },
   suggestionRowPressed: {
     backgroundColor: mobileColors.graySoft,
