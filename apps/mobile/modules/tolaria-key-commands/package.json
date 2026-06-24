@@ -1,0 +1,8 @@
+{
+  "name": "tolaria-key-commands",
+  "version": "0.1.0",
+  "description": "Tolaria iPad hardware keyboard command bridge.",
+  "license": "AGPL-3.0-or-later",
+  "private": true,
+  "main": "index.js"
+}

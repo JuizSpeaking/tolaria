@@ -127,6 +127,7 @@ function PhoneWorkspaceChrome(props: PhoneWorkspaceChromeProps) {
     phoneState,
   })
   useMobileWorkspaceKeyboardShortcuts({
+    nativeNoteNavigationEnabled: phoneState === 'list',
     onCreateNote: controller.onOpenCreateNote,
     onOpenFindInNote: controller.onOpenFindInNote,
     onOpenCommandPalette: commandPalette.open,

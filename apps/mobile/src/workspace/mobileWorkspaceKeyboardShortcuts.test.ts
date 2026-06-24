@@ -3,7 +3,9 @@ import {
   installMobileWorkspaceKeyboardShortcuts,
   keyboardTargets,
   mobileWorkspaceKeyboardAction,
+  shouldHandleMobileWorkspaceKeyboardAction,
 } from './mobileWorkspaceKeyboardShortcuts'
+import type { NativeMobileKeyCommandEvent } from '../native/mobileNativeKeyCommands'
 
 describe('mobile workspace keyboard shortcuts', () => {
   it('opens quick search from desktop quick-open shortcuts', () => {
@@ -66,20 +68,69 @@ describe('mobile workspace keyboard shortcuts', () => {
     remove?.()
     expect(document.removed).toBe(1)
   })
+
+  it('subscribes to optional native key-command events', () => {
+    const nativeModule = nativeKeyboardModule()
+    const actions: Array<ReturnType<typeof mobileWorkspaceKeyboardAction>> = []
+    const remove = installMobileWorkspaceKeyboardShortcuts(
+      (event) => actions.push(mobileWorkspaceKeyboardAction(event)),
+      {},
+      nativeModule,
+    )
+
+    nativeModule.send(nativeShortcutEvent('k'))
+    expect(actions).toEqual(['commandPalette'])
+    remove?.()
+    expect(nativeModule.removed).toBe(1)
+  })
+
+  it('can disable native note-list arrow navigation when the list is not active', () => {
+    const event = nativeShortcutEvent('ArrowDown', { metaKey: false })
+    const action = mobileWorkspaceKeyboardAction(event)
+
+    expect(action).toBe('nextNote')
+    if (!action) throw new Error('Expected ArrowDown to resolve to nextNote')
+
+    expect(shouldHandleMobileWorkspaceKeyboardAction(action, event, {
+      nativeNoteNavigationEnabled: false,
+    })).toBe(false)
+  })
 })
 
 function shortcut(
   key: string,
-  overrides: Partial<Pick<KeyboardEvent, 'altKey' | 'code' | 'ctrlKey' | 'metaKey' | 'shiftKey'>> = {},
+  overrides: Partial<Pick<KeyboardEvent, 'altKey' | 'code' | 'ctrlKey' | 'metaKey' | 'shiftKey'>> & { source?: 'native' } = {},
 ) {
-  return mobileWorkspaceKeyboardAction({
+  return mobileWorkspaceKeyboardAction(shortcutEvent(key, overrides))
+}
+
+function shortcutEvent(
+  key: string,
+  overrides: Partial<Pick<KeyboardEvent, 'altKey' | 'code' | 'ctrlKey' | 'metaKey' | 'shiftKey'>> & { source?: 'native' } = {},
+) {
+  return {
     altKey: false,
     ctrlKey: false,
     key,
     metaKey: true,
     shiftKey: false,
     ...overrides,
-  })
+  }
+}
+
+function nativeShortcutEvent(
+  key: string,
+  overrides: Partial<Pick<NativeMobileKeyCommandEvent, 'altKey' | 'code' | 'ctrlKey' | 'metaKey' | 'shiftKey'>> = {},
+): NativeMobileKeyCommandEvent {
+  return {
+    altKey: false,
+    ctrlKey: false,
+    key,
+    metaKey: true,
+    shiftKey: false,
+    source: 'native',
+    ...overrides,
+  }
 }
 
 function unmodifiedShortcut(key: string) {
@@ -101,6 +152,25 @@ function keyboardTarget() {
     },
     removeEventListener() {
       this.removed += 1
+    },
+  }
+}
+
+function nativeKeyboardModule() {
+  let listener: ((event: NativeMobileKeyCommandEvent) => void) | null = null
+  return {
+    removed: 0,
+    addListener(_eventName: 'onShortcut', nextListener: (event: NativeMobileKeyCommandEvent) => void) {
+      listener = nextListener
+      return {
+        remove: () => {
+          this.removed += 1
+          listener = null
+        },
+      }
+    },
+    send(event: NativeMobileKeyCommandEvent) {
+      listener?.(event)
     },
   }
 }

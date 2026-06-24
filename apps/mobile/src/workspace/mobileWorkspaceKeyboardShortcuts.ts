@@ -1,6 +1,12 @@
 import { useEffect } from 'react'
+import {
+  optionalNativeMobileKeyCommandsModule,
+  type NativeMobileKeyCommandEvent,
+  type NativeMobileKeyCommandsModule,
+} from '../native/mobileNativeKeyCommands'
 
 type KeyboardShortcutHandlers = {
+  nativeNoteNavigationEnabled?: boolean
   onCreateNote?: () => void
   onOpenFindInNote?: () => void
   onOpenCommandPalette: () => void
@@ -24,12 +30,19 @@ type KeyboardDocument = {
 }
 type KeyboardListenerOptions = { capture?: boolean } | boolean
 type KeyboardTargetCandidate = Partial<KeyboardDocument> | null | undefined
+type KeyboardShortcutSubscription = { remove: () => void }
 type KeyboardTargetHost = {
   document?: (Partial<KeyboardDocument> & { body?: KeyboardTargetCandidate }) | null
   window?: KeyboardTargetCandidate
 }
+type MobileKeyboardShortcutEvent =
+  Pick<KeyboardEvent, 'altKey' | 'ctrlKey' | 'key' | 'metaKey' | 'shiftKey'> &
+  Partial<Pick<KeyboardEvent, 'code' | 'preventDefault' | 'target'>> & {
+    source?: 'native'
+  }
 
 export function useMobileWorkspaceKeyboardShortcuts({
+  nativeNoteNavigationEnabled = true,
   onCreateNote,
   onOpenFindInNote,
   onOpenCommandPalette,
@@ -39,12 +52,12 @@ export function useMobileWorkspaceKeyboardShortcuts({
   onToggleRawEditor,
 }: KeyboardShortcutHandlers) {
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: MobileKeyboardShortcutEvent) => {
       const action = mobileWorkspaceKeyboardAction(event)
       if (!action) return
-      if (noteNavigationAction(action) && keyboardEventTargetAcceptsTextInput(event)) return
+      if (!shouldHandleMobileWorkspaceKeyboardAction(action, event, { nativeNoteNavigationEnabled })) return
 
-      event.preventDefault()
+      event.preventDefault?.()
       if (action === 'commandPalette') onOpenCommandPalette()
       else if (action === 'findInNote') onOpenFindInNote?.()
       else if (action === 'nextNote') onSelectNextNote?.()
@@ -63,19 +76,28 @@ export function useMobileWorkspaceKeyboardShortcuts({
     onSelectNextNote,
     onSelectPreviousNote,
     onToggleRawEditor,
+    nativeNoteNavigationEnabled,
   ])
 }
 
 export function installMobileWorkspaceKeyboardShortcuts(
-  listener: (event: KeyboardEvent) => void,
+  listener: (event: MobileKeyboardShortcutEvent) => void,
   host: KeyboardTargetHost = globalThis as KeyboardTargetHost,
+  nativeModule: NativeMobileKeyCommandsModule | null = optionalNativeMobileKeyCommandsModule(),
 ) {
   const targets = keyboardTargets(host)
-  if (targets.length === 0) return undefined
+  const subscriptions: KeyboardShortcutSubscription[] = []
 
   const options = { capture: true }
-  targets.forEach((target) => target.addEventListener('keydown', listener, options))
-  return () => targets.forEach((target) => target.removeEventListener('keydown', listener, options))
+  targets.forEach((target) => {
+    const keyboardListener = listener as (event: KeyboardEvent) => void
+    target.addEventListener('keydown', keyboardListener, options)
+    subscriptions.push({ remove: () => target.removeEventListener('keydown', keyboardListener, options) })
+  })
+  if (nativeModule) subscriptions.push(nativeModule.addListener('onShortcut', listener))
+  if (subscriptions.length === 0) return undefined
+
+  return () => subscriptions.forEach((subscription) => subscription.remove())
 }
 
 export function keyboardTargets(host: KeyboardTargetHost): KeyboardDocument[] {
@@ -122,6 +144,16 @@ export function mobileWorkspaceKeyboardAction(
   return null
 }
 
+export function shouldHandleMobileWorkspaceKeyboardAction(
+  action: MobileWorkspaceKeyboardAction,
+  event: MobileKeyboardShortcutEvent | NativeMobileKeyCommandEvent,
+  { nativeNoteNavigationEnabled = true }: { nativeNoteNavigationEnabled?: boolean } = {},
+) {
+  if (!noteNavigationAction(action)) return true
+  if (keyboardEventTargetAcceptsTextInput(event)) return false
+  return event.source !== 'native' || nativeNoteNavigationEnabled
+}
+
 function normalizedKeyboardKey(
   event: Pick<KeyboardEvent, 'key'> & Partial<Pick<KeyboardEvent, 'code'>>,
 ) {
@@ -135,8 +167,8 @@ function noteNavigationAction(action: MobileWorkspaceKeyboardAction) {
   return action === 'nextNote' || action === 'previousNote'
 }
 
-function keyboardEventTargetAcceptsTextInput(event: KeyboardEvent) {
-  const target = event.target as { isContentEditable?: boolean; tagName?: string } | null
+function keyboardEventTargetAcceptsTextInput(event: MobileKeyboardShortcutEvent | NativeMobileKeyCommandEvent) {
+  const target = ('target' in event ? event.target : null) as { isContentEditable?: boolean; tagName?: string } | null
   if (!target) return false
   const tagName = target.tagName?.toLowerCase()
 
