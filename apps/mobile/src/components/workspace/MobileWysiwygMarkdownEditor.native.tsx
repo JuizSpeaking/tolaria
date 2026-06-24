@@ -41,7 +41,6 @@ import {
   nativeWysiwygDocumentWithInsertedAttachment,
   nativeWysiwygDocumentWithInsertedMarkdownBlock,
   nativeWysiwygDocumentWithInsertedPlainText,
-  nativeWysiwygDocumentWithInsertedSlashCommandBlock,
   nativeWysiwygInlineAutocompleteAtSelection,
   type NativeWysiwygAttachmentPayload,
   type NativeWysiwygInlineAutocomplete,
@@ -49,7 +48,6 @@ import {
   type NativeWysiwygMarkdownBlockPayload,
   type NativeWysiwygPlainTextPayload,
   type NativeWysiwygSelection,
-  type NativeWysiwygSlashCommandPayload,
   type NativeWysiwygWikilinkPayload,
 } from './MobileWysiwygWikilinkBridgeModel'
 import {
@@ -165,7 +163,6 @@ type NativeTentapEditorSurfaceProps = {
   insertAttachment: (payload: NativeWysiwygAttachmentPayload, selection?: NativeWysiwygSelection) => void
   insertMarkdownBlock: (payload: NativeWysiwygMarkdownBlockPayload, selection?: NativeWysiwygSelection) => void
   insertPlainText: (payload: NativeWysiwygPlainTextPayload, selection?: NativeWysiwygSelection) => void
-  insertSlashCommandBlock: (payload: NativeWysiwygSlashCommandPayload, selection?: NativeWysiwygSelection) => void
   layoutProbe?: MobileLayoutProbe
   notes: MobileNote[]
   onCloseExternalLinkSheet: () => void
@@ -185,7 +182,6 @@ type NativeTentapEditorSurfaceActions = {
   handleApplyExternalLink: (url: string) => void
   handleFormat: (action: Parameters<typeof applyNativeWysiwygFormat>[1]) => Promise<void>
   handleInsertEmoji: (payload: NativeWysiwygPlainTextPayload) => void
-  handleInsertSlashCommand: (payload: NativeWysiwygSlashCommandPayload) => void
   handleInsertWikilink: (payload: NativeWysiwygWikilinkPayload) => void
   handlePastePlainText: () => void
   handleRemoveExternalLink: () => void
@@ -326,7 +322,6 @@ function NativeTentapEditorSurface({
   insertAttachment,
   insertMarkdownBlock,
   insertPlainText,
-  insertSlashCommandBlock,
   insertWikilink,
   layoutProbe,
   notes,
@@ -346,7 +341,6 @@ function NativeTentapEditorSurface({
     insertAttachment,
     insertMarkdownBlock,
     insertPlainText,
-    insertSlashCommandBlock,
     insertWikilink,
     onCloseExternalLinkSheet,
     onCloseWikilinkPicker,
@@ -404,7 +398,6 @@ function useNativeTentapEditorSurfaceActions({
   insertAttachment,
   insertMarkdownBlock,
   insertPlainText,
-  insertSlashCommandBlock,
   insertWikilink,
   onCloseExternalLinkSheet,
   onCloseWikilinkPicker,
@@ -420,7 +413,6 @@ function useNativeTentapEditorSurfaceActions({
   | 'insertAttachment'
   | 'insertMarkdownBlock'
   | 'insertPlainText'
-  | 'insertSlashCommandBlock'
   | 'insertWikilink'
   | 'onCloseExternalLinkSheet'
   | 'onCloseWikilinkPicker'
@@ -450,10 +442,6 @@ function useNativeTentapEditorSurfaceActions({
     insertPlainText(payload, replacementRange)
     onCloseWikilinkPicker()
   }, [insertPlainText, onCloseWikilinkPicker, replacementRange])
-  const handleInsertSlashCommand = useCallback((payload: NativeWysiwygSlashCommandPayload) => {
-    insertSlashCommandBlock(payload, replacementRange)
-    onCloseWikilinkPicker()
-  }, [insertSlashCommandBlock, onCloseWikilinkPicker, replacementRange])
   const externalLinkSelection = externalLinkState?.selection
   const handleApplyExternalLink = useCallback((url: string) => {
     applyNativeWysiwygExternalLink(editor, url, flushEditorDocument, externalLinkSelection)
@@ -468,7 +456,6 @@ function useNativeTentapEditorSurfaceActions({
     handleApplyExternalLink,
     handleFormat,
     handleInsertEmoji,
-    handleInsertSlashCommand,
     handleInsertWikilink,
     handlePastePlainText,
     handleRemoveExternalLink,
@@ -500,7 +487,6 @@ function NativeWysiwygPickerOverlay({
       onClose={onClose}
       onSelect={actions.handleInsertWikilink}
       onSelectEmoji={actions.handleInsertEmoji}
-      onSelectMarkdownBlock={actions.handleInsertSlashCommand}
     />
   )
 }
@@ -610,10 +596,10 @@ function useNativeTentapEditorBridge({
 }: NativeTentapEditorBridgeOptions) {
   const initialBody = mobileDocumentBody(initialDocumentContent)
   const initialBodyHasContent = initialBody.trim().length > 0
-  const [initialContent] = useState(() => mobileHtmlWithResolvedAttachmentUris(
+  const initialContent = useMemo(() => mobileHtmlWithResolvedAttachmentUris(
     mobileMarkdownBodyToTentapHtml(initialBody),
     vaultRootUri,
-  ))
+  ), [initialBody, vaultRootUri])
   const refs = useNativeTentapEditorRefs(initialDocumentContent)
 
   const flushEditorDocument = useFlushEditorDocument({
@@ -648,12 +634,6 @@ function useNativeTentapEditorBridge({
     refs,
     warning: '[mobile-editor] Failed to insert native WYSIWYG markdown block:',
   })
-  const insertSlashCommandBlock = useNativeWysiwygInserter({
-    flushEditorDocument,
-    insertIntoEditor: insertSlashCommandBlockIntoNativeEditor,
-    refs,
-    warning: '[mobile-editor] Failed to insert native WYSIWYG slash command block:',
-  })
   const insertPlainText = useNativeWysiwygInserter({
     flushEditorDocument,
     insertIntoEditor: insertPlainTextIntoNativeEditor,
@@ -671,7 +651,8 @@ function useNativeTentapEditorBridge({
 
   useEditorBridgeRef(refs.editorRef, editor)
   useEditableContentRef({ blocks, bullets, note, refs })
-  useResetEditorChangeGate({ initialContent, noteId: note.id, refs })
+  useResetEditorChangeGate({ noteId: note.id, refs })
+  useSyncInitialEditorContent({ initialContent, noteId: note.id, refs })
   useNativeWysiwygAutocompleteProbe({ enabled: wysiwygAutocompleteProbe, refs })
   useNativeWysiwygExternalLinkProbe({
     enabled: wysiwygExternalLinkProbe,
@@ -710,7 +691,6 @@ function useNativeTentapEditorBridge({
     insertAttachment,
     insertMarkdownBlock,
     insertPlainText,
-    insertSlashCommandBlock,
     insertWikilink,
   }
 }
@@ -1166,14 +1146,6 @@ async function insertMarkdownBlockIntoNativeEditor(
   return insertPayloadIntoNativeEditor(editor, payload, selection, nativeWysiwygDocumentWithInsertedMarkdownBlock)
 }
 
-async function insertSlashCommandBlockIntoNativeEditor(
-  editor: EditorBridge | null,
-  payload: NativeWysiwygSlashCommandPayload,
-  selection?: NativeWysiwygSelection,
-): Promise<boolean> {
-  return insertPayloadIntoNativeEditor(editor, payload, selection, nativeWysiwygDocumentWithInsertedSlashCommandBlock)
-}
-
 async function insertPlainTextIntoNativeEditor(
   editor: EditorBridge | null,
   payload: NativeWysiwygPlainTextPayload,
@@ -1516,11 +1488,9 @@ function useEditableContentRef({
 }
 
 function useResetEditorChangeGate({
-  initialContent,
   noteId,
   refs,
 }: {
-  initialContent: string
   noteId: string
   refs: NativeTentapEditorRefs
 }) {
@@ -1544,11 +1514,58 @@ function useResetEditorChangeGate({
     acceptsEditorChangesRef,
     firstEditorSerializationRef,
     hasAcceptedEditorChangeRef,
-    initialContent,
     markdownBlockProofReadyRef,
     markdownBlockRenderProofRef,
     noteId,
     tableCommandMutationProofReadyRef,
+  ])
+}
+
+function useSyncInitialEditorContent({
+  initialContent,
+  noteId,
+  refs,
+}: {
+  initialContent: string
+  noteId: string
+  refs: NativeTentapEditorRefs
+}) {
+  const syncedContentRef = useRef<{ content: string; noteId: string } | null>(null)
+  const {
+    acceptsEditorChangesRef,
+    editorReadyTimerRef,
+    editorRef,
+    firstEditorSerializationRef,
+    hasAcceptedEditorChangeRef,
+    saveTimerRef,
+  } = refs
+
+  useEffect(() => {
+    const editor = editorRef.current
+    if (!isContentSettableEditorBridge(editor)) return
+
+    const syncedContent = syncedContentRef.current
+    if (syncedContent?.noteId === noteId && syncedContent.content === initialContent) return
+    if (hasAcceptedEditorChangeRef.current) return
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    if (editorReadyTimerRef.current) clearTimeout(editorReadyTimerRef.current)
+    acceptsEditorChangesRef.current = false
+    firstEditorSerializationRef.current = true
+    editor.setContent(initialContent)
+    syncedContentRef.current = { content: initialContent, noteId }
+    editorReadyTimerRef.current = setTimeout(() => {
+      acceptsEditorChangesRef.current = true
+    }, 250)
+  }, [
+    acceptsEditorChangesRef,
+    editorReadyTimerRef,
+    editorRef,
+    firstEditorSerializationRef,
+    hasAcceptedEditorChangeRef,
+    initialContent,
+    noteId,
+    saveTimerRef,
   ])
 }
 

@@ -36,8 +36,21 @@ type TypeCount = {
 type TypeSectionEntry = [type: string, value: TypeCount]
 
 const typeIcons: Record<string, MobileSidebarIcon> = {
-  procedure: 'procedure',
-  responsibility: 'tag',
+  area: 'palette',
+  book: 'book',
+  evergreen: 'leaf',
+  goal: 'target',
+  journal: 'book-bookmark',
+  month: 'calendar',
+  movie: 'ticket',
+  person: 'users',
+  procedure: 'stack',
+  project: 'folder',
+  quarter: 'calendar-blank',
+  resource: 'books',
+  responsibility: 'gear',
+  sheet: 'calculator',
+  year: 'lighthouse',
 }
 
 export function buildMobileSidebarSections({

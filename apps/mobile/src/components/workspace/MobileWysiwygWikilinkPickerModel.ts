@@ -8,52 +8,10 @@ import type { MobileNote } from '../../workspace/mobileWorkspaceModel'
 import type {
   NativeWysiwygInlineAutocompleteKind,
   NativeWysiwygPlainTextPayload,
-  NativeWysiwygSlashCommandAction,
-  NativeWysiwygSlashCommandPayload,
   NativeWysiwygWikilinkPayload,
 } from './MobileWysiwygWikilinkBridgeModel'
-import { nativeWysiwygMarkdownBlockActions } from './MobileWysiwygFormatCommands'
 
 const EMOJI_SHORTCODE_RESULT_LIMIT = 80
-const slashCommandKeywords = {
-  bulletList: ['bullet', 'bulleted', 'list', 'ul'],
-  codeBlock: ['code', 'fence', 'snippet'],
-  divider: ['divider', 'horizontal', 'rule', 'hr'],
-  heading1: ['heading', 'h1', 'title'],
-  heading2: ['heading', 'h2', 'subtitle'],
-  heading3: ['heading', 'h3'],
-  heading4: ['heading', 'h4'],
-  heading5: ['heading', 'h5'],
-  heading6: ['heading', 'h6'],
-  mathBlock: ['math', 'equation', 'latex', 'formula'],
-  mermaid: ['mermaid', 'diagram', 'flowchart', 'graph'],
-  orderedList: ['numbered', 'ordered', 'list', 'ol'],
-  quote: ['quote', 'blockquote'],
-  table: ['table', 'grid'],
-  taskList: ['task', 'checklist', 'todo', 'list'],
-  whiteboard: ['whiteboard', 'tldraw', 'drawing', 'canvas'],
-} as const satisfies Record<NativeWysiwygSlashCommandAction, readonly string[]>
-const nativeWysiwygTextBlockSlashCommandActions = [
-  'heading1',
-  'heading2',
-  'heading3',
-  'heading4',
-  'heading5',
-  'heading6',
-  'bulletList',
-  'orderedList',
-  'taskList',
-  'quote',
-] as const satisfies readonly NativeWysiwygSlashCommandAction[]
-const nativeWysiwygSlashCommandActions = [
-  ...nativeWysiwygTextBlockSlashCommandActions,
-  ...nativeWysiwygMarkdownBlockActions,
-] as const satisfies readonly NativeWysiwygSlashCommandAction[]
-
-export type MobileWysiwygSlashCommandSuggestion = {
-  action: NativeWysiwygSlashCommandAction
-  keywords: readonly string[]
-}
 
 export function mobileWysiwygWikilinkPickerSuggestions(
   notes: MobileNote[],
@@ -61,6 +19,7 @@ export function mobileWysiwygWikilinkPickerSuggestions(
   kind: NativeWysiwygInlineAutocompleteKind = 'wikilink',
 ): MobileNote[] {
   if (kind === 'emoji') return []
+  if (kind === 'slashCommand') return []
   return kind === 'personMention'
     ? mobilePersonMentionAutocompleteSuggestions(notes, query)
     : mobileWikilinkAutocompleteSuggestions(notes, query)
@@ -79,27 +38,10 @@ export function mobileWysiwygEmojiPickerSuggestions(query: string): EmojiEntry[]
     .slice(0, EMOJI_SHORTCODE_RESULT_LIMIT)
 }
 
-export function mobileWysiwygSlashCommandPickerSuggestions(query: string): MobileWysiwygSlashCommandSuggestion[] {
-  const normalizedQuery = query.trim().toLowerCase()
-  const suggestions = nativeWysiwygSlashCommandActions.map((action) => ({
-    action,
-    keywords: slashCommandKeywords[action],
-  }))
-
-  if (!normalizedQuery) return suggestions
-  return suggestions.filter((suggestion) => mobileWysiwygSlashCommandMatchesQuery(suggestion, normalizedQuery))
-}
-
 export function mobileWysiwygEmojiPayloadForEntry(
   entry: EmojiEntry,
 ): NativeWysiwygPlainTextPayload {
   return { text: entry.emoji }
-}
-
-export function mobileWysiwygSlashCommandPayloadForAction(
-  action: NativeWysiwygSlashCommandAction,
-): NativeWysiwygSlashCommandPayload {
-  return { action }
 }
 
 export function mobileWysiwygWikilinkPayloadForNote(
@@ -120,12 +62,4 @@ function mobileWysiwygEmojiSuggestionRank(entry: EmojiEntry, query: string): num
   if (tokens.some((token) => token.startsWith(query))) return 2
   if (normalizedName.startsWith(query)) return 3
   return 4
-}
-
-function mobileWysiwygSlashCommandMatchesQuery(
-  suggestion: MobileWysiwygSlashCommandSuggestion,
-  query: string,
-): boolean {
-  return suggestion.action.toLowerCase().includes(query)
-    || suggestion.keywords.some((keyword) => keyword.includes(query))
 }

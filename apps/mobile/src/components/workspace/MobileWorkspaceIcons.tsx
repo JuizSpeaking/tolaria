@@ -1,18 +1,11 @@
-import {
-  Archive,
-  FileDashed,
-  FileText,
-  FolderOpen,
-  Rocket,
-  StackSimple,
-  Star,
-  Tag,
-  Tray,
-  type Icon,
-} from 'phosphor-react-native'
 import { StyleSheet } from 'react-native'
 import { Text } from '../ui/text'
 import type { MobileFileKind, MobileTone } from '../../workspace/mobileWorkspaceModel'
+import {
+  mobilePhosphorIconElement,
+  normalizeIconKey,
+  requiredMobilePhosphorIcon,
+} from './MobileWorkspaceIconResolver'
 import { noteTypeColor } from './mobileWorkspaceTone'
 
 export function MobileTypeIcon({
@@ -27,29 +20,16 @@ export function MobileTypeIcon({
   type: string
 }) {
   const color = noteTypeColor(tone)
-  const normalizedType = type.toLowerCase()
 
   if (fileKind === 'binary') {
-    return <FileDashed color={color} size={size} />
+    return <FileDashedIcon color={color} size={size} />
   }
 
   if (fileKind === 'text') {
-    return <FileText color={color} size={size} />
+    return <FileTextIcon color={color} size={size} />
   }
 
-  if (normalizedType.includes('release')) {
-    return <Archive color={color} size={size} />
-  }
-
-  if (normalizedType.includes('procedure')) {
-    return <StackSimple color={color} size={size} />
-  }
-
-  if (normalizedType.includes('project')) {
-    return <FolderOpen color={color} size={size} />
-  }
-
-  return <FileText color={color} size={size} />
+  return mobilePhosphorIconElement(mobileTypeIconKey(type), { color, size }) ?? <FileTextIcon color={color} size={size} />
 }
 
 export function MobileNoteIcon({
@@ -65,6 +45,8 @@ export function MobileNoteIcon({
 }) {
   const trimmedIcon = icon?.trim()
   if (!trimmedIcon) return null
+
+  if (isRemoteIcon(trimmedIcon)) return <FileTextIcon color={color} size={size} testID={testID} />
 
   const iconElement = mobileNoteIconElement(trimmedIcon, { color, size, testID })
   if (iconElement) return iconElement
@@ -88,25 +70,31 @@ function mobileNoteIconElement(
     testID?: string
   },
 ) {
-  const normalized = icon.toLowerCase().replace(/[^a-z0-9]+/gu, '')
-  const IconComponent = noteIconComponents[normalized]
-  return IconComponent ? <IconComponent {...props} /> : null
+  return mobilePhosphorIconElement(icon, props)
 }
 
-const noteIconComponents: Record<string, Icon> = {
-  archive: Archive,
-  file: FileText,
-  folder: FolderOpen,
-  inbox: Tray,
-  note: FileText,
-  procedure: StackSimple,
-  rocket: Rocket,
-  stack: StackSimple,
-  stacksimple: StackSimple,
-  star: Star,
-  tag: Tag,
-  tray: Tray,
+function mobileTypeIconKey(type: string): string {
+  const normalizedType = normalizeIconKey(type)
+  const semanticIcon = semanticTypeIconKey(normalizedType)
+  if (semanticIcon) return semanticIcon
+
+  return type
 }
+
+function semanticTypeIconKey(normalizedType: string | null): string | null {
+  if (!normalizedType) return null
+  if (normalizedType.includes('release')) return 'archive'
+  if (normalizedType.includes('procedure')) return 'stacksimple'
+  if (normalizedType.includes('project')) return 'folderopen'
+  return null
+}
+
+function isRemoteIcon(value: string) {
+  return /^https?:\/\//iu.test(value)
+}
+
+const FileTextIcon = requiredMobilePhosphorIcon('filetext')
+const FileDashedIcon = requiredMobilePhosphorIcon('filedashed')
 
 const styles = StyleSheet.create({
   noteIconText: {

@@ -338,7 +338,7 @@ _organized: false
     expect(snapshot.views?.map((view) => view.definition.name)).toEqual(['Active Projects'])
     expect(snapshot.sidebarSections.find((section) => section.id === 'views')?.items?.[0]).toMatchObject({
       count: '1',
-      icon: 'view',
+      icon: 'rocket',
       id: 'view-active-projects',
       label: 'Active Projects',
       viewId: 'view-active-projects',

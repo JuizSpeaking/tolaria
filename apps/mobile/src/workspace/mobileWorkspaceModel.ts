@@ -88,15 +88,7 @@ export type MobileTypeDefinition = {
 
 export type MobileTypeDefinitions = Record<string, MobileTypeDefinition>
 
-export type MobileSidebarIcon =
-  | 'archive'
-  | 'file'
-  | 'folder'
-  | 'inbox'
-  | 'procedure'
-  | 'star'
-  | 'tag'
-  | 'view'
+export type MobileSidebarIcon = string
 
 export type MobileSidebarItem = {
   active?: boolean

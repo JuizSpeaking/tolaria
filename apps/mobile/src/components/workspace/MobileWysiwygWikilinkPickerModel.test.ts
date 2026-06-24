@@ -3,8 +3,6 @@ import type { MobileNote } from '../../workspace/mobileWorkspaceModel'
 import {
   mobileWysiwygEmojiPayloadForEntry,
   mobileWysiwygEmojiPickerSuggestions,
-  mobileWysiwygSlashCommandPayloadForAction,
-  mobileWysiwygSlashCommandPickerSuggestions,
   mobileWysiwygWikilinkPayloadForNote,
   mobileWysiwygWikilinkPickerSuggestions,
 } from './MobileWysiwygWikilinkPickerModel'
@@ -44,30 +42,10 @@ describe('native WYSIWYG wikilink picker model', () => {
     expect(mobileWysiwygEmojiPayloadForEntry(firstSuggestion)).toEqual({ text: '🚀' })
   })
 
-  it('offers desktop-style native slash-command suggestions for durable block insertions', () => {
-    expect(mobileWysiwygSlashCommandPickerSuggestions('').map((suggestion) => suggestion.action)).toEqual([
-      'heading1',
-      'heading2',
-      'heading3',
-      'heading4',
-      'heading5',
-      'heading6',
-      'bulletList',
-      'orderedList',
-      'taskList',
-      'quote',
-      'divider',
-      'codeBlock',
-      'mathBlock',
-      'mermaid',
-      'table',
-      'whiteboard',
-    ])
-    expect(mobileWysiwygSlashCommandPickerSuggestions('h2').map((suggestion) => suggestion.action)).toEqual(['heading2'])
-    expect(mobileWysiwygSlashCommandPickerSuggestions('todo').map((suggestion) => suggestion.action)).toEqual(['taskList'])
-    expect(mobileWysiwygSlashCommandPickerSuggestions('flow').map((suggestion) => suggestion.action)).toEqual(['mermaid'])
-    expect(mobileWysiwygSlashCommandPayloadForAction('table')).toEqual({ action: 'table' })
-    expect(mobileWysiwygSlashCommandPayloadForAction('heading2')).toEqual({ action: 'heading2' })
+  it('does not expose slash-command suggestions in the mobile picker surface', () => {
+    expect(mobileWysiwygWikilinkPickerSuggestions([
+      note({ title: 'Table planning' }),
+    ], 'table', 'slashCommand')).toEqual([])
   })
 
   it('builds the native insertion payload with the note title as label and canonical path target', () => {

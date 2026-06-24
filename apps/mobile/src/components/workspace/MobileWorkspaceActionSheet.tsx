@@ -685,7 +685,7 @@ function FavoriteActionsContent(props: MobileWorkspaceActionSheetProps) {
 
 function TypeSectionContent(props: MobileWorkspaceActionSheetProps) {
   return (
-    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" style={styles.scrollArea}>
       <MobileTypeSectionActions
         canDelete={props.canDeleteType}
         canMoveDown={props.canMoveTypeDown}
@@ -1187,7 +1187,7 @@ const styles = StyleSheet.create({
   content: {
     alignSelf: 'stretch',
     gap: mobileSpace.md,
-    padding: mobileSpace.md,
+    padding: mobileSpace.lg,
   },
   emptyState: {
     minHeight: 96,
@@ -1203,12 +1203,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: mobileSpace.sm,
+    borderTopColor: mobileColors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: mobileSpace.md,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: desktopPanelParity.toolbarHeight + mobileSpace.xl,
+    justifyContent: 'center',
+    paddingHorizontal: mobileSpace.xl,
+    paddingVertical: desktopPanelParity.toolbarHeight + mobileSpace.xl,
     zIndex: 20,
   },
   resultList: {
@@ -1283,9 +1287,9 @@ const styles = StyleSheet.create({
 
 const sheetStyles = StyleSheet.create({
   sheet: {
-    maxHeight: 620,
-    maxWidth: 520,
-    width: '92%',
+    maxHeight: '84%',
+    maxWidth: 640,
+    width: '100%',
     backgroundColor: mobileColors.card,
     borderColor: mobileColors.borderStrong,
     borderRadius: mobileRadius.lg,

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Archive, CheckCircle, Trash, X } from 'phosphor-react-native'
+import { ArchiveIcon, CheckCircle, Trash, X } from 'phosphor-react-native'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '../ui/text'
 import { mobileText } from '../../i18n/mobileText'
@@ -38,7 +38,7 @@ export function MobileNoteListBulkActionBar({
           testID="note-list-bulk-archive"
           onPress={onArchiveToggle}
         >
-          <Archive color={mobileColors.textInverse} size={16} />
+          <ArchiveIcon color={mobileColors.textInverse} size={16} />
         </BulkActionButton>
         <BulkActionButton
           accessibilityLabel={mobileText('noteList.bulk.delete')}

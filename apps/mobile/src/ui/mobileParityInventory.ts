@@ -120,6 +120,13 @@ export const mobileParityInventory = [
     surface: 'Workspace type icons',
   },
   {
+    assertions: ['native Phosphor export lookup exercised by icon-rendering parent rows and native simulator smoke'],
+    contracts: ['desktopNoteItemParity', 'desktopRelationshipParity', 'desktopSidebarParity'],
+    desktopSource: 'Desktop Phosphor icon names used by type definitions, sidebar entries, note icons, and relationship rows',
+    mobileFile: 'src/components/workspace/MobileWorkspaceIconResolver.tsx',
+    surface: 'Workspace icon resolution',
+  },
+  {
     assertions: ['search/create/properties/more writable user-flow checks', 'source-backed tldraw whiteboard metadata, snapshot, and text-shape add/edit/remove checks'],
     contracts: ['desktopPanelParity', 'desktopPropertyParity', 'desktopToolbarActionParity'],
     desktopSource: 'Desktop command dialogs, note-list search, inspector property forms, and tldraw fenced markdown persistence',

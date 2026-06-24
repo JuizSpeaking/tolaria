@@ -218,14 +218,14 @@ function currentSnapshotSource(
   searchParams: URLSearchParams,
   nativeWorkspace: NativeWorkspaceSelection | null,
 ): NonNullable<ReadOnlyWorkspaceRequest['source']> {
+  const requestedSource = searchParams.get('source') ?? envValue('EXPO_PUBLIC_TOLARIA_WORKSPACE_SOURCE')
   if (nativeWorkspace) return 'native'
-  if (searchParams.get('source') === 'native-vault') return 'native'
-  if (devVaultSourceRequested(searchParams)) return 'dev'
-  return searchParams.get('source') === 'host-vault' ? 'host' : 'fixture'
+  if (requestedSource === 'native-vault') return 'native'
+  if (devVaultSourceRequested(requestedSource)) return 'dev'
+  return requestedSource === 'host-vault' ? 'host' : 'fixture'
 }
 
-function devVaultSourceRequested(searchParams: URLSearchParams) {
-  const source = searchParams.get('source')
+function devVaultSourceRequested(source: string | null) {
   return source === 'dev-vault' || source === 'local-vault'
 }
 

@@ -46,6 +46,18 @@ export function phoneWorkspaceDragOffset(
   return Math.max(-maxOffset, Math.min(maxOffset, dx))
 }
 
+export function phoneWorkspaceDragCommitOffset(
+  state: PhoneWorkspaceState,
+  nextState: PhoneWorkspaceState,
+  width: number,
+): number {
+  if (state === nextState) return 0
+
+  const direction: PhoneWorkspaceSwipeDirection = phoneStateOrder[nextState] > phoneStateOrder[state] ? 'left' : 'right'
+  const limit = phoneWorkspaceDragLimit(state, direction, width)
+  return direction === 'left' ? -limit : limit
+}
+
 export function phoneWorkspaceSidebarDrawerWidth(rootWidth: number): number {
   return Math.min(
     phoneWorkspaceSidebarDrawerMaxWidth,

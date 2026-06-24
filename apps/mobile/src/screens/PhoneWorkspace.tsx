@@ -36,6 +36,7 @@ import { PhoneWorkspaceTransition } from './PhoneWorkspaceTransition'
 import { useTabletWorkspaceController } from './useTabletWorkspaceController'
 import { useMobileInspectorReferenceGroups } from './useMobileInspectorReferenceGroups'
 import {
+  phoneWorkspaceDragCommitOffset,
   phoneWorkspaceDragOffset,
   phoneWorkspaceSidebarDrawerWidth,
   phoneWorkspaceSwipeDestination,
@@ -143,6 +144,7 @@ function PhoneWorkspaceChrome(props: PhoneWorkspaceChromeProps) {
     openProperties: navigation.openProperties,
     openSidebar: navigation.openSidebar,
     phoneState,
+    phoneSwipePreview: dragPreview,
   })
   const suggestionNotes = controller.snapshot.allNotes ?? controller.snapshot.notes
   const preview = phoneWorkspaceDragPreview({
@@ -460,17 +462,23 @@ function usePhoneSwipeHandlers({
   openProperties,
   openSidebar,
   phoneState,
+  phoneSwipePreview,
 }: {
   openEditor: () => void
   openList: () => void
   openProperties: () => void
   openSidebar: () => void
   phoneState: PhoneWorkspaceState
+  phoneSwipePreview: PhoneSwipePreview
 }) {
-  const editorSwipe = useHorizontalSwipe({ onSwipeLeft: openProperties, onSwipeRight: openList })
-  const listSwipe = useHorizontalSwipe({ onSwipeRight: openSidebar })
-  const propertiesSwipe = useHorizontalSwipe({ onSwipeRight: openEditor })
-  const sidebarSwipe = useHorizontalSwipe({ onSwipeLeft: openList })
+  const commitEditor = useCallback(() => phoneSwipePreview.commit('editor', openEditor), [openEditor, phoneSwipePreview])
+  const commitList = useCallback(() => phoneSwipePreview.commit('list', openList), [openList, phoneSwipePreview])
+  const commitProperties = useCallback(() => phoneSwipePreview.commit('properties', openProperties), [openProperties, phoneSwipePreview])
+  const commitSidebar = useCallback(() => phoneSwipePreview.commit('sidebar', openSidebar), [openSidebar, phoneSwipePreview])
+  const editorSwipe = useHorizontalSwipe({ onSwipeLeft: commitProperties, onSwipeRight: commitList })
+  const listSwipe = useHorizontalSwipe({ onSwipeRight: commitSidebar })
+  const propertiesSwipe = useHorizontalSwipe({ onSwipeRight: commitEditor })
+  const sidebarSwipe = useHorizontalSwipe({ onSwipeLeft: commitList })
 
   if (phoneState === 'editor') return editorSwipe
   if (phoneState === 'properties') return propertiesSwipe
@@ -482,6 +490,24 @@ function usePhoneDragPreview(phoneState: PhoneWorkspaceState, screenWidth: numbe
   const enabled = nativePhoneDragPreviewEnabled()
   const [dragX] = useState(() => new NativeAnimated.Value(0))
   const [previewState, setPreviewState] = useState<PhoneWorkspaceState | null>(null)
+  const commit = useCallback((nextState: PhoneWorkspaceState, action: () => void) => {
+    if (!enabled) {
+      action()
+      return
+    }
+
+    dragX.stopAnimation()
+    setPreviewState(nextState)
+    NativeAnimated.timing(dragX, {
+      duration: 160,
+      toValue: phoneWorkspaceDragCommitOffset(phoneState, nextState, screenWidth),
+      useNativeDriver: true,
+    }).start(() => {
+      dragX.setValue(0)
+      setPreviewState(null)
+      action()
+    })
+  }, [dragX, enabled, phoneState, screenWidth])
   const onSwipeProgress = useCallback(({ dx }: { dx: number }) => {
     if (!enabled) return
 
@@ -500,11 +526,7 @@ function usePhoneDragPreview(phoneState: PhoneWorkspaceState, screenWidth: numbe
     if (!enabled) return
 
     dragX.stopAnimation()
-    if (committed) {
-      dragX.setValue(0)
-      setPreviewState(null)
-      return
-    }
+    if (committed) return
 
     NativeAnimated.timing(dragX, {
       duration: 120,
@@ -520,6 +542,7 @@ function usePhoneDragPreview(phoneState: PhoneWorkspaceState, screenWidth: numbe
   }, [dragX])
 
   return {
+    commit,
     dragX,
     enabled,
     onSwipeEnd,
@@ -674,11 +697,7 @@ function PhoneNoteListScreen({
           </View>
         )}
         neighborhood={controller.noteListNeighborhood}
-        noteListFilter={controller.noteListFilter}
-        noteListFilterCounts={controller.noteListFilterCounts}
-        noteListFilterVisible={controller.noteListFilterVisible}
         notes={controller.notes}
-        onNoteListFilterChange={controller.onNoteListFilterChange}
         propertyDisplayModes={controller.snapshot.vaultConfig?.propertyDisplayModes}
         searchQuery={controller.searchQuery || undefined}
         selectedNoteId={controller.selectedNoteId}
@@ -724,11 +743,7 @@ function PhoneSidebarDrawer({
           fullWidth
           layoutProbe={options.layoutProbe}
           neighborhood={controller.noteListNeighborhood}
-          noteListFilter={controller.noteListFilter}
-          noteListFilterCounts={controller.noteListFilterCounts}
-          noteListFilterVisible={controller.noteListFilterVisible}
           notes={controller.notes}
-          onNoteListFilterChange={controller.onNoteListFilterChange}
           propertyDisplayModes={controller.snapshot.vaultConfig?.propertyDisplayModes}
           selectedNoteId={controller.selectedNoteId}
           subtitle={controller.noteListSubtitle}

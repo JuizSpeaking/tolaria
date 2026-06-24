@@ -293,9 +293,6 @@ function TabletNoteListHost({
   gestures,
   layoutProbe,
   noteListNeighborhood,
-  noteListFilter,
-  noteListFilterCounts,
-  noteListFilterVisible,
   noteListProperties,
   noteListSubtitle,
   noteListTitle,
@@ -303,7 +300,6 @@ function TabletNoteListHost({
   onBulkArchiveNotes,
   onBulkDeleteNotes,
   onBulkOrganizeNotes,
-  onNoteListFilterChange,
   onOpenCreateNote,
   onOpenSearch,
   onSelectNote,
@@ -324,7 +320,7 @@ function TabletNoteListHost({
         }}
         displayPropertyKeys={noteListProperties}
         layoutProbe={layoutProbe}
-        leading={compactTablet ? undefined : (
+        leading={(
           <MobileIconButton
             accessibilityLabel={mobileText(gestures.showSidebar ? 'sidebar.action.collapse' : 'sidebar.action.expand')}
             testID="tablet-note-list-sidebar-action"
@@ -334,11 +330,7 @@ function TabletNoteListHost({
           </MobileIconButton>
         )}
         neighborhood={noteListNeighborhood}
-        noteListFilter={noteListFilter}
-        noteListFilterCounts={noteListFilterCounts}
-        noteListFilterVisible={noteListFilterVisible}
         notes={notes}
-        onNoteListFilterChange={onNoteListFilterChange}
         propertyDisplayModes={snapshot.vaultConfig?.propertyDisplayModes}
         searchQuery={searchQuery || undefined}
         selectedNoteId={selectedNoteId}

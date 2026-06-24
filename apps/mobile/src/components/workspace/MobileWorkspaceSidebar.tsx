@@ -1,18 +1,11 @@
 import type { ReactNode } from 'react'
 import {
-  Archive,
   CaretDown,
   Command,
   FileText,
-  FolderOpen,
   Eye,
-  Funnel,
   Plus,
   SidebarSimple,
-  StackSimple,
-  Star,
-  Tag,
-  Tray,
 } from 'phosphor-react-native'
 import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { Text } from '../ui/text'
@@ -31,6 +24,7 @@ import type {
 } from '../../workspace/mobileWorkspaceModel'
 import { MobileSidebarCountPill } from './MobileSidebarCountPill'
 import { FolderTree, type MobileSidebarFolderSelection } from './MobileWorkspaceSidebarFolderTree'
+import { mobilePhosphorIconElement } from './MobileWorkspaceIconResolver'
 import { noteTypeColor, noteTypeSoftColor } from './mobileWorkspaceTone'
 
 export type { MobileSidebarFolderSelection } from './MobileWorkspaceSidebarFolderTree'
@@ -534,15 +528,7 @@ function SectionTitle({
 function sidebarIcon(icon: MobileSidebarIcon, tone?: MobileNote['typeTone'] | 'primary') {
   const color = sidebarIconColor(tone)
 
-  if (icon === 'archive') return <Archive color={color} size={15} />
-  if (icon === 'folder') return <FolderOpen color={color} size={15} />
-  if (icon === 'inbox') return <Tray color={color} size={15} />
-  if (icon === 'procedure') return <StackSimple color={color} size={15} />
-  if (icon === 'star') return <Star color={color} size={15} />
-  if (icon === 'tag') return <Tag color={color} size={15} />
-  if (icon === 'view') return <Funnel color={color} size={15} />
-
-  return <FileText color={color} size={15} />
+  return mobilePhosphorIconElement(icon, { color, size: 15 }) ?? <FileText color={color} size={15} />
 }
 
 function sidebarIconColor(tone?: MobileNote['typeTone'] | 'primary') {

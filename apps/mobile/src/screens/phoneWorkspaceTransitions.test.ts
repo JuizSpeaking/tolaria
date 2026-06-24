@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  phoneWorkspaceDragCommitOffset,
   phoneWorkspaceDragOffset,
   phoneWorkspaceSidebarDrawerWidth,
   phoneWorkspaceSwipeDestination,
@@ -68,6 +69,23 @@ describe('phoneWorkspaceDragOffset', () => {
     expect(phoneWorkspaceDragOffset('list', -120, 320)).toBe(0)
     expect(phoneWorkspaceDragOffset('sidebar', 120, 320)).toBe(0)
     expect(phoneWorkspaceDragOffset('properties', -120, 320)).toBe(0)
+  })
+})
+
+describe('phoneWorkspaceDragCommitOffset', () => {
+  it('settles sidebar/list rail transitions at the drawer edge', () => {
+    expect(phoneWorkspaceDragCommitOffset('list', 'sidebar', 320)).toBe(250)
+    expect(phoneWorkspaceDragCommitOffset('sidebar', 'list', 320)).toBe(-250)
+  })
+
+  it('settles editor/list/properties transitions at the screen edge', () => {
+    expect(phoneWorkspaceDragCommitOffset('editor', 'list', 320)).toBe(320)
+    expect(phoneWorkspaceDragCommitOffset('editor', 'properties', 320)).toBe(-320)
+    expect(phoneWorkspaceDragCommitOffset('properties', 'editor', 320)).toBe(320)
+  })
+
+  it('does not move for unchanged state', () => {
+    expect(phoneWorkspaceDragCommitOffset('list', 'list', 320)).toBe(0)
   })
 })
 

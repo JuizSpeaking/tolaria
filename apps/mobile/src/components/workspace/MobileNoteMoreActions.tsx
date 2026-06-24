@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import {
-  Archive,
+  ArchiveIcon,
   ArrowClockwise,
   ArrowCounterClockwise,
   ArrowSquareOut,
@@ -202,7 +202,7 @@ function NoteStateActionRows({
       <NoteFlagActionRow
         active={note.archived === true}
         activeLabelKey="command.note.unarchiveNote"
-        icon={<Archive color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
+        icon={<ArchiveIcon color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />}
         inactiveLabelKey="command.note.archiveNote"
         testID="workspace-action-archive-note"
         onPress={() => {

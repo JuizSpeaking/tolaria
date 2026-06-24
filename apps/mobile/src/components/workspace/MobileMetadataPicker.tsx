@@ -1,10 +1,11 @@
-import type { ComponentType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
-import { Archive, FileText, FolderOpen, Funnel, StackSimple, Star, Tag, Tray } from 'phosphor-react-native'
+import { FileText } from 'phosphor-react-native'
 import { Text } from '../ui/text'
 import { mobileText } from '../../i18n/mobileText'
 import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
 import type { MobileSidebarIcon, MobileTone } from '../../workspace/mobileWorkspaceModel'
+import { mobilePhosphorIconElement } from './MobileWorkspaceIconResolver'
 import { noteTypeColor, noteTypeSoftColor } from './mobileWorkspaceTone'
 
 type MobileMetadataPickerProps = {
@@ -15,7 +16,20 @@ type MobileMetadataPickerProps = {
   onToneSelect: (tone: MobileTone) => void
 }
 
-const iconOptions: MobileSidebarIcon[] = ['view', 'file', 'folder', 'procedure', 'archive', 'star', 'tag', 'inbox']
+const iconOptions: MobileSidebarIcon[] = [
+  'view',
+  'file',
+  'folder',
+  'procedure',
+  'archive',
+  'star',
+  'tag',
+  'inbox',
+  'book-bookmark',
+  'calendar-blank',
+  'gear',
+  'ticket',
+]
 const toneOptions: MobileTone[] = ['gray', 'green', 'purple', 'orange', 'blue', 'yellow', 'red']
 
 export function MobileMetadataPicker({
@@ -109,7 +123,7 @@ function IconOption({
   selected: boolean
   testID: string
 }) {
-  const Icon = iconComponentByName[icon]
+  const color = selected ? mobileColors.primary : mobileColors.textMuted
 
   return (
     <Pressable
@@ -122,24 +136,13 @@ function IconOption({
       testID={testID}
       onPress={onPress}
     >
-      <Icon color={selected ? mobileColors.primary : mobileColors.textMuted} size={16} />
+      {mobilePhosphorIconElement(icon, { color, size: 16 }) ?? <FileText color={color} size={16} />}
     </Pressable>
   )
 }
 
 function selectedText(key: 'viewDialog.selectedColor' | 'viewDialog.selectedIcon', value: string) {
   return mobileText(key).replace(/\{(?:color|icon)\}/u, value)
-}
-
-const iconComponentByName: Record<MobileSidebarIcon, ComponentType<{ color: string; size: number }>> = {
-  archive: Archive,
-  file: FileText,
-  folder: FolderOpen,
-  inbox: Tray,
-  procedure: StackSimple,
-  star: Star,
-  tag: Tag,
-  view: Funnel,
 }
 
 const styles = StyleSheet.create({

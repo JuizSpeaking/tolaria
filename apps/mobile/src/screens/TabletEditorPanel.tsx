@@ -347,13 +347,15 @@ function EditorToolbar({
   onToggleSourceMode,
   onToggleFavorite,
 }: EditorToolbarProps) {
+  const chipLabel = editorToolbarChipLabel(fileMode)
+
   return (
     <MobileToolbar testID="editor-toolbar">
       {leading}
       <FileText color={mobileColors.textMuted} size={desktopToolbarActionParity.iconSize} />
       <EditorToolbarIcon fileMode={fileMode} note={note} />
       <MobileToolbarTitle testID="editor-toolbar-title" title={note.title} />
-      <MobileChip label={editorToolbarChipLabel(fileMode, note)} tone="gray" />
+      {chipLabel ? <MobileChip label={chipLabel} tone="gray" /> : null}
       <EditorToolbarActions
         editing={editing}
         editingMode={editingMode}
@@ -537,10 +539,10 @@ function editorFileMode(note: MobileNote): EditorFileMode {
   return actionMode === 'text-file' ? 'text' : 'markdown'
 }
 
-function editorToolbarChipLabel(fileMode: EditorFileMode, note: MobileNote): string {
+function editorToolbarChipLabel(fileMode: EditorFileMode): string | null {
   if (fileMode === 'text') return mobileText('filePreview.textFile')
   if (fileMode === 'binary') return mobileText('filePreview.file')
-  return note.workspace
+  return null
 }
 
 function readModeContentStyle(note: MobileNote, compact: boolean) {

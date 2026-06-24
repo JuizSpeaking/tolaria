@@ -13,7 +13,6 @@ import { desktopPanelParity, desktopToolbarActionParity } from '../../ui/desktop
 import { mobileColors, mobileSpace, mobileType } from '../../ui/tokens'
 import { mobileNoteRowChips } from '../../workspace/mobileNoteDisplay'
 import type { MobileNeighborhood, MobileNeighborhoodGroup } from '../../workspace/mobileNeighborhood'
-import type { MobileNoteListFilter } from '../../workspace/mobileNoteFilters'
 import type { MobileNote, MobilePropertyDisplayMode, MobileTypeDefinitions } from '../../workspace/mobileWorkspaceModel'
 import { MobileNoteListBulkActionBar } from './MobileNoteListBulkActionBar'
 import { MobileTypeIcon } from './MobileWorkspaceIcons'
@@ -44,11 +43,7 @@ type MobileNoteListPanelProps = {
   leading?: ReactNode
   layoutProbe?: boolean
   neighborhood?: MobileNeighborhood | null
-  noteListFilter?: MobileNoteListFilter
-  noteListFilterCounts?: Record<MobileNoteListFilter, number>
-  noteListFilterVisible?: boolean
   notes: MobileNote[]
-  onNoteListFilterChange?: (filter: MobileNoteListFilter) => void
   onOpenCreateNote: () => void
   onOpenSearch: () => void
   onSelectNote: (noteId: string) => void

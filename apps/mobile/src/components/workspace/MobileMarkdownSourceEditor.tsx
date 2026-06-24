@@ -183,32 +183,36 @@ function MarkdownSourceEditor(props: Omit<MobileMarkdownSourceEditorProps, 'plai
   return (
     <View style={editorStyles.container} testID="editor-markdown-form">
       <MobileSourceFrontmatterIssueBanner issue={frontmatterIssue} />
-      <SourceEditorInput
-        compact={compact}
-        testID="editor-markdown-input"
-        value={editorDraft.content}
-        selection={autocomplete.controlledSelection}
-        onChangeText={autocomplete.handleMarkdownChange}
-        onSelectionChange={autocomplete.handleSelectionChange}
-      />
-      {autocomplete.suggestions.length > 0 ? (
-        <View style={editorStyles.suggestions} testID={autocomplete.suggestionsTestId}>
-          {autocomplete.suggestions.map((suggestion) => (
-            <Pressable
-              accessibilityLabel={suggestion.title}
-              accessibilityRole="button"
-              key={suggestion.id}
-              style={({ pressed }) => [editorStyles.suggestionRow, pressed ? editorStyles.suggestionRowPressed : null]}
-              testID={`${autocomplete.rowTestIdPrefix}-${testIdSegment(suggestion.id)}`}
-              onPress={() => autocomplete.insertSuggestion(suggestion)}
-            >
-              <Text numberOfLines={1} style={editorStyles.suggestionTitle}>{suggestion.title}</Text>
-              <MobileChip label={suggestion.chipLabel} tone="gray" />
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-      <MobileMarkdownFormattingToolbar onFormat={autocomplete.applyFormat} />
+      <View style={editorStyles.editorBody}>
+        <SourceEditorInput
+          compact={compact}
+          testID="editor-markdown-input"
+          value={editorDraft.content}
+          selection={autocomplete.controlledSelection}
+          onChangeText={autocomplete.handleMarkdownChange}
+          onSelectionChange={autocomplete.handleSelectionChange}
+        />
+        {autocomplete.suggestions.length > 0 ? (
+          <View style={editorStyles.suggestions} testID={autocomplete.suggestionsTestId}>
+            {autocomplete.suggestions.map((suggestion) => (
+              <Pressable
+                accessibilityLabel={suggestion.title}
+                accessibilityRole="button"
+                key={suggestion.id}
+                style={({ pressed }) => [editorStyles.suggestionRow, pressed ? editorStyles.suggestionRowPressed : null]}
+                testID={`${autocomplete.rowTestIdPrefix}-${testIdSegment(suggestion.id)}`}
+                onPress={() => autocomplete.insertSuggestion(suggestion)}
+              >
+                <Text numberOfLines={1} style={editorStyles.suggestionTitle}>{suggestion.title}</Text>
+                <MobileChip label={suggestion.chipLabel} tone="gray" />
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+      </View>
+      <View style={editorStyles.toolbarHost}>
+        <MobileMarkdownFormattingToolbar onFormat={autocomplete.applyFormat} />
+      </View>
     </View>
   )
 }
@@ -241,6 +245,7 @@ function SourceEditorInput({
         multiline
         scrollEnabled
         className="border-0 bg-transparent"
+        underlineColorAndroid="transparent"
         placeholderTextColor={mobileColors.textFaint}
         selectionColor={mobileColors.primary}
         style={editorStyles.highlightedInput}
@@ -706,11 +711,16 @@ function markdownInlineTokenStyle(token: string): StyleProp<TextStyle> {
 const editorStyles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: mobileSpace.md,
+    backgroundColor: mobileColors.editor,
+  },
+  editorBody: {
+    minHeight: 0,
+    flex: 1,
   },
   highlightedInput: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
+    borderColor: 'transparent',
     borderWidth: 0,
     color: 'rgba(55, 53, 47, 0.01)',
     fontFamily: 'Menlo',
@@ -736,6 +746,10 @@ const editorStyles = StyleSheet.create({
   sourceInputHost: {
     flex: 1,
     minHeight: 420,
+    backgroundColor: mobileColors.editor,
+    borderColor: 'transparent',
+    borderWidth: 0,
+    overflow: 'hidden',
     position: 'relative',
   },
   sourceInputHostCompact: {
@@ -827,6 +841,11 @@ const editorStyles = StyleSheet.create({
   },
   suggestions: {
     gap: mobileSpace.xs,
+    borderTopColor: mobileColors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    backgroundColor: mobileColors.editor,
+    paddingHorizontal: mobileSpace.md,
+    paddingVertical: mobileSpace.xs,
   },
   suggestionTitle: {
     minWidth: 0,
@@ -834,5 +853,13 @@ const editorStyles = StyleSheet.create({
     color: mobileColors.text,
     fontSize: mobileType.body,
     fontWeight: '500',
+  },
+  toolbarHost: {
+    flexShrink: 0,
+    borderTopColor: mobileColors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    backgroundColor: mobileColors.editor,
+    paddingHorizontal: mobileSpace.md,
+    paddingTop: mobileSpace.xs,
   },
 })

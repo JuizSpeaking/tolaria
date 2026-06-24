@@ -2,8 +2,12 @@ import type { MobileSidebarIcon, MobileTone } from './mobileWorkspaceModel'
 
 const iconAliases: Record<string, MobileSidebarIcon> = {
   archive: 'archive',
+  bookbookmark: 'bookbookmark',
+  calendarblank: 'calendarblank',
   file: 'file',
+  filetext: 'file',
   folder: 'folder',
+  folderopen: 'folder',
   funnel: 'view',
   inbox: 'inbox',
   note: 'file',
@@ -21,7 +25,7 @@ export function mobileSidebarIconFromValue(
   fallback: MobileSidebarIcon,
 ): MobileSidebarIcon {
   const normalized = value?.trim().toLowerCase().replace(/[^a-z0-9]+/gu, '')
-  return normalized ? iconAliases[normalized] ?? fallback : fallback
+  return normalized ? iconAliases[normalized] ?? normalized : fallback
 }
 
 export function mobileToneFromValue(
