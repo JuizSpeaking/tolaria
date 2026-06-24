@@ -13,8 +13,16 @@ export type NativeMobileKeyCommandsModule = {
     eventName: 'onShortcut',
     listener: (event: NativeMobileKeyCommandEvent) => void,
   ) => { remove: () => void }
+  isSupported?: () => boolean
 }
 
 export function optionalNativeMobileKeyCommandsModule(): NativeMobileKeyCommandsModule | null {
   return null
+}
+
+export function nativeMobileKeyCommandsAvailable(
+  module: NativeMobileKeyCommandsModule | null = optionalNativeMobileKeyCommandsModule(),
+) {
+  if (!module) return false
+  return module.isSupported?.() ?? true
 }

@@ -110,6 +110,7 @@ export type TabletWorkspaceChromeProps = {
   compactTablet: boolean
   initialCommandPaletteOpen?: boolean
   commandPaletteProbe?: boolean
+  keyboardShortcutProbe?: boolean
   defaultPropertiesVisible: boolean
   defaultNoteWidth: MobileNoteWidth | null
   editorBlocks: MobileEditorBlock[]

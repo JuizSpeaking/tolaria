@@ -53,6 +53,8 @@
     "mobile:qa:ios-phone-action-adapters": "node apps/mobile/scripts/assert-ios-mobile-action-adapters.mjs --phone --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&phoneState=editor' --wait 4500",
     "mobile:qa:ios-command-palette": "node apps/mobile/scripts/assert-ios-command-palette.mjs --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1' --wait 4500",
     "mobile:qa:ios-phone-command-palette": "node apps/mobile/scripts/assert-ios-command-palette.mjs --phone --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&phoneState=editor' --wait 4500",
+    "mobile:qa:ios-keyboard-shortcuts": "node apps/mobile/scripts/assert-ios-keyboard-shortcuts.mjs --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&tabletPanels=all' --wait 4500",
+    "mobile:qa:ios-phone-keyboard-shortcuts": "node apps/mobile/scripts/assert-ios-keyboard-shortcuts.mjs --phone --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&phoneState=list' --wait 4500",
     "mobile:qa:ios-source-selection": "node apps/mobile/scripts/assert-ios-source-selection.mjs --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=source' --wait 4500",
     "mobile:qa:ios-phone-source-selection": "node apps/mobile/scripts/assert-ios-source-selection.mjs --phone --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1&editorMode=source&phoneState=editor' --wait 4500",
     "mobile:qa:ios-table-of-contents": "node apps/mobile/scripts/assert-ios-table-of-contents.mjs --open-url 'exp://127.0.0.1:8081/--/?layoutProbe=1' --wait 5500",

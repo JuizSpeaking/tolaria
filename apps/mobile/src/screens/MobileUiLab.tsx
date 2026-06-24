@@ -74,6 +74,9 @@ import {
 import {
   nativeMobileCommandPaletteProbeEnabled,
 } from '../qa/nativeMobileCommandPaletteProbe'
+import {
+  nativeMobileKeyboardShortcutProbeEnabled,
+} from '../qa/nativeMobileKeyboardShortcutProof'
 import { setMobileLayoutMetricSinkUrl } from '../qa/mobileLayoutProbe'
 import type { MobileNote, MobileWorkspaceSnapshot } from '../workspace/mobileWorkspaceModel'
 import {
@@ -166,6 +169,7 @@ export function MobileUiLab() {
         initialEditorEditing={qa.initialEditorEditing}
         initialEditorEditingMode={qa.initialEditorEditingMode}
         commandPaletteProbe={qa.mobileCommandPaletteProbe}
+        keyboardShortcutProbe={qa.mobileKeyboardShortcutProbe}
         layoutProbe={qa.layoutProbe}
         onOpenNativeVault={handleOpenNativeVault}
         repository={repository}
@@ -197,6 +201,7 @@ export function MobileUiLab() {
       initialCommandPaletteOpen={qa.initialCommandPaletteOpen}
       initialActionSheet={qa.initialActionSheet}
       commandPaletteProbe={qa.mobileCommandPaletteProbe}
+      keyboardShortcutProbe={qa.mobileKeyboardShortcutProbe}
       initialState={currentPhoneState(searchParams)}
       layoutProbe={qa.layoutProbe}
       onOpenNativeVault={handleOpenNativeVault}
@@ -266,6 +271,7 @@ function mobileUiQaFlags(
     initialEditorEditing,
     initialEditorEditingMode,
     mobileCommandPaletteProbe: nativeMobileCommandPaletteProbeEnabled(searchParams),
+    mobileKeyboardShortcutProbe: nativeMobileKeyboardShortcutProbeEnabled(searchParams),
     layoutProbe: layoutProbeEnabled(searchParams),
     mobileActionAdapterProbe: nativeMobileActionAdapterProbeEnabled(searchParams),
     sourceSelectionProbe: nativeSourceSelectionProbeEnabled(searchParams),
@@ -477,6 +483,7 @@ function mobileWorkspaceKey({
   forceDesktopPanels,
   layoutProbe,
   mobileCommandPaletteProbe,
+  mobileKeyboardShortcutProbe,
   qaRun,
   scenarioId,
   snapshot,
@@ -503,6 +510,7 @@ function mobileWorkspaceKey({
   forceDesktopPanels: boolean
   layoutProbe: boolean
   mobileCommandPaletteProbe: boolean
+  mobileKeyboardShortcutProbe: boolean
   qaRun: string | null
   scenarioId: string | null
   snapshot: ReturnType<typeof readOnlyWorkspaceRepository.readSnapshot>
@@ -534,6 +542,7 @@ function mobileWorkspaceKey({
     flagKey(initialCommandPaletteOpen, 'command-palette-open', 'command-palette-closed'),
     flagKey(forceDesktopPanels, 'desktop-panels', 'responsive-panels'),
     flagKey(mobileCommandPaletteProbe, 'mobile-command-palette-probe', 'no-mobile-command-palette-probe'),
+    flagKey(mobileKeyboardShortcutProbe, 'mobile-keyboard-shortcut-probe', 'no-mobile-keyboard-shortcut-probe'),
     flagKey(sourceSelectionProbe, 'source-selection-probe', 'no-source-selection-probe'),
     flagKey(mobileActionAdapterProbe, 'mobile-action-adapter-probe', 'no-mobile-action-adapter-probe'),
     flagKey(tableOfContentsProbe, 'table-of-contents-probe', 'no-table-of-contents-probe'),

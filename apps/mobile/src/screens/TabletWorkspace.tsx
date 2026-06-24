@@ -24,6 +24,10 @@ import { buildMobileCommandPaletteCommands } from '../workspace/mobileCommandPal
 import { useMobileWorkspaceKeyboardShortcuts } from '../workspace/mobileWorkspaceKeyboardShortcuts'
 import { logNativeMobileCommandPaletteProof } from '../qa/nativeMobileCommandPaletteProbe'
 import {
+  logNativeMobileKeyboardShortcutActionProof,
+  logNativeMobileKeyboardShortcutBridgeProof,
+} from '../qa/nativeMobileKeyboardShortcutProof'
+import {
   mobileTableOfContentsHeadingTargetId,
   type MobileTableOfContentsTarget,
 } from '../workspace/mobileTableOfContents'
@@ -52,6 +56,7 @@ export function TabletWorkspace({
   initialEditorEditingMode = 'wysiwyg',
   initialActionSheet,
   commandPaletteProbe = false,
+  keyboardShortcutProbe = false,
   layoutProbe = false,
   onOpenNativeVault,
   onTableOfContentsScrollProof,
@@ -78,6 +83,7 @@ export function TabletWorkspace({
   initialEditorEditingMode?: TabletWorkspaceChromeProps['initialEditorEditingMode']
   initialActionSheet?: MobileActionSheetQaTarget
   commandPaletteProbe?: boolean
+  keyboardShortcutProbe?: boolean
   layoutProbe?: boolean
   onOpenNativeVault?: () => void
   onTableOfContentsScrollProof?: TabletWorkspaceChromeProps['onTableOfContentsScrollProof']
@@ -107,6 +113,7 @@ export function TabletWorkspace({
       <TabletWorkspaceChrome
         compactTablet={compactTablet}
         commandPaletteProbe={commandPaletteProbe}
+        keyboardShortcutProbe={keyboardShortcutProbe}
         defaultPropertiesVisible={defaultPropertiesVisible}
         initialCommandPaletteOpen={initialCommandPaletteOpen}
         initialEditorEditing={initialEditorEditing}
@@ -176,6 +183,7 @@ function TabletWorkspaceChrome(props: TabletWorkspaceChromeProps) {
     onOpenSearch: props.onOpenSearch,
     onSelectNextNote: selectNextNote,
     onSelectPreviousNote: selectPreviousNote,
+    onShortcutAction: props.keyboardShortcutProbe ? logNativeMobileKeyboardShortcutActionProof : undefined,
     onToggleRawEditor: editorCommandRegistry.commands.toggleRawEditor,
   })
   const commandPaletteCommands = useMemo(() => buildMobileCommandPaletteCommands({
@@ -219,6 +227,9 @@ function TabletWorkspaceChrome(props: TabletWorkspaceChromeProps) {
   useEffect(() => {
     if (commandPaletteProbe) logNativeMobileCommandPaletteProof(commandPaletteCommands)
   }, [commandPaletteCommands, commandPaletteProbe])
+  useEffect(() => {
+    if (props.keyboardShortcutProbe) logNativeMobileKeyboardShortcutBridgeProof()
+  }, [props.keyboardShortcutProbe])
 
   return (
     <View style={styles.shell}>

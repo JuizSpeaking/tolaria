@@ -29,6 +29,10 @@ import {
 import { MobileCommandPalette } from '../components/workspace/MobileCommandPalette'
 import { buildMobileCommandPaletteCommands } from '../workspace/mobileCommandPalette'
 import { logNativeMobileCommandPaletteProof } from '../qa/nativeMobileCommandPaletteProbe'
+import {
+  logNativeMobileKeyboardShortcutActionProof,
+  logNativeMobileKeyboardShortcutBridgeProof,
+} from '../qa/nativeMobileKeyboardShortcutProof'
 import { TabletEditorPanel } from './TabletEditorPanel'
 import type { EditorEditingMode } from './TabletEditorPanel'
 import { WorkspaceActionSheetHost } from './TabletWorkspace'
@@ -55,6 +59,7 @@ type PhoneWorkspaceProps = {
   initialEditorEditingMode?: EditorEditingMode
   initialActionSheet?: MobileActionSheetQaTarget
   commandPaletteProbe?: boolean
+  keyboardShortcutProbe?: boolean
   initialState?: PhoneWorkspaceState
   layoutProbe?: boolean
   onOpenNativeVault?: () => void
@@ -113,6 +118,7 @@ function PhoneWorkspaceChrome(props: PhoneWorkspaceChromeProps) {
     commandPaletteProbe = false,
     controller,
     initialState = 'list',
+    keyboardShortcutProbe = false,
     onOpenNativeVault,
   } = props
   const options = phoneWorkspaceEditorOptions(props)
@@ -148,9 +154,11 @@ function PhoneWorkspaceChrome(props: PhoneWorkspaceChromeProps) {
     onOpenSearch: controller.onOpenSearch,
     onSelectNextNote: selectNextNote,
     onSelectPreviousNote: selectPreviousNote,
+    onShortcutAction: keyboardShortcutProbe ? logNativeMobileKeyboardShortcutActionProof : undefined,
     onToggleRawEditor: editorCommandRegistry.commands.toggleRawEditor,
   })
   usePhoneCommandPaletteProof(commandPalette.commands, commandPaletteProbe)
+  usePhoneKeyboardShortcutBridgeProof(keyboardShortcutProbe)
   const createRelationshipTargetAndOpenEditor = useCreateRelationshipTargetAndOpenEditor(controller, setPhoneState)
   const transitionSwipeHandlers = usePhoneSwipeHandlers({
     openEditor: navigation.openEditor,
@@ -278,6 +286,12 @@ function usePhoneCommandPaletteProof(commands: ReturnType<typeof buildMobileComm
   useEffect(() => {
     if (enabled) logNativeMobileCommandPaletteProof(commands)
   }, [commands, enabled])
+}
+
+function usePhoneKeyboardShortcutBridgeProof(enabled: boolean) {
+  useEffect(() => {
+    if (enabled) logNativeMobileKeyboardShortcutBridgeProof()
+  }, [enabled])
 }
 
 function useCreateRelationshipTargetAndOpenEditor(

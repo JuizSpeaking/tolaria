@@ -13,9 +13,10 @@ type KeyboardShortcutHandlers = {
   onOpenSearch: () => void
   onSelectNextNote?: () => void
   onSelectPreviousNote?: () => void
+  onShortcutAction?: (action: MobileWorkspaceKeyboardAction, event: MobileKeyboardShortcutEvent) => void
   onToggleRawEditor?: () => void
 }
-type MobileWorkspaceKeyboardAction =
+export type MobileWorkspaceKeyboardAction =
   | 'commandPalette'
   | 'createNote'
   | 'findInNote'
@@ -49,6 +50,7 @@ export function useMobileWorkspaceKeyboardShortcuts({
   onOpenSearch,
   onSelectNextNote,
   onSelectPreviousNote,
+  onShortcutAction,
   onToggleRawEditor,
 }: KeyboardShortcutHandlers) {
   useEffect(() => {
@@ -58,6 +60,7 @@ export function useMobileWorkspaceKeyboardShortcuts({
       if (!shouldHandleMobileWorkspaceKeyboardAction(action, event, { nativeNoteNavigationEnabled })) return
 
       event.preventDefault?.()
+      onShortcutAction?.(action, event)
       if (action === 'commandPalette') onOpenCommandPalette()
       else if (action === 'findInNote') onOpenFindInNote?.()
       else if (action === 'nextNote') onSelectNextNote?.()
@@ -75,6 +78,7 @@ export function useMobileWorkspaceKeyboardShortcuts({
     onOpenSearch,
     onSelectNextNote,
     onSelectPreviousNote,
+    onShortcutAction,
     onToggleRawEditor,
     nativeNoteNavigationEnabled,
   ])

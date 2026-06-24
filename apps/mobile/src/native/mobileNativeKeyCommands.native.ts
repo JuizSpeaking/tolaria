@@ -8,3 +8,10 @@ export function optionalNativeMobileKeyCommandsModule(): NativeMobileKeyCommands
   cachedModule = requireOptionalNativeModule<NativeMobileKeyCommandsModule>('TolariaKeyCommands')
   return cachedModule
 }
+
+export function nativeMobileKeyCommandsAvailable(
+  module: NativeMobileKeyCommandsModule | null = optionalNativeMobileKeyCommandsModule(),
+) {
+  if (!module) return false
+  return module.isSupported?.() ?? true
+}
