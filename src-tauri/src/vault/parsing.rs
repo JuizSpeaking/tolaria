@@ -341,6 +341,59 @@ pub(super) fn extract_outgoing_links(content: &str) -> Vec<String> {
     links
 }
 
+/// Extract the first image path from markdown content.
+/// Looks for `![alt](path)` and `![[path]]` patterns.
+/// Returns the path as-is (relative to vault or note).
+pub(super) fn extract_first_image(content: &str) -> Option<String> {
+    let without_fm = strip_frontmatter(TextSlice(content));
+    let body: &str = without_fm;
+    let image_exts = [
+        "png", "jpg", "jpeg", "gif", "svg", "webp", "avif", "bmp", "tiff", "tif",
+    ];
+
+    // Pattern 1: ![alt](url) — markdown image syntax
+    let mut search_from = 0;
+    while let Some(start) = body[search_from..].find("![") {
+        let abs_start = search_from + start;
+        if let Some(paren_start) = body[abs_start..].find("](") {
+            let url_start = abs_start + paren_start + 2;
+            if let Some(paren_end) = body[url_start..].find(')') {
+                let url = &body[url_start..url_start + paren_end];
+                let path = url.split_whitespace().next().unwrap_or(url);
+                let ext = path.rsplit('.').next().unwrap_or("").to_lowercase();
+                if image_exts.contains(&ext.as_str()) {
+                    return Some(path.to_string());
+                }
+            }
+        }
+        search_from = abs_start + 2;
+    }
+
+    // Pattern 2: ![[path]] — wikilink image embed
+    let mut search_from = 0;
+    while let Some(start) = body[search_from..].find("![[") {
+        let abs_start = search_from + start + 3;
+        if let Some(end_rel) = body[abs_start..].find("]]") {
+            let end = abs_start + end_rel;
+            let inner = &body[abs_start..end];
+            let target = match inner.find('|') {
+                Some(idx) => &inner[..idx],
+                None => inner,
+            }
+            .trim();
+            let ext = target.rsplit('.').next().unwrap_or("").to_lowercase();
+            if image_exts.contains(&ext.as_str()) {
+                return Some(target.to_string());
+            }
+            search_from = end + 2;
+        } else {
+            break;
+        }
+    }
+
+    None
+}
+
 #[cfg(test)]
 #[path = "parsing_tests.rs"]
 mod tests;

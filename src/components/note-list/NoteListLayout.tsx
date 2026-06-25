@@ -99,6 +99,10 @@ function NoteListContent({
   noteListVirtuosoRef,
   locale,
   loading,
+  useCardView,
+  vaultPath,
+  selectedNotePath,
+  onSelectNote,
 }: Pick<
   NoteListLayoutProps,
   | 'entitySelection'
@@ -117,6 +121,10 @@ function NoteListContent({
   | 'noteListVirtuosoRef'
   | 'locale'
   | 'loading'
+  | 'useCardView'
+  | 'vaultPath'
+  | 'selectedNotePath'
+  | 'onSelectNote'
 >) {
   return (
     <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
@@ -145,6 +153,10 @@ function NoteListContent({
           renderItem={renderItem}
           virtuosoRef={noteListVirtuosoRef}
           locale={locale}
+          useCardView={useCardView}
+          vaultPath={vaultPath}
+          selectedNotePath={selectedNotePath}
+          onSelectNote={onSelectNote}
         />
       )}
     </div>
@@ -177,6 +189,10 @@ function NoteListBody({
   filterCounts,
   onNoteListFilterChange,
   loading,
+  useCardView,
+  vaultPath,
+  selectedNotePath,
+  onSelectNote,
 }: Pick<
   NoteListLayoutProps,
   | 'handleListKeyDown'
@@ -204,6 +220,10 @@ function NoteListBody({
   | 'filterCounts'
   | 'onNoteListFilterChange'
   | 'loading'
+  | 'useCardView'
+  | 'vaultPath'
+  | 'selectedNotePath'
+  | 'onSelectNote'
 >) {
   return (
     <div
@@ -236,6 +256,10 @@ function NoteListBody({
         noteListVirtuosoRef={noteListVirtuosoRef}
         locale={locale}
         loading={loading}
+        useCardView={useCardView}
+        vaultPath={vaultPath}
+        selectedNotePath={selectedNotePath}
+        onSelectNote={onSelectNote}
       />
       {showFilterPills && (
         <FilterPills

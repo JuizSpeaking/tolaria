@@ -536,6 +536,7 @@ function useRenderItem({
 
 export interface NoteListProps {
   entries: VaultEntry[]
+  vaultPath?: string
   selection: SidebarSelection
   selectedNote: VaultEntry | null
   loading?: boolean
@@ -595,6 +596,9 @@ function buildNoteListLayoutModel(params: {
   onNoteListFilterChange: (filter: NoteListFilter) => void
   onOpenType: (entry: VaultEntry) => void
   locale: AppLocale
+  vaultPath?: string
+  selectedNotePath?: string | null
+  onSelectNote?: (entry: VaultEntry) => void
   content: ReturnType<typeof useNoteListContent> & {
     handleSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void
   }
@@ -651,6 +655,10 @@ function buildNoteListLayoutModel(params: {
     searched: params.content.searched,
     query: params.content.query,
     showFilterPills: params.selection.kind === 'sectionGroup' || params.selection.kind === 'folder',
+    useCardView: params.content.typeDocument?.view === 'card',
+    vaultPath: params.vaultPath,
+    selectedNotePath: params.selectedNotePath,
+    onSelectNote: params.onSelectNote,
     noteListFilter: params.noteListFilter,
     filterCounts: params.filterCounts,
     onNoteListFilterChange: params.onNoteListFilterChange,
@@ -670,6 +678,7 @@ function buildNoteListLayoutModel(params: {
 
 export function useNoteListModel({
   entries,
+  vaultPath,
   selection,
   selectedNote,
   loading = false,
@@ -684,6 +693,7 @@ export function useNoteListModel({
   getNoteStatus,
   sidebarCollapsed,
   onReplaceActiveTab,
+  onSelectNote,
   onEnterNeighborhood,
   onCreateNote,
   onBulkArchive,
@@ -823,6 +833,9 @@ export function useNoteListModel({
     filterCounts,
     onNoteListFilterChange,
     locale,
+    vaultPath,
+    selectedNotePath,
+    onSelectNote,
     content: {
       ...content,
       handleSearchKeyDown,
