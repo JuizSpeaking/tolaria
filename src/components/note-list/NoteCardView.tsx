@@ -3,6 +3,10 @@ import { attachmentAssetUrlFromPath } from '../../utils/vaultAttachments'
 import { isImagePreviewEntry } from '../../utils/filePreview'
 import { isTauri } from '../../mock-tauri'
 
+// Reuse the existing image resolution pipeline from vaultImages.ts
+// which handles: vault-relative, note-relative, attachments/, and absolute paths
+import { resolveImageUrl } from '../../utils/vaultImages'
+
 function resolveCardImage(entry: VaultEntry, vaultPath?: string): string | null {
   // Binary image files (e.g. in attachments folder): entry.path is absolute
   if (entry.fileKind === 'binary' && isImagePreviewEntry(entry)) {
@@ -22,14 +26,20 @@ function resolveCardImage(entry: VaultEntry, vaultPath?: string): string | null 
 
   if (!imageSource) return null
   if (!isTauri()) return null
+  // Pass URLs (http, https, asset:) through directly
   if (/^(?:https?|asset):/.test(imageSource)) return imageSource
 
   const resolvedVaultPath = vaultPath ?? entry.workspace?.path
   if (!resolvedVaultPath) return null
 
-  const separator = resolvedVaultPath.endsWith('/') || resolvedVaultPath.endsWith('\\') ? '' : '/'
-  const absolutePath = `${resolvedVaultPath}${separator}${imageSource}`
-  return attachmentAssetUrlFromPath({ path: absolutePath })
+  // Use the existing image resolution pipeline which correctly handles
+  // note-relative paths, vault-relative paths, and attachments/ prefix
+  const resolved = resolveImageUrl({
+    url: imageSource,
+    vaultPath: resolvedVaultPath,
+    notePath: entry.path,
+  })
+  return resolved
 }
 
 const PLACEHOLDER_COLORS = [

@@ -609,6 +609,15 @@ function buildNoteListLayoutModel(params: {
     entitySelection: EntitySelection | null
   }
 }) {
+  const typeDocument = params.content.typeDocument
+  const onToggleCardView = params.onUpdateTypeSort && typeDocument
+    ? () => params.onUpdateTypeSort(
+        typeDocument.path,
+        'view',
+        typeDocument.view === 'card' ? null : 'card',
+      )
+    : undefined
+
   return {
     title: resolveHeaderTitle(params.selection, params.content.typeDocument, params.views, params.locale),
     loading: params.loading,
@@ -659,13 +668,7 @@ function buildNoteListLayoutModel(params: {
     showFilterPills: params.selection.kind === 'sectionGroup' || params.selection.kind === 'folder',
     useCardView: params.content.typeDocument?.view === 'card'
       || (params.selection.kind === 'folder' && params.content.searched.some((e) => e.fileKind === 'binary' && isImagePreviewEntry(e))),
-    onToggleCardView: params.onUpdateTypeSort && params.content.typeDocument
-      ? () => params.onUpdateTypeSort!(
-          params.content.typeDocument!.path,
-          'view',
-          params.content.typeDocument!.view === 'card' ? null : 'card',
-        )
-      : undefined,
+    onToggleCardView,
     vaultPath: params.vaultPath,
     selectedNotePath: params.selectedNotePath,
     onSelectNote: params.onSelectNote,

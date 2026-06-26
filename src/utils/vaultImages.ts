@@ -9,6 +9,7 @@ import {
   portableAttachmentPathFromCurrentVaultAssetUrl,
   vaultAttachmentAssetUrl,
 } from './vaultAttachments'
+import { isPathInsideVaultRoot } from './vaultPathContainment'
 
 type Markdown = string
 type VaultPath = string
@@ -416,12 +417,13 @@ function resolveAbsoluteFilesystemUrl(request: UrlOnlyRequest): MarkdownImageUrl
 }
 
 function resolveNoteRelativeUrl(request: ImageUrlRequest): MarkdownImageUrl | null {
-  const { url, notePath } = request
+  const { url, notePath, vaultPath } = request
   if (!notePath || hasUrlScheme({ url })) return null
-  return attachmentAssetUrlFromPath({ path: joinNoteRelativePath({ notePath, relativeUrl: url }) })
+  const path = joinNoteRelativePath({ notePath, relativeUrl: url })
+  return isPathInsideVaultRoot(path, vaultPath) ? attachmentAssetUrlFromPath({ path }) : null
 }
 
-function resolveImageUrl(request: ImageUrlRequest): MarkdownImageUrl | null {
+export function resolveImageUrl(request: ImageUrlRequest): MarkdownImageUrl | null {
   return resolveLegacyAttachmentAssetUrl(request)
     ?? resolveAbsoluteFilesystemUrl({ url: request.url })
     ?? resolvePortableAttachmentUrl(request)

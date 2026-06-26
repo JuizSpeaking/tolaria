@@ -572,7 +572,7 @@ fn extract_first_image_finds_wikilink_embed() {
     let content = "# Title\n\n![[ramen.jpg]]\n\nText";
     assert_eq!(
         extract_first_image(content),
-        Some("ramen.jpg".to_string())
+        Some("attachments/ramen.jpg".to_string())
     );
 }
 
@@ -585,19 +585,13 @@ fn extract_first_image_skips_non_image_links() {
 #[test]
 fn extract_first_image_skips_frontmatter() {
     let content = "---\n_icon: icon.png\n---\n\n![real](photo.jpg)";
-    assert_eq!(
-        extract_first_image(content),
-        Some("photo.jpg".to_string())
-    );
+    assert_eq!(extract_first_image(content), Some("photo.jpg".to_string()));
 }
 
 #[test]
 fn extract_first_image_returns_first_when_multiple() {
     let content = "# Title\n\n![first](a.png)\n\n![second](b.png)";
-    assert_eq!(
-        extract_first_image(content),
-        Some("a.png".to_string())
-    );
+    assert_eq!(extract_first_image(content), Some("a.png".to_string()));
 }
 
 #[test]
@@ -611,15 +605,38 @@ fn extract_first_image_strips_wikilink_alias() {
     let content = "# Title\n\n![[photo.jpg|display text]]";
     assert_eq!(
         extract_first_image(content),
-        Some("photo.jpg".to_string())
+        Some("attachments/photo.jpg".to_string())
+    );
+}
+
+#[test]
+fn extract_first_image_preserves_explicit_wikilink_paths() {
+    let content = "# Title\n\n![[images/photo.jpg]]";
+    assert_eq!(
+        extract_first_image(content),
+        Some("images/photo.jpg".to_string())
     );
 }
 
 #[test]
 fn extract_first_image_handles_url_title() {
     let content = "# Title\n\n![alt](photo.jpg \"A title\")";
+    assert_eq!(extract_first_image(content), Some("photo.jpg".to_string()));
+}
+
+#[test]
+fn extract_first_image_wikilink_before_markdown() {
+    // Wikilink image appears before markdown image — should return wikilink
+    let content = "# Title\n\n![[first.jpg]]\n\n![second](b.png)";
     assert_eq!(
         extract_first_image(content),
-        Some("photo.jpg".to_string())
+        Some("attachments/first.jpg".to_string())
     );
+}
+
+#[test]
+fn extract_first_image_markdown_before_wikilink() {
+    // Markdown image appears before wikilink image — should return markdown
+    let content = "# Title\n\n![first](a.png)\n\n![[second.jpg]]";
+    assert_eq!(extract_first_image(content), Some("a.png".to_string()));
 }

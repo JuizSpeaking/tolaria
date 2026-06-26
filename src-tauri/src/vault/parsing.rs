@@ -342,8 +342,10 @@ pub(super) fn extract_outgoing_links(content: &str) -> Vec<String> {
 }
 
 /// Extract the first image path from markdown content.
-/// Looks for `![alt](path)` and `![[path]]` patterns.
-/// Returns the path as-is (relative to vault or note).
+/// Scans for both `![alt](path)` and `![[path]]` patterns in document order,
+/// returning whichever appears first.
+/// Markdown image paths are returned as-is. Bare wikilink image embeds are
+/// treated as portable attachment paths, matching the frontend image resolver.
 pub(super) fn extract_first_image(content: &str) -> Option<String> {
     let without_fm = strip_frontmatter(TextSlice(content));
     let body: &str = without_fm;
@@ -351,47 +353,93 @@ pub(super) fn extract_first_image(content: &str) -> Option<String> {
         "png", "jpg", "jpeg", "gif", "svg", "webp", "avif", "bmp", "tiff", "tif",
     ];
 
-    // Pattern 1: ![alt](url) — markdown image syntax
     let mut search_from = 0;
-    while let Some(start) = body[search_from..].find("![") {
-        let abs_start = search_from + start;
-        if let Some(paren_start) = body[abs_start..].find("](") {
-            let url_start = abs_start + paren_start + 2;
-            if let Some(paren_end) = body[url_start..].find(')') {
-                let url = &body[url_start..url_start + paren_end];
-                let path = url.split_whitespace().next().unwrap_or(url);
-                let ext = path.rsplit('.').next().unwrap_or("").to_lowercase();
-                if image_exts.contains(&ext.as_str()) {
-                    return Some(path.to_string());
+    loop {
+        // Find the next image-like token: either `![` (markdown) or `![[` (wikilink)
+        let md_pos = body[search_from..].find("![").map(|p| search_from + p);
+        let wl_pos = body[search_from..].find("![[").map(|p| search_from + p);
+
+        let (pos, is_wikilink) = match (md_pos, wl_pos) {
+            (Some(md), Some(wl)) => {
+                // Pick whichever comes first in document order
+                if wl <= md {
+                    (wl, true)
+                } else {
+                    (md, false)
                 }
             }
-        }
-        search_from = abs_start + 2;
-    }
+            (Some(md), None) => (md, false),
+            (None, Some(wl)) => (wl, true),
+            (None, None) => break,
+        };
 
-    // Pattern 2: ![[path]] — wikilink image embed
-    let mut search_from = 0;
-    while let Some(start) = body[search_from..].find("![[") {
-        let abs_start = search_from + start + 3;
-        if let Some(end_rel) = body[abs_start..].find("]]") {
-            let end = abs_start + end_rel;
-            let inner = &body[abs_start..end];
-            let target = match inner.find('|') {
-                Some(idx) => &inner[..idx],
-                None => inner,
+        if is_wikilink {
+            // Wikilink image embed: ![[path]]
+            let inner_start = pos + 3;
+            if let Some(end_rel) = body[inner_start..].find("]]") {
+                let end = inner_start + end_rel;
+                let inner = &body[inner_start..end];
+                let target = match inner.find('|') {
+                    Some(idx) => &inner[..idx],
+                    None => inner,
+                }
+                .trim();
+                let ext = target.rsplit('.').next().unwrap_or("").to_lowercase();
+                if image_exts.contains(&ext.as_str()) {
+                    return Some(portable_wikilink_image_target(target));
+                }
+                search_from = end + 2;
+            } else {
+                break;
             }
-            .trim();
-            let ext = target.rsplit('.').next().unwrap_or("").to_lowercase();
-            if image_exts.contains(&ext.as_str()) {
-                return Some(target.to_string());
-            }
-            search_from = end + 2;
         } else {
-            break;
+            // Markdown image: ![alt](url)
+            if let Some(paren_start) = body[pos..].find("](") {
+                let url_start = pos + paren_start + 2;
+                if let Some(paren_end) = body[url_start..].find(')') {
+                    let url = &body[url_start..url_start + paren_end];
+                    let path = url.split_whitespace().next().unwrap_or(url);
+                    let ext = path.rsplit('.').next().unwrap_or("").to_lowercase();
+                    if image_exts.contains(&ext.as_str()) {
+                        return Some(path.to_string());
+                    }
+                }
+            }
+            search_from = pos + 2;
         }
     }
 
     None
+}
+
+fn portable_wikilink_image_target(target: &str) -> String {
+    let has_url_scheme = target
+        .chars()
+        .next()
+        .map(|first| first.is_ascii_alphabetic())
+        .unwrap_or(false)
+        && target
+            .chars()
+            .take_while(|ch| *ch != ':')
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '.' | '-'))
+        && target.contains(':');
+    let is_absolute = target.starts_with('/')
+        || target.starts_with(r"\\")
+        || target
+            .get(1..3)
+            .map(|rest| rest == ":/" || rest == r":\")
+            .unwrap_or(false);
+    let is_explicit = has_url_scheme
+        || is_absolute
+        || target.starts_with('.')
+        || target.contains('/')
+        || target.contains('\\');
+
+    if is_explicit {
+        target.to_string()
+    } else {
+        format!("attachments/{target}")
+    }
 }
 
 #[cfg(test)]

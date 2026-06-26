@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { resolveImageUrls, portableImageUrls } from './vaultImages'
+import { resolveImageUrl, resolveImageUrls, portableImageUrls } from './vaultImages'
 
 let tauriMode = false
 
@@ -195,6 +195,13 @@ describe('resolveImageUrls', () => {
     )
   })
 
+  it('leaves note-relative image paths unchanged when they escape the vault', () => {
+    tauriMode = true
+    const markdown = '![outside](../../outside.png)'
+
+    expect(resolveImageUrls(markdown, '/vault', '/vault/projects/plan.md')).toBe(markdown)
+  })
+
   it('keeps remote and data image URLs unchanged when notePath is present', () => {
     tauriMode = true
     const httpImage = '![logo](https://example.com/logo.png)'
@@ -210,6 +217,24 @@ describe('resolveImageUrls', () => {
     const markdown = `![alt](${url})`
 
     expect(resolveImageUrls(markdown, '/vault')).toBe(markdown)
+  })
+})
+
+describe('resolveImageUrl', () => {
+  it('resolves a single note-relative image URL against the note directory', () => {
+    expect(resolveImageUrl({
+      url: 'photo.jpg',
+      vaultPath: '/vault',
+      notePath: '/vault/Recipes/Pasta.md',
+    })).toBe(assetUrl('/vault/Recipes/photo.jpg'))
+  })
+
+  it('rejects a single note-relative image URL that escapes the vault', () => {
+    expect(resolveImageUrl({
+      url: '../../outside.jpg',
+      vaultPath: '/vault',
+      notePath: '/vault/Recipes/Pasta.md',
+    })).toBeNull()
   })
 })
 
