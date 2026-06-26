@@ -20,18 +20,30 @@ function imageSourceFromIcon(icon?: string | null): string | null {
   return null
 }
 
-function resolveMarkdownCardImage(entry: VaultEntry, vaultPath?: string): string | null {
-  const imageSource = entry.firstImage ?? imageSourceFromIcon(entry.icon)
-  if (!imageSource) return null
-  if (/^(?:https?|asset):/.test(imageSource)) return imageSource
+function cardImageSource(entry: VaultEntry): string | null {
+  return entry.firstImage ?? imageSourceFromIcon(entry.icon)
+}
 
+function directImageUrl(imageSource: string): string | null {
+  return /^(?:https?|asset):/.test(imageSource) ? imageSource : null
+}
+
+function resolveVaultCardImage(entry: VaultEntry, imageSource: string, vaultPath?: string): string | null {
   const resolvedVaultPath = vaultPath ?? entry.workspace?.path
   if (!resolvedVaultPath) return null
+
   return resolveImageUrl({
     url: imageSource,
     vaultPath: resolvedVaultPath,
     notePath: entry.path,
   })
+}
+
+function resolveMarkdownCardImage(entry: VaultEntry, vaultPath?: string): string | null {
+  const imageSource = cardImageSource(entry)
+  if (!imageSource) return null
+
+  return directImageUrl(imageSource) ?? resolveVaultCardImage(entry, imageSource, vaultPath)
 }
 
 function resolveCardImage(entry: VaultEntry, vaultPath?: string): string | null {
