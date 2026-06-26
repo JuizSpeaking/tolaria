@@ -610,8 +610,9 @@ function buildNoteListLayoutModel(params: {
   }
 }) {
   const typeDocument = params.content.typeDocument
-  const onToggleCardView = params.onUpdateTypeSort && typeDocument
-    ? () => params.onUpdateTypeSort(
+  const updateTypeSort = params.onUpdateTypeSort
+  const onToggleCardView = updateTypeSort && typeDocument
+    ? () => updateTypeSort(
         typeDocument.path,
         'view',
         typeDocument.view === 'card' ? null : 'card',
