@@ -1,9 +1,16 @@
 import type { VaultEntry } from '../../types'
 import { attachmentAssetUrlFromPath } from '../../utils/vaultAttachments'
+import { isImagePreviewEntry } from '../../utils/filePreview'
 import { isTauri } from '../../mock-tauri'
 
 function resolveCardImage(entry: VaultEntry, vaultPath?: string): string | null {
-  // Prefer firstImage from note body, fall back to _icon if it's an image
+  // Binary image files (e.g. in attachments folder): entry.path is absolute
+  if (entry.fileKind === 'binary' && isImagePreviewEntry(entry)) {
+    if (!isTauri()) return null
+    return attachmentAssetUrlFromPath({ path: entry.path })
+  }
+
+  // Markdown notes: prefer firstImage from note body, fall back to _icon if it's an image
   const imageSource = entry.firstImage ?? (() => {
     const icon = entry.icon
     if (!icon || !icon.trim()) return null

@@ -18,6 +18,7 @@ import { NoteItem } from '../NoteItem'
 import { prefetchNoteContent } from '../../hooks/useTabManagement'
 import type { MultiSelectState } from '../../hooks/useMultiSelect'
 import { isDeletedNoteEntry, resolveHeaderTitle, type DeletedNoteEntry } from './noteListUtils'
+import { isImagePreviewEntry } from '../../utils/filePreview'
 import { useNoteListFullTextSearch } from './noteListFullTextSearch'
 import { filterEntriesByNoteListQuery, filterGroupsByNoteListQuery } from './noteListSearch'
 import { useNoteListSearchState } from './useNoteListSearchState'
@@ -655,7 +656,8 @@ function buildNoteListLayoutModel(params: {
     searched: params.content.searched,
     query: params.content.query,
     showFilterPills: params.selection.kind === 'sectionGroup' || params.selection.kind === 'folder',
-    useCardView: params.content.typeDocument?.view === 'card',
+    useCardView: params.content.typeDocument?.view === 'card'
+      || (params.selection.kind === 'folder' && params.content.searched.some((e) => e.fileKind === 'binary' && isImagePreviewEntry(e))),
     vaultPath: params.vaultPath,
     selectedNotePath: params.selectedNotePath,
     onSelectNote: params.onSelectNote,
