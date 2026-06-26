@@ -20,13 +20,9 @@ function imageSourceFromIcon(icon?: string | null): string | null {
   return null
 }
 
-function resolveCardImage(entry: VaultEntry, vaultPath?: string): string | null {
-  const binaryImage = resolveBinaryCardImage(entry)
-  if (binaryImage) return binaryImage
-
+function resolveMarkdownCardImage(entry: VaultEntry, vaultPath?: string): string | null {
   const imageSource = entry.firstImage ?? imageSourceFromIcon(entry.icon)
   if (!imageSource) return null
-  if (!isTauri()) return null
   if (/^(?:https?|asset):/.test(imageSource)) return imageSource
 
   const resolvedVaultPath = vaultPath ?? entry.workspace?.path
@@ -36,6 +32,11 @@ function resolveCardImage(entry: VaultEntry, vaultPath?: string): string | null 
     vaultPath: resolvedVaultPath,
     notePath: entry.path,
   })
+}
+
+function resolveCardImage(entry: VaultEntry, vaultPath?: string): string | null {
+  if (!isTauri()) return null
+  return resolveBinaryCardImage(entry) ?? resolveMarkdownCardImage(entry, vaultPath)
 }
 
 const PLACEHOLDER_COLORS = [
