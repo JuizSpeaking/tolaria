@@ -600,6 +600,7 @@ function buildNoteListLayoutModel(params: {
   vaultPath?: string
   selectedNotePath?: string | null
   onSelectNote?: (entry: VaultEntry) => void
+  onUpdateTypeSort?: (path: string, key: string, value: string | number | boolean | string[] | null) => void
   content: ReturnType<typeof useNoteListContent> & {
     handleSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void
   }
@@ -658,6 +659,13 @@ function buildNoteListLayoutModel(params: {
     showFilterPills: params.selection.kind === 'sectionGroup' || params.selection.kind === 'folder',
     useCardView: params.content.typeDocument?.view === 'card'
       || (params.selection.kind === 'folder' && params.content.searched.some((e) => e.fileKind === 'binary' && isImagePreviewEntry(e))),
+    onToggleCardView: params.onUpdateTypeSort && params.content.typeDocument
+      ? () => params.onUpdateTypeSort!(
+          params.content.typeDocument!.path,
+          'view',
+          params.content.typeDocument!.view === 'card' ? null : 'card',
+        )
+      : undefined,
     vaultPath: params.vaultPath,
     selectedNotePath: params.selectedNotePath,
     onSelectNote: params.onSelectNote,
@@ -838,6 +846,7 @@ export function useNoteListModel({
     vaultPath,
     selectedNotePath,
     onSelectNote,
+    onUpdateTypeSort,
     content: {
       ...content,
       handleSearchKeyDown,
