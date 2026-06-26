@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { resolveImageUrl, resolveImageUrls, portableImageUrls } from './vaultImages'
+import { extractFirstImage, resolveImageUrl, resolveImageUrls, portableImageUrls } from './vaultImages'
 
 let tauriMode = false
 
@@ -235,6 +235,18 @@ describe('resolveImageUrl', () => {
       vaultPath: '/vault',
       notePath: '/vault/Recipes/Pasta.md',
     })).toBeNull()
+  })
+})
+
+describe('extractFirstImage', () => {
+  it('returns the first image in document order', () => {
+    expect(extractFirstImage('# Recipe\n\n![[first.jpg]]\n\n![second](b.png)')).toBe('attachments/first.jpg')
+    expect(extractFirstImage('# Recipe\n\n![first](a.png)\n\n![[second.jpg]]')).toBe('a.png')
+  })
+
+  it('skips frontmatter and non-image links', () => {
+    expect(extractFirstImage('---\n_icon: icon.png\n---\n\n[link](https://example.com)\n\n![real](photo.jpg)')).toBe('photo.jpg')
+    expect(extractFirstImage('# Recipe\n\n![[not-a-note]]')).toBeNull()
   })
 })
 

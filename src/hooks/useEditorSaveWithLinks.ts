@@ -4,6 +4,7 @@ import { extractOutgoingLinks, extractSnippet, countWords, splitFrontmatter } fr
 import { deriveRawEditorEntryState } from './rawEditorEntryState'
 import { deriveDisplayTitleState } from '../utils/noteTitle'
 import { detectFrontmatterState } from '../utils/frontmatter'
+import { extractFirstImage } from '../utils/vaultImages'
 import type { VaultEntry } from '../types'
 import type { AppLocale } from '../lib/i18n'
 
@@ -34,6 +35,21 @@ function syncOutgoingLinks(options: {
 
   prevLinksKeyRef.current = key
   updateEntry(path, { outgoingLinks: links })
+}
+
+function syncFirstImage(options: {
+  content: string
+  path: string
+  prevFirstImageRef: MutableRefObject<string | undefined>
+  updateEntry: UpdateEntry
+}): void {
+  const { content, path, prevFirstImageRef, updateEntry } = options
+  const firstImage = extractFirstImage(content) ?? null
+  const key = firstImage ?? ''
+  if (key === prevFirstImageRef.current) return
+
+  prevFirstImageRef.current = key
+  updateEntry(path, { firstImage })
 }
 
 function resolveFrontmatterPatch(options: {
@@ -106,6 +122,7 @@ export function useEditorSaveWithLinks(config: {
   const { updateEntry } = config
   const saveContent = useCallback((path: string, content: string) => {
     updateEntry(path, {
+      firstImage: extractFirstImage(content),
       outgoingLinks: extractOutgoingLinks(content),
       snippet: extractSnippet(content),
       wordCount: countWords(content),
@@ -115,12 +132,14 @@ export function useEditorSaveWithLinks(config: {
   const editor = useEditorSave({ ...config, updateVaultContent: saveContent })
   const { handleContentChange: rawOnChange } = editor
   const prevLinksKeyRef = useRef('')
+  const prevFirstImageRef = useRef<string | undefined>(undefined)
   const prevFmSourceRef = useRef<string | null>(null)
   const prevFmKeyRef = useRef(EMPTY_DERIVED_ENTRY_STATE_KEY)
   const prevTitleKeyRef = useRef('')
   const handleContentChange = useCallback((path: string, content: string) => {
     rawOnChange(path, content)
     syncOutgoingLinks({ content, path, prevLinksKeyRef, updateEntry })
+    syncFirstImage({ content, path, prevFirstImageRef, updateEntry })
     const frontmatterTitle = syncFrontmatterMetadata({
       content,
       path,

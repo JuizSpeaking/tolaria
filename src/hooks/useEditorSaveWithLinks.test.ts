@@ -82,9 +82,12 @@ describe('useEditorSaveWithLinks', () => {
     act(() => {
       result.current.handleContentChange('/note.md', 'text [[Alpha]] more text')
     })
-    expect(updateEntry).toHaveBeenCalledTimes(2)
+    expect(updateEntry).toHaveBeenCalledTimes(3)
     expect(updateEntry).toHaveBeenCalledWith('/note.md', {
       outgoingLinks: ['Alpha'],
+    })
+    expect(updateEntry).toHaveBeenCalledWith('/note.md', {
+      firstImage: null,
     })
     expect(updateEntry).toHaveBeenCalledWith('/note.md', {
       title: 'Note',
@@ -96,7 +99,7 @@ describe('useEditorSaveWithLinks', () => {
       result.current.handleContentChange('/note.md', 'different text [[Alpha]] still')
     })
     // updateEntry should NOT have been called again — links unchanged
-    expect(updateEntry).toHaveBeenCalledTimes(2)
+    expect(updateEntry).toHaveBeenCalledTimes(3)
   })
 
   it('handleContentChange calls updateEntry again when links change on subsequent edit', () => {
@@ -105,9 +108,12 @@ describe('useEditorSaveWithLinks', () => {
     act(() => {
       result.current.handleContentChange('/note.md', 'see [[Alpha]]')
     })
-    expect(updateEntry).toHaveBeenCalledTimes(2)
+    expect(updateEntry).toHaveBeenCalledTimes(3)
     expect(updateEntry).toHaveBeenCalledWith('/note.md', {
       outgoingLinks: ['Alpha'],
+    })
+    expect(updateEntry).toHaveBeenCalledWith('/note.md', {
+      firstImage: null,
     })
     expect(updateEntry).toHaveBeenCalledWith('/note.md', {
       title: 'Note',
@@ -118,9 +124,21 @@ describe('useEditorSaveWithLinks', () => {
     act(() => {
       result.current.handleContentChange('/note.md', 'see [[Alpha]] and [[Beta]]')
     })
-    expect(updateEntry).toHaveBeenCalledTimes(3)
+    expect(updateEntry).toHaveBeenCalledTimes(4)
     expect(updateEntry).toHaveBeenLastCalledWith('/note.md', {
       outgoingLinks: ['Alpha', 'Beta'],
+    })
+  })
+
+  it('handleContentChange updates the first image for card thumbnails immediately', () => {
+    const { result } = renderHookWithLinks()
+
+    act(() => {
+      result.current.handleContentChange('/recipe.md', '# Recipe\n\n![[goat-cookie.png]]')
+    })
+
+    expect(updateEntry).toHaveBeenCalledWith('/recipe.md', {
+      firstImage: 'attachments/goat-cookie.png',
     })
   })
 
@@ -131,7 +149,10 @@ describe('useEditorSaveWithLinks', () => {
       result.current.handleContentChange('/note.md', 'plain text no links')
     })
 
-    expect(updateEntry).toHaveBeenCalledTimes(1)
+    expect(updateEntry).toHaveBeenCalledTimes(2)
+    expect(updateEntry).toHaveBeenCalledWith('/note.md', {
+      firstImage: null,
+    })
     expect(updateEntry).toHaveBeenCalledWith('/note.md', {
       title: 'Note',
       hasH1: false,
