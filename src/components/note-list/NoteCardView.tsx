@@ -7,6 +7,8 @@ import { isTauri } from '../../mock-tauri'
 // which handles: vault-relative, note-relative, attachments/, and absolute paths
 import { resolveImageUrl } from '../../utils/vaultImages'
 
+const DIRECT_IMAGE_PROTOCOLS = ['http:', 'https:', 'asset:'] as const
+
 function resolveBinaryCardImage(entry: VaultEntry): string | null {
   if (entry.fileKind !== 'binary' || !isImagePreviewEntry(entry) || !isTauri()) return null
   return attachmentAssetUrlFromPath({ path: entry.path })
@@ -25,7 +27,7 @@ function cardImageSource(entry: VaultEntry): string | null {
 }
 
 function directImageUrl(imageSource: string): string | null {
-  return /^(?:https?|asset):/.test(imageSource) ? imageSource : null
+  return DIRECT_IMAGE_PROTOCOLS.some((protocol) => imageSource.startsWith(protocol)) ? imageSource : null
 }
 
 function resolveVaultCardImage(entry: VaultEntry, imageSource: string, vaultPath?: string): string | null {
