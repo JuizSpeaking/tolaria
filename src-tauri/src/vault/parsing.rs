@@ -349,67 +349,81 @@ pub(super) fn extract_outgoing_links(content: &str) -> Vec<String> {
 pub(super) fn extract_first_image(content: &str) -> Option<String> {
     let without_fm = strip_frontmatter(TextSlice(content));
     let body: &str = without_fm;
-    let image_exts = [
-        "png", "jpg", "jpeg", "gif", "svg", "webp", "avif", "bmp", "tiff", "tif",
-    ];
-
     let mut search_from = 0;
-    loop {
-        // Find the next image-like token: either `![` (markdown) or `![[` (wikilink)
-        let md_pos = body[search_from..].find("![").map(|p| search_from + p);
-        let wl_pos = body[search_from..].find("![[").map(|p| search_from + p);
 
-        let (pos, is_wikilink) = match (md_pos, wl_pos) {
-            (Some(md), Some(wl)) => {
-                // Pick whichever comes first in document order
-                if wl <= md {
-                    (wl, true)
-                } else {
-                    (md, false)
-                }
-            }
-            (Some(md), None) => (md, false),
-            (None, Some(wl)) => (wl, true),
-            (None, None) => break,
+    while let Some(candidate) = next_image_candidate(body, search_from) {
+        let extracted = match candidate.kind {
+            ImageCandidateKind::Wikilink => extract_wikilink_image(body, candidate.pos),
+            ImageCandidateKind::Markdown => extract_markdown_image(body, candidate.pos),
         };
 
-        if is_wikilink {
-            // Wikilink image embed: ![[path]]
-            let inner_start = pos + 3;
-            if let Some(end_rel) = body[inner_start..].find("]]") {
-                let end = inner_start + end_rel;
-                let inner = &body[inner_start..end];
-                let target = match inner.find('|') {
-                    Some(idx) => &inner[..idx],
-                    None => inner,
-                }
-                .trim();
-                let ext = target.rsplit('.').next().unwrap_or("").to_lowercase();
-                if image_exts.contains(&ext.as_str()) {
-                    return Some(portable_wikilink_image_target(target));
-                }
-                search_from = end + 2;
-            } else {
-                break;
-            }
-        } else {
-            // Markdown image: ![alt](url)
-            if let Some(paren_start) = body[pos..].find("](") {
-                let url_start = pos + paren_start + 2;
-                if let Some(paren_end) = body[url_start..].find(')') {
-                    let url = &body[url_start..url_start + paren_end];
-                    let path = url.split_whitespace().next().unwrap_or(url);
-                    let ext = path.rsplit('.').next().unwrap_or("").to_lowercase();
-                    if image_exts.contains(&ext.as_str()) {
-                        return Some(path.to_string());
-                    }
-                }
-            }
-            search_from = pos + 2;
+        if let Some((image, _next_search_from)) = extracted.as_ref() {
+            return Some(image.clone());
         }
+        search_from = extracted.map_or(candidate.pos + 2, |(_, next_search_from)| next_search_from);
     }
 
     None
+}
+
+struct ImageCandidate {
+    pos: usize,
+    kind: ImageCandidateKind,
+}
+
+enum ImageCandidateKind {
+    Markdown,
+    Wikilink,
+}
+
+fn next_image_candidate(body: &str, search_from: usize) -> Option<ImageCandidate> {
+    let md_pos = body[search_from..].find("![").map(|p| search_from + p);
+    let wl_pos = body[search_from..].find("![[").map(|p| search_from + p);
+
+    match (md_pos, wl_pos) {
+        (Some(md), Some(wl)) if wl <= md => Some(ImageCandidate {
+            pos: wl,
+            kind: ImageCandidateKind::Wikilink,
+        }),
+        (Some(md), Some(_)) | (Some(md), None) => Some(ImageCandidate {
+            pos: md,
+            kind: ImageCandidateKind::Markdown,
+        }),
+        (None, Some(wl)) => Some(ImageCandidate {
+            pos: wl,
+            kind: ImageCandidateKind::Wikilink,
+        }),
+        (None, None) => None,
+    }
+}
+
+fn extract_wikilink_image(body: &str, pos: usize) -> Option<(String, usize)> {
+    let inner_start = pos + 3;
+    let end = inner_start + body[inner_start..].find("]]")?;
+    let inner = &body[inner_start..end];
+    let target = inner.split('|').next().unwrap_or("").trim();
+
+    is_image_path(target).then(|| (portable_wikilink_image_target(target), end + 2))
+}
+
+fn extract_markdown_image(body: &str, pos: usize) -> Option<(String, usize)> {
+    let url_start = pos + body[pos..].find("](")? + 2;
+    let paren_end = body[url_start..].find(')')?;
+    let url = &body[url_start..url_start + paren_end];
+    let path = url.split_whitespace().next().unwrap_or(url);
+
+    is_image_path(path).then(|| (path.to_string(), pos + 2))
+}
+
+fn is_image_path(path: &str) -> bool {
+    matches!(
+        path.rsplit('.')
+            .next()
+            .unwrap_or("")
+            .to_ascii_lowercase()
+            .as_str(),
+        "avif" | "bmp" | "gif" | "jpg" | "jpeg" | "png" | "svg" | "tif" | "tiff" | "webp"
+    )
 }
 
 fn portable_wikilink_image_target(target: &str) -> String {

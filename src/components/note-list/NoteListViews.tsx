@@ -49,7 +49,7 @@ export function EntityView({ entity, groups, query, collapsedGroups, sortPrefs, 
   )
 }
 
-export function ListView({ isArchivedView, isChangesView, isInboxView, changesError, searched, query, renderItem, virtuosoRef, locale = 'en', useCardView, vaultPath, selectedNotePath, onSelectNote }: {
+type ListViewProps = {
   isArchivedView?: boolean; isChangesView?: boolean; isInboxView?: boolean; changesError?: string | null
   searched: VaultEntry[]; query: string
   renderItem: (entry: VaultEntry) => React.ReactNode
@@ -59,7 +59,10 @@ export function ListView({ isArchivedView, isChangesView, isInboxView, changesEr
   vaultPath?: string
   selectedNotePath?: string | null
   onSelectNote?: (entry: VaultEntry) => void
-}) {
+}
+
+export function ListView(props: ListViewProps) {
+  const { isArchivedView, isChangesView, isInboxView, changesError, searched, query, renderItem, virtuosoRef, locale = 'en', useCardView, vaultPath, selectedNotePath, onSelectNote } = props
   const emptyText = resolveEmptyText({
     isChangesView: !!isChangesView,
     changesError: changesError ?? null,

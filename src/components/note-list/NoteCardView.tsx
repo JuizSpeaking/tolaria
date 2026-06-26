@@ -7,39 +7,35 @@ import { isTauri } from '../../mock-tauri'
 // which handles: vault-relative, note-relative, attachments/, and absolute paths
 import { resolveImageUrl } from '../../utils/vaultImages'
 
+function resolveBinaryCardImage(entry: VaultEntry): string | null {
+  if (entry.fileKind !== 'binary' || !isImagePreviewEntry(entry) || !isTauri()) return null
+  return attachmentAssetUrlFromPath({ path: entry.path })
+}
+
+function imageSourceFromIcon(icon?: string | null): string | null {
+  const trimmed = icon?.trim()
+  if (!trimmed) return null
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return trimmed
+  if (/\.(?:avif|bmp|gif|jpe?g|png|svg|webp|tiff?)$/iu.test(trimmed)) return trimmed
+  return null
+}
+
 function resolveCardImage(entry: VaultEntry, vaultPath?: string): string | null {
-  // Binary image files (e.g. in attachments folder): entry.path is absolute
-  if (entry.fileKind === 'binary' && isImagePreviewEntry(entry)) {
-    if (!isTauri()) return null
-    return attachmentAssetUrlFromPath({ path: entry.path })
-  }
+  const binaryImage = resolveBinaryCardImage(entry)
+  if (binaryImage) return binaryImage
 
-  // Markdown notes: prefer firstImage from note body, fall back to _icon if it's an image
-  const imageSource = entry.firstImage ?? (() => {
-    const icon = entry.icon
-    if (!icon || !icon.trim()) return null
-    const trimmed = icon.trim()
-    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return trimmed
-    if (!/\.(?:avif|bmp|gif|jpe?g|png|svg|webp|tiff?)$/iu.test(trimmed)) return null
-    return trimmed
-  })()
-
+  const imageSource = entry.firstImage ?? imageSourceFromIcon(entry.icon)
   if (!imageSource) return null
   if (!isTauri()) return null
-  // Pass URLs (http, https, asset:) through directly
   if (/^(?:https?|asset):/.test(imageSource)) return imageSource
 
   const resolvedVaultPath = vaultPath ?? entry.workspace?.path
   if (!resolvedVaultPath) return null
-
-  // Use the existing image resolution pipeline which correctly handles
-  // note-relative paths, vault-relative paths, and attachments/ prefix
-  const resolved = resolveImageUrl({
+  return resolveImageUrl({
     url: imageSource,
     vaultPath: resolvedVaultPath,
     notePath: entry.path,
   })
-  return resolved
 }
 
 const PLACEHOLDER_COLORS = [
