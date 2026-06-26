@@ -298,6 +298,8 @@ function NoteListLayoutHeader({
   toggleSearch,
   setSearch,
   handleSearchKeyDown,
+  useCardView,
+  onToggleCardView,
 }: Pick<
   NoteListLayoutProps,
   | 'title'
@@ -323,6 +325,8 @@ function NoteListLayoutHeader({
   | 'toggleSearch'
   | 'setSearch'
   | 'handleSearchKeyDown'
+  | 'useCardView'
+  | 'onToggleCardView'
 >) {
   return (
     <NoteListHeader
@@ -349,6 +353,8 @@ function NoteListLayoutHeader({
       onToggleSearch={toggleSearch}
       onSearchChange={setSearch}
       onSearchKeyDown={handleSearchKeyDown}
+      useCardView={useCardView}
+      onToggleCardView={onToggleCardView}
     />
   )
 }
