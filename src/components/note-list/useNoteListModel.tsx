@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback } from 'react'
+import { useEffect, useMemo, useCallback, useState } from 'react'
 import type {
   VaultEntry,
   SidebarSelection,
@@ -535,6 +535,15 @@ function useRenderItem({
   ])
 }
 
+function folderCardViewKey(selection: SidebarSelection, vaultPath?: string): string | null {
+  if (selection.kind !== 'folder') return null
+  return `${selection.rootPath ?? vaultPath ?? ''}:${selection.path}`
+}
+
+function hasImagePreviewEntries(entries: VaultEntry[]): boolean {
+  return entries.some((entry) => entry.fileKind === 'binary' && isImagePreviewEntry(entry))
+}
+
 export interface NoteListProps {
   entries: VaultEntry[]
   vaultPath?: string
@@ -601,6 +610,8 @@ function buildNoteListLayoutModel(params: {
   selectedNotePath?: string | null
   onSelectNote?: (entry: VaultEntry) => void
   onUpdateTypeSort?: (path: string, key: string, value: string | number | boolean | string[] | null) => void
+  folderCardViewOverride?: boolean
+  onToggleFolderCardView?: () => void
   content: ReturnType<typeof useNoteListContent> & {
     handleSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void
   }
@@ -611,13 +622,17 @@ function buildNoteListLayoutModel(params: {
 }) {
   const typeDocument = params.content.typeDocument
   const updateTypeSort = params.onUpdateTypeSort
-  const onToggleCardView = updateTypeSort && typeDocument
-    ? () => updateTypeSort(
+  const folderHasImagePreview = params.selection.kind === 'folder' && hasImagePreviewEntries(params.content.searched)
+  let onToggleCardView: (() => void) | undefined
+  if (updateTypeSort && typeDocument) {
+    onToggleCardView = () => updateTypeSort(
         typeDocument.path,
         'view',
         typeDocument.view === 'card' ? null : 'card',
       )
-    : undefined
+  } else if (folderHasImagePreview) {
+    onToggleCardView = params.onToggleFolderCardView
+  }
 
   return {
     title: resolveHeaderTitle(params.selection, params.content.typeDocument, params.views, params.locale),
@@ -668,7 +683,7 @@ function buildNoteListLayoutModel(params: {
     query: params.content.query,
     showFilterPills: params.selection.kind === 'sectionGroup' || params.selection.kind === 'folder',
     useCardView: params.content.typeDocument?.view === 'card'
-      || (params.selection.kind === 'folder' && params.content.searched.some((e) => e.fileKind === 'binary' && isImagePreviewEntry(e))),
+      || (folderHasImagePreview && params.folderCardViewOverride !== false),
     onToggleCardView,
     vaultPath: params.vaultPath,
     selectedNotePath: params.selectedNotePath,
@@ -737,6 +752,7 @@ export function useNoteListModel({
   locale = 'en',
 }: NoteListProps) {
   const selectedNotePath = selectedNote?.path ?? null
+  const [folderCardViewOverrides, setFolderCardViewOverrides] = useState<Record<string, boolean>>({})
   const { modifiedPathSet, modifiedSuffixes, resolvedGetNoteStatus } = useModifiedFilesState(modifiedFiles, getNoteStatus)
   const { isInboxView } = useViewFlags(selection)
   const filterCounts = useFilterCounts(entries, selection, allNotesFileVisibility)
@@ -820,6 +836,16 @@ export function useNoteListModel({
     isPanelActive: isNoteListSearchActive,
     toggleSearchShortcut,
   } = interaction.noteListKeyboard
+  const currentFolderCardViewKey = folderCardViewKey(selection, vaultPath)
+  const folderCardViewOverride = currentFolderCardViewKey
+    ? folderCardViewOverrides[currentFolderCardViewKey]
+    : undefined
+  const onToggleFolderCardView = currentFolderCardViewKey
+    ? () => setFolderCardViewOverrides((current) => ({
+        ...current,
+        [currentFolderCardViewKey]: current[currentFolderCardViewKey] === false,
+      }))
+    : undefined
 
   useEffect(() => {
     dispatchNoteListSearchAvailability(isNoteListSearchActive)
@@ -851,6 +877,8 @@ export function useNoteListModel({
     selectedNotePath,
     onSelectNote,
     onUpdateTypeSort,
+    folderCardViewOverride,
+    onToggleFolderCardView,
     content: {
       ...content,
       handleSearchKeyDown,
