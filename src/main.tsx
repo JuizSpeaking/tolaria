@@ -18,8 +18,19 @@ import {
 } from './hooks/appCommandCatalog'
 import { isRecoverableBlockNoteRenderError } from './components/blockNoteRenderRecovery'
 import { isRecoveredActionTooltipError } from './components/ui/actionTooltipRecovery'
-import { isMac, shouldUseCustomWindowChrome } from './utils/platform'
+import { isMac, isMobile, shouldUseCustomWindowChrome } from './utils/platform'
 import { reloadFrontendOnceIfStartupFailed } from './utils/frontendReady'
+
+// Mobile entry — bail early before any desktop setup
+if (isMobile()) {
+  import('./mobile/MobileApp').then(({ MobileApp }) => {
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <MobileApp />
+      </StrictMode>,
+    )
+  })
+} else {
 
 const TLDRAW_CONTEXT_MENU_SELECTOR = '.tldraw-whiteboard'
 
@@ -199,3 +210,5 @@ createRoot(document.getElementById('root')!, {
     </TooltipProvider>
   </StrictMode>,
 )
+
+} // end else (desktop)

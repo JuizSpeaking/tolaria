@@ -1,11 +1,11 @@
 import { isTauri } from '../mock-tauri'
 
-export const MACOS_TRAFFIC_LIGHT_SAFE_PADDING = 90
-
 function getUserAgent(): string {
   if (typeof navigator === 'undefined') return ''
   return navigator.userAgent
 }
+
+export const MACOS_TRAFFIC_LIGHT_SAFE_PADDING = 90
 
 export function isLinux(): boolean {
   const userAgent = getUserAgent()
@@ -19,6 +19,11 @@ export function isMac(): boolean {
 
 export function isWindows(): boolean {
   return getUserAgent().includes('Windows')
+}
+
+export function isMobile(): boolean {
+  const userAgent = getUserAgent()
+  return /Android|iPhone|iPad|iPod/i.test(userAgent)
 }
 
 export function shouldUseCustomWindowChrome(): boolean {
