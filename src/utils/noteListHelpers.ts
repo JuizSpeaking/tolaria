@@ -18,6 +18,7 @@ import { evaluateView } from './viewFilters'
 import { viewMatchesSelection } from './viewIdentity'
 import { wikilinkTarget, resolveEntry } from './wikilink'
 import { buildTypeVisibilityLookup, isSectionEntryVisibleForType } from './typeVisibility'
+import { isOkfReservedFile } from './okf'
 
 export type NoteListFilter = 'open' | 'archived'
 
@@ -444,7 +445,7 @@ export function buildRelationshipGroups(
 }
 
 const isActive = (e: VaultEntry) => !e.archived
-const isMarkdown = (e: VaultEntry) => e.fileKind === 'markdown' || !e.fileKind
+const isMarkdown = (e: VaultEntry) => (e.fileKind === 'markdown' || !e.fileKind) && !isOkfReservedFile(e.filename)
 const ATTACHMENTS_FOLDER = 'attachments'
 
 function applySubFilter(entries: VaultEntry[], subFilter: NoteListFilter): VaultEntry[] {
@@ -511,8 +512,9 @@ function filterRootEntries(entries: VaultEntry[], rootPath: string | undefined, 
 
 function filterFolderEntries(entries: VaultEntry[], selection: Extract<SidebarSelection, { kind: 'folder' }>, subFilter?: NoteListFilter): VaultEntry[] {
   if (!selection.path) return filterRootEntries(entries, selection.rootPath, subFilter)
-  // Folder view shows ALL files (text + binary), not just markdown
-  const folderEntries = entries.filter((entry) => isEntryInSelectedFolder(entry.path, selection.path, selection.rootPath))
+  // Folder view shows ALL files (text + binary), not just markdown.
+  // OKF reserved files (index.md, log.md) are structural — exclude from note list.
+  const folderEntries = entries.filter((entry) => !isOkfReservedFile(entry.filename) && isEntryInSelectedFolder(entry.path, selection.path, selection.rootPath))
   return subFilter ? applySubFilter(folderEntries, subFilter) : folderEntries.filter(isActive)
 }
 
