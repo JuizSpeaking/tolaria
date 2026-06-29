@@ -51,6 +51,7 @@ export interface AiPanelController {
   isActive: boolean
   permissionMode: AiAgentPermissionMode
   handleSend: (text: string, references: NoteReference[]) => void
+  handleStop: () => void
   handleNavigateWikilink: (target: string) => void
   handlePermissionModeChange: (mode: AiAgentPermissionMode) => void
   handleNewChat: () => void
@@ -114,6 +115,7 @@ function usePanelAgent({
   defaultAiTarget,
   defaultAiAgentReady,
   defaultAiAgentReadiness,
+  locale,
   onFileCreated,
   onFileModified,
   onVaultChanged,
@@ -126,6 +128,7 @@ function usePanelAgent({
   | 'defaultAiTarget'
   | 'defaultAiAgentReady'
   | 'defaultAiAgentReadiness'
+  | 'locale'
   | 'onFileCreated'
   | 'onFileModified'
   | 'onVaultChanged'
@@ -136,6 +139,7 @@ function usePanelAgent({
   const agent = useCliAiAgent(vaultPath, vaultPaths, contextPrompt, fileCallbacks, {
     agent: defaultAiAgent,
     target: defaultAiTarget,
+    locale,
     agentReady: resolveAgentReady(defaultAiAgentReadiness, defaultAiAgentReady),
     permissionMode,
     sessionId,
@@ -174,13 +178,18 @@ export function useAiPanelController({
     noteListFilter,
   })
 
-  const { agent, permissionMode } = usePanelAgent({ vaultPath, vaultPaths, contextPrompt, defaultAiAgent, defaultAiTarget, defaultAiAgentReady, defaultAiAgentReadiness, onFileCreated, onFileModified, onVaultChanged, sessionId })
+  const { agent, permissionMode } = usePanelAgent({ vaultPath, vaultPaths, contextPrompt, defaultAiAgent, defaultAiTarget, defaultAiAgentReady, defaultAiAgentReadiness, locale, onFileCreated, onFileModified, onVaultChanged, sessionId })
   const isActive = agent.status === 'thinking' || agent.status === 'tool-executing'
 
   const handleSend = useCallback((text: string, references: NoteReference[]) => {
     if (!text.trim() || isActive) return
     agent.sendMessage(text, references)
     setInput('')
+  }, [agent, isActive])
+
+  const handleStop = useCallback(() => {
+    if (!isActive) return
+    agent.stopMessage()
   }, [agent, isActive])
 
   const handleNavigateWikilink = useCallback((target: string) => {
@@ -203,6 +212,7 @@ export function useAiPanelController({
     isActive,
     permissionMode,
     handleSend,
+    handleStop,
     handleNavigateWikilink,
     handlePermissionModeChange,
     handleNewChat,

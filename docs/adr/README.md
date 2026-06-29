@@ -147,13 +147,13 @@ proposed → active → superseded
 | [0088](0088-markdown-durable-mermaid-diagrams.md) | Markdown-durable Mermaid diagrams in notes | active |
 | [0089](0089-active-vault-filesystem-watcher.md) | Active vault filesystem watcher | active |
 | [0090](0090-pi-cli-agent-adapter.md) | Pi CLI agent adapter | active |
-| [0091](0091-gemini-cli-external-ai-setup.md) | Gemini CLI external AI setup | active |
+| [0091](0091-gemini-cli-external-ai-setup.md) | Gemini CLI external AI setup | superseded -> [0147](0147-antigravity-cli-agent-adapter.md) |
 | [0092](0092-vault-ai-agent-permission-modes.md) | Vault-scoped AI agent permission modes | superseded -> [0103](0103-adapter-specific-ai-permission-semantics.md) |
 | [0093](0093-shared-cli-agent-runtime-adapters.md) | Shared CLI agent runtime adapters | active |
 | [0094](0094-gitignored-content-visibility-boundary-filter.md) | Gitignored content visibility as a command-boundary filter | active |
 | [0095](0095-saved-view-order-field.md) | Saved views use an explicit YAML order field | active |
 | [0096](0096-root-created-type-documents.md) | Root-created type documents | active |
-| [0097](0097-gemini-cli-agent-adapter.md) | Gemini CLI agent adapter | active |
+| [0097](0097-gemini-cli-agent-adapter.md) | Gemini CLI agent adapter | superseded -> [0147](0147-antigravity-cli-agent-adapter.md) |
 | [0098](0098-in-app-image-and-pdf-file-previews.md) | In-app image and PDF previews for binary vault files | superseded → [0110](0110-in-app-media-and-pdf-file-previews.md) |
 | [0099](0099-cumulative-vault-asset-scope.md) | Cumulative vault asset scope for previews | active |
 | [0100](0100-synthetic-vault-root-folder-row.md) | Synthetic vault-root row in folder navigation | active |
@@ -182,7 +182,7 @@ proposed → active → superseded
 | [0121](0121-appimage-external-fallback-for-audio-and-video-previews.md) | AppImage external fallback for audio and video previews | active |
 | [0122](0122-scalar-array-frontmatter-properties.md) | Scalar array frontmatter properties | active |
 | [0123](0123-full-vault-graph-for-secondary-note-windows.md) | Full vault graph for secondary note windows | superseded -> [0124](0124-cached-secondary-note-window-startup.md) |
-| [0124](0124-cached-secondary-note-window-startup.md) | Cached secondary note window startup | active |
+| [0124](0124-cached-secondary-note-window-startup.md) | Cached secondary note window startup | superseded -> [0146](0146-cached-main-window-startup-with-empty-reload-recovery.md) |
 | [0126](0126-renderer-action-history.md) | Renderer action history for app-level undo and redo | active |
 | [0127](0127-native-ai-workspace-window.md) | Native AI workspace window | superseded -> [0128](0128-lightweight-ai-workspace-window.md) |
 | [0128](0128-lightweight-ai-workspace-window.md) | Lightweight AI workspace window | active |
@@ -203,3 +203,7 @@ proposed → active → superseded
 | [0142](0142-rich-editor-prosemirror-decoration-dependency.md) | Rich editor ProseMirror decoration dependency | active |
 | [0143](0143-shared-focus-ownership-guard.md) | Shared focus ownership guard | active |
 | [0144](0144-collections-and-presentations.md) | Collections carry presentation configuration | active |
+| [0145](0145-xdg-backed-app-config-path.md) | XDG-backed app config path | active |
+| [0146](0146-cached-main-window-startup-with-empty-reload-recovery.md) | Cached main-window startup with empty reload recovery | active |
+| [0147](0147-antigravity-cli-agent-adapter.md) | Antigravity CLI agent adapter | active |
+| [0148](0148-cancellable-ai-agent-streams.md) | Cancellable AI agent streams | active |

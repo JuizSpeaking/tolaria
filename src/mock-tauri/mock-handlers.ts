@@ -505,7 +505,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     codex: { installed: false, version: null },
     opencode: { installed: false, version: null },
     pi: { installed: false, version: null },
-    gemini: { installed: false, version: null },
+    antigravity: { installed: false, version: null },
     kiro: { installed: false, version: null },
   }),
   get_agent_docs_path: () => '/mock/Tolaria/resources/agent-docs',
@@ -521,6 +521,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   },
   stream_claude_chat: () => 'mock-session',
   stream_ai_agent: () => null,
+  abort_ai_agent_stream: () => false,
   save_note_content: (args: { path: string; content: string }) => {
     MOCK_CONTENT[args.path] = args.content
     mockSavedSinceCommit.add(args.path)
@@ -638,6 +639,19 @@ export const mockHandlers: Record<string, (args: any) => any> = {
         command: 'node',
         args: ['/mock/Tolaria/mcp-server/index.js'],
         env: {
+          WS_UI_PORT: '9711',
+        },
+      },
+    },
+  }, null, 2),
+  get_opencode_mcp_config_snippet: () => JSON.stringify({
+    $schema: 'https://opencode.ai/config.json',
+    mcp: {
+      tolaria: {
+        type: 'local',
+        command: ['node', '/mock/Tolaria/mcp-server/index.js'],
+        enabled: true,
+        environment: {
           WS_UI_PORT: '9711',
         },
       },

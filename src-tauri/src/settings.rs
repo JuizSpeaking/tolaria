@@ -4,14 +4,12 @@ use std::path::PathBuf;
 
 use crate::ai_models::{normalize_ai_model_providers, AiModelProvider};
 
-const APP_CONFIG_DIR: &str = "com.tolaria.app";
-const LEGACY_APP_CONFIG_DIR: &str = "com.laputa.app";
 const SUPPORTED_DEFAULT_AI_AGENTS: &[&str] = &[
     "claude_code",
     "codex",
     "opencode",
     "pi",
-    "gemini",
+    "antigravity",
     "kiro",
     "hermes",
 ];
@@ -146,6 +144,7 @@ pub fn effective_release_channel(value: Option<&str>) -> &'static str {
 
 pub fn normalize_default_ai_agent(value: Option<&str>) -> Option<String> {
     match value.map(|candidate| candidate.trim().to_ascii_lowercase()) {
+        Some(agent) if agent == "gemini" => Some("antigravity".to_string()),
         Some(agent) if SUPPORTED_DEFAULT_AI_AGENTS.contains(&agent.as_str()) => Some(agent),
         _ => None,
     }
@@ -269,28 +268,12 @@ fn normalize_ai_workspace_conversations(
     }
 }
 
-fn app_config_dir() -> Result<PathBuf, String> {
-    dirs::config_dir().ok_or_else(|| "Could not determine config directory".to_string())
-}
-
 pub(crate) fn preferred_app_config_path(file_name: &str) -> Result<PathBuf, String> {
-    Ok(app_config_dir()?.join(APP_CONFIG_DIR).join(file_name))
+    crate::app_config::preferred_app_config_path(file_name)
 }
 
 fn resolve_existing_or_preferred_app_config_path(file_name: &str) -> Result<PathBuf, String> {
-    let preferred = preferred_app_config_path(file_name)?;
-    if preferred.exists() {
-        return Ok(preferred);
-    }
-
-    let legacy = app_config_dir()?
-        .join(LEGACY_APP_CONFIG_DIR)
-        .join(file_name);
-    if legacy.exists() {
-        return Ok(legacy);
-    }
-
-    Ok(preferred)
+    crate::app_config::resolve_existing_or_preferred_app_config_path(file_name)
 }
 
 fn settings_path() -> Result<PathBuf, String> {
@@ -625,12 +608,21 @@ mod tests {
     }
 
     #[test]
-    fn test_gemini_default_ai_agent_is_preserved() {
+    fn test_antigravity_default_ai_agent_is_preserved() {
+        let loaded = save_and_reload(Settings {
+            default_ai_agent: Some("antigravity".to_string()),
+            ..Default::default()
+        });
+        assert_eq!(loaded.default_ai_agent.as_deref(), Some("antigravity"));
+    }
+
+    #[test]
+    fn test_legacy_gemini_default_ai_agent_migrates_to_antigravity() {
         let loaded = save_and_reload(Settings {
             default_ai_agent: Some("gemini".to_string()),
             ..Default::default()
         });
-        assert_eq!(loaded.default_ai_agent.as_deref(), Some("gemini"));
+        assert_eq!(loaded.default_ai_agent.as_deref(), Some("antigravity"));
     }
 
     #[test]

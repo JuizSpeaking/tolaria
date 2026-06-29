@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type Di
 import type { AiAgentId } from '../lib/aiAgents'
 import type { AiAgentPermissionMode } from '../lib/aiAgentPermissionMode'
 import type { AiTarget } from '../lib/aiTargets'
+import type { AppLocale } from '../lib/i18n'
 import { getAgentDocsPath } from '../lib/agentDocsPath'
 import type { NoteReference } from '../utils/ai-context'
 import {
@@ -14,6 +15,7 @@ import {
   clearAgentConversation,
   regenerateAgentMessage,
   sendAgentMessage,
+  stopAgentMessage,
   type AiAgentSessionRuntime,
 } from '../lib/aiAgentSession'
 import type { ToolInvocation } from '../lib/aiAgentMessageState'
@@ -30,6 +32,7 @@ export type { AiAgentMessage } from '../lib/aiAgentConversation'
 interface UseCliAiAgentOptions {
   agent: AiAgentId
   target?: AiTarget
+  locale?: AppLocale
   agentReady: boolean
   permissionMode: AiAgentPermissionMode
   sessionId?: string
@@ -118,6 +121,7 @@ export function useCliAiAgent(
   options: UseCliAiAgentOptions,
 ) {
   const { agent, agentReady, sessionId, target } = options
+  const locale = options.locale ?? 'en'
   const { permissionMode } = options
   const localRuntime = useCliAiAgentRuntime(fileCallbacks)
   const sharedRuntime = useSharedCliAiAgentRuntime(sessionId, fileCallbacks)
@@ -130,6 +134,7 @@ export function useCliAiAgent(
     return {
       agent,
       agentDocsPath,
+      locale,
       target,
       ready: agentReady,
       vaultPath,
@@ -159,6 +164,10 @@ export function useCliAiAgent(
     })
   }
 
+  function stopMessage(): void {
+    stopAgentMessage(runtime, { agent, locale })
+  }
+
   function clearConversation(): void {
     clearAgentConversation(runtime)
   }
@@ -167,5 +176,5 @@ export function useCliAiAgent(
     addAgentLocalMarker(runtime, text)
   }
 
-  return { messages, status, sendMessage, regenerateMessage, clearConversation, addLocalMarker }
+  return { messages, status, sendMessage, stopMessage, regenerateMessage, clearConversation, addLocalMarker }
 }

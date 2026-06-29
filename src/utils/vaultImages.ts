@@ -215,12 +215,17 @@ function nextMarkdownImage(markdown: Markdown, startIndex: number): MarkdownImag
 function parseMarkdownImageDestination(request: MarkdownDestinationRequest): MarkdownImageDestination | null {
   const { destination } = request
   const titleStart = destination.indexOf(' "')
-  const url = titleStart === -1 ? destination : destination.slice(0, titleStart)
+  const rawUrl = titleStart === -1 ? destination : destination.slice(0, titleStart)
+  const url = unwrapAngleBracketDestination(rawUrl)
   const title = titleStart === -1 ? '' : destination.slice(titleStart)
   if (url.length === 0) return null
   if (MARKDOWN_IMAGE_URL_FORBIDDEN_CHARS.some(char => url.includes(char))) return null
   if (title && !title.endsWith('"')) return null
   return { title, url }
+}
+
+function unwrapAngleBracketDestination(url: MarkdownImageUrl): MarkdownImageUrl {
+  return url.startsWith('<') && url.endsWith('>') ? url.slice(1, -1) : url
 }
 
 function wikilinkImagePath(request: WikilinkImageRequest): string {
@@ -396,7 +401,10 @@ function relativePathFromNoteDirectory(request: NoteDirectoryRelativePathRequest
 function resolvePortableAttachmentUrl(request: ImageUrlRequest): MarkdownImageUrl | null {
   const { url, vaultPath } = request
   if (!isPortableAttachmentPath({ path: url })) return null
-  return vaultAttachmentAssetUrl({ vaultPath, attachmentPath: decodePathUrl({ url }) })
+  return resolveAssetUrl(() => vaultAttachmentAssetUrl({
+    vaultPath,
+    attachmentPath: decodePathUrl({ url }),
+  }))
 }
 
 function resolveLegacyAttachmentAssetUrl(request: ImageUrlRequest): MarkdownImageUrl | null {
@@ -405,20 +413,31 @@ function resolveLegacyAttachmentAssetUrl(request: ImageUrlRequest): MarkdownImag
   if (isCurrentVaultAssetUrl({ url, vaultPath })) return null
 
   const attachmentPath = portableAttachmentPathFromAnyAssetUrl({ url })
-  return attachmentPath ? vaultAttachmentAssetUrl({ vaultPath, attachmentPath }) : null
+  return attachmentPath ? resolveAssetUrl(() => vaultAttachmentAssetUrl({ vaultPath, attachmentPath })) : null
 }
 
 function resolveAbsoluteFilesystemUrl(request: UrlOnlyRequest): MarkdownImageUrl | null {
   const { url } = request
   return isFilesystemAbsolutePath({ path: url })
-    ? attachmentAssetUrlFromPath({ path: decodePathUrl({ url }) })
+    ? resolveAssetUrl(() => attachmentAssetUrlFromPath({ path: decodePathUrl({ url }) }))
     : null
 }
 
 function resolveNoteRelativeUrl(request: ImageUrlRequest): MarkdownImageUrl | null {
   const { url, notePath } = request
   if (!notePath || hasUrlScheme({ url })) return null
-  return attachmentAssetUrlFromPath({ path: joinNoteRelativePath({ notePath, relativeUrl: url }) })
+  return resolveAssetUrl(() => attachmentAssetUrlFromPath({
+    path: joinNoteRelativePath({ notePath, relativeUrl: url }),
+  }))
+}
+
+function resolveAssetUrl(resolve: () => MarkdownImageUrl): MarkdownImageUrl | null {
+  try {
+    return resolve()
+  } catch (error) {
+    console.warn('[image] Failed to prepare asset URL:', error)
+    return null
+  }
 }
 
 function resolveImageUrl(request: ImageUrlRequest): MarkdownImageUrl | null {
