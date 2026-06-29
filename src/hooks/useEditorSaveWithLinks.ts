@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useRef, type MutableRefObject } from 'react'
+import { startTransition, useCallback, useEffect, useRef, type MutableRefObject } from 'react'
 import { useEditorSave } from './useEditorSave'
 import { extractOutgoingLinks, extractSnippet, countWords, splitFrontmatter } from '../utils/wikilinks'
 import { deriveRawEditorEntryState } from './rawEditorEntryState'
@@ -9,7 +9,17 @@ import type { VaultEntry } from '../types'
 import type { AppLocale } from '../lib/i18n'
 
 const EMPTY_DERIVED_ENTRY_STATE_KEY = JSON.stringify(deriveRawEditorEntryState(''))
+const DEFERRED_ENTRY_METADATA_TIMEOUT_MS = 1_500
+const DEFERRED_ENTRY_METADATA_FALLBACK_MS = 120
+
 type UpdateEntry = (path: string, patch: Partial<VaultEntry>) => void
+type CancelDeferredWork = () => void
+
+interface DeferredEntryMetadataSync {
+  content: string
+  includeSavedMetadata: boolean
+  path: string
+}
 
 function shouldSyncFrontmatterState(content: string): boolean {
   const frontmatterState = detectFrontmatterState(content)
@@ -20,6 +30,34 @@ function shouldSyncFrontmatterState(content: string): boolean {
 function frontmatterSyncKey(content: string): string | null {
   if (!shouldSyncFrontmatterState(content)) return null
   return splitFrontmatter(content)[0]
+}
+
+function scheduleDeferredWork(callback: () => void): CancelDeferredWork {
+  if (typeof window === 'undefined') {
+    const timeout = setTimeout(callback, DEFERRED_ENTRY_METADATA_FALLBACK_MS)
+    return () => clearTimeout(timeout)
+  }
+
+  const idleWindow = window as Window & {
+    cancelIdleCallback?: (handle: number) => void
+    requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
+  }
+  if (idleWindow.requestIdleCallback) {
+    const handle = idleWindow.requestIdleCallback(
+      () => callback(),
+      { timeout: DEFERRED_ENTRY_METADATA_TIMEOUT_MS },
+    )
+    return () => idleWindow.cancelIdleCallback?.(handle)
+  }
+
+  const timeout = window.setTimeout(callback, DEFERRED_ENTRY_METADATA_FALLBACK_MS)
+  return () => window.clearTimeout(timeout)
+}
+
+function updateEntryInTransition(updateEntry: UpdateEntry, path: string, patch: Partial<VaultEntry>): void {
+  startTransition(() => {
+    updateEntry(path, patch)
+  })
 }
 
 function syncOutgoingLinks(options: {
@@ -34,7 +72,7 @@ function syncOutgoingLinks(options: {
   if (key === prevLinksKeyRef.current) return
 
   prevLinksKeyRef.current = key
-  updateEntry(path, { outgoingLinks: links })
+  updateEntryInTransition(updateEntry, path, { outgoingLinks: links })
 }
 
 function syncFirstImage(options: {
@@ -49,7 +87,7 @@ function syncFirstImage(options: {
   if (key === prevFirstImageRef.current) return
 
   prevFirstImageRef.current = key
-  updateEntry(path, { firstImage })
+  updateEntryInTransition(updateEntry, path, { firstImage })
 }
 
 function resolveFrontmatterPatch(options: {
@@ -81,7 +119,7 @@ function syncFrontmatterMetadata(options: {
   const fmKey = JSON.stringify(fmPatch)
   if (fmKey !== prevFmKeyRef.current) {
     prevFmKeyRef.current = fmKey
-    updateEntry(path, fmPatch)
+    updateEntryInTransition(updateEntry, path, fmPatch)
   }
   return frontmatterTitle
 }
@@ -100,8 +138,68 @@ function syncDisplayTitle(options: {
   if (titleKey === prevTitleKeyRef.current) return
 
   prevTitleKeyRef.current = titleKey
-  startTransition(() => {
-    updateEntry(path, titlePatch)
+  updateEntryInTransition(updateEntry, path, titlePatch)
+}
+
+function syncSavedMetadata(options: {
+  content: string
+  path: string
+  prevFirstImageRef: MutableRefObject<string | undefined>
+  prevLinksKeyRef: MutableRefObject<string>
+  updateEntry: UpdateEntry
+}): void {
+  const { content, path, prevFirstImageRef, prevLinksKeyRef, updateEntry } = options
+  const firstImage = extractFirstImage(content) ?? null
+  const outgoingLinks = content.includes('[[') ? extractOutgoingLinks(content) : []
+  prevFirstImageRef.current = firstImage ?? ''
+  prevLinksKeyRef.current = outgoingLinks.join('\0')
+  updateEntryInTransition(updateEntry, path, {
+    firstImage,
+    outgoingLinks,
+    snippet: extractSnippet(content),
+    wordCount: countWords(content),
+    modifiedAt: Math.floor(Date.now() / 1000),
+  })
+}
+
+function syncDeferredEntryMetadata(options: DeferredEntryMetadataSync & {
+  prevFmKeyRef: MutableRefObject<string>
+  prevFmSourceRef: MutableRefObject<string | null>
+  prevFirstImageRef: MutableRefObject<string | undefined>
+  prevLinksKeyRef: MutableRefObject<string>
+  prevTitleKeyRef: MutableRefObject<string>
+  updateEntry: UpdateEntry
+}): void {
+  const {
+    content,
+    includeSavedMetadata,
+    path,
+    prevFmKeyRef,
+    prevFmSourceRef,
+    prevFirstImageRef,
+    prevLinksKeyRef,
+    prevTitleKeyRef,
+    updateEntry,
+  } = options
+  if (includeSavedMetadata) {
+    syncSavedMetadata({ content, path, prevFirstImageRef, prevLinksKeyRef, updateEntry })
+  } else {
+    syncOutgoingLinks({ content, path, prevLinksKeyRef, updateEntry })
+    syncFirstImage({ content, path, prevFirstImageRef, updateEntry })
+  }
+  const frontmatterTitle = syncFrontmatterMetadata({
+    content,
+    path,
+    prevFmKeyRef,
+    prevFmSourceRef,
+    updateEntry,
+  })
+  syncDisplayTitle({
+    content,
+    frontmatterTitle,
+    path,
+    prevTitleKeyRef,
+    updateEntry,
   })
 }
 
@@ -120,40 +218,52 @@ export function useEditorSaveWithLinks(config: {
   locale?: AppLocale
 }) {
   const { updateEntry } = config
-  const saveContent = useCallback((path: string, content: string) => {
-    updateEntry(path, {
-      firstImage: extractFirstImage(content),
-      outgoingLinks: extractOutgoingLinks(content),
-      snippet: extractSnippet(content),
-      wordCount: countWords(content),
-      modifiedAt: Math.floor(Date.now() / 1000),
-    })
-  }, [updateEntry])
-  const editor = useEditorSave({ ...config, updateVaultContent: saveContent })
-  const { handleContentChange: rawOnChange } = editor
+  const pendingMetadataSyncRef = useRef<DeferredEntryMetadataSync | null>(null)
+  const cancelMetadataSyncRef = useRef<CancelDeferredWork | null>(null)
   const prevLinksKeyRef = useRef('')
   const prevFirstImageRef = useRef<string | undefined>(undefined)
   const prevFmSourceRef = useRef<string | null>(null)
   const prevFmKeyRef = useRef(EMPTY_DERIVED_ENTRY_STATE_KEY)
   const prevTitleKeyRef = useRef('')
-  const handleContentChange = useCallback((path: string, content: string) => {
-    rawOnChange(path, content)
-    syncOutgoingLinks({ content, path, prevLinksKeyRef, updateEntry })
-    syncFirstImage({ content, path, prevFirstImageRef, updateEntry })
-    const frontmatterTitle = syncFrontmatterMetadata({
-      content,
-      path,
+
+  const flushMetadataSync = useCallback(() => {
+    const pending = pendingMetadataSyncRef.current
+    pendingMetadataSyncRef.current = null
+    cancelMetadataSyncRef.current = null
+    if (!pending) return
+
+    syncDeferredEntryMetadata({
+      ...pending,
       prevFmKeyRef,
       prevFmSourceRef,
-      updateEntry,
-    })
-    syncDisplayTitle({
-      content,
-      frontmatterTitle,
-      path,
+      prevFirstImageRef,
+      prevLinksKeyRef,
       prevTitleKeyRef,
       updateEntry,
     })
-  }, [rawOnChange, updateEntry])
+  }, [updateEntry])
+
+  const scheduleMetadataSync = useCallback((path: string, content: string, includeSavedMetadata: boolean) => {
+    pendingMetadataSyncRef.current = { content, includeSavedMetadata, path }
+    cancelMetadataSyncRef.current?.()
+    cancelMetadataSyncRef.current = scheduleDeferredWork(flushMetadataSync)
+  }, [flushMetadataSync])
+
+  const saveContent = useCallback((path: string, content: string) => {
+    scheduleMetadataSync(path, content, true)
+  }, [scheduleMetadataSync])
+  const editor = useEditorSave({ ...config, updateVaultContent: saveContent })
+  const { handleContentChange: rawOnChange } = editor
+  const handleContentChange = useCallback((path: string, content: string) => {
+    rawOnChange(path, content)
+    scheduleMetadataSync(path, content, false)
+  }, [rawOnChange, scheduleMetadataSync])
+
+  useEffect(() => () => {
+    pendingMetadataSyncRef.current = null
+    cancelMetadataSyncRef.current?.()
+    cancelMetadataSyncRef.current = null
+  }, [])
+
   return { ...editor, handleContentChange }
 }

@@ -8,7 +8,7 @@ overrides:
   ip-address: 10.1.1
 
 patchedDependencies:
-  '@blocknote/core@0.46.2': e60eb5fab780a9e8570fcd8ce2dc47baf7dffda0b67f4335cdd63dd045ea3a72
+  '@blocknote/core@0.46.2': 32075bcc7263768b993c34eb7ed1f4c3c5f0a2739178393d62b797193a19fc5e
   '@blocknote/react@0.46.2': 67ee7211dff79c50d821c3145b0c96b42bb9a614d508edafd65492b6b5ccb41e
   '@tiptap/extension-link@3.19.0': fbe59b1b8b798ba3fefa371c0729b5aa3458e1ea70a4b86cd5267f9f62529284
   prosemirror-tables@1.8.5: cd456f0d1d88a3ce11bcf53122a0e0575c0d82810eddd887adae21d6ec570a8b
@@ -22,10 +22,10 @@ importers:
         version: 0.78.0(zod@4.3.6)
       '@blocknote/code-block':
         specifier: ^0.46.2
-        version: 0.46.2(@blocknote/core@0.46.2(patch_hash=e60eb5fab780a9e8570fcd8ce2dc47baf7dffda0b67f4335cdd63dd045ea3a72)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0))
+        version: 0.46.2(@blocknote/core@0.46.2(patch_hash=32075bcc7263768b993c34eb7ed1f4c3c5f0a2739178393d62b797193a19fc5e)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0))
       '@blocknote/core':
         specifier: ^0.46.2
-        version: 0.46.2(patch_hash=e60eb5fab780a9e8570fcd8ce2dc47baf7dffda0b67f4335cdd63dd045ea3a72)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
+        version: 0.46.2(patch_hash=32075bcc7263768b993c34eb7ed1f4c3c5f0a2739178393d62b797193a19fc5e)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
       '@blocknote/mantine':
         specifier: ^0.46.2
         version: 0.46.2(@floating-ui/dom@1.7.5)(@mantine/core@8.3.14(@mantine/hooks@8.3.14(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@8.3.14(react@19.2.4))(@mantine/utils@6.0.22(react@19.2.4))(@types/hast@3.0.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -6549,9 +6549,9 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@blocknote/code-block@0.46.2(@blocknote/core@0.46.2(patch_hash=e60eb5fab780a9e8570fcd8ce2dc47baf7dffda0b67f4335cdd63dd045ea3a72)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0))':
+  '@blocknote/code-block@0.46.2(@blocknote/core@0.46.2(patch_hash=32075bcc7263768b993c34eb7ed1f4c3c5f0a2739178393d62b797193a19fc5e)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0))':
     dependencies:
-      '@blocknote/core': 0.46.2(patch_hash=e60eb5fab780a9e8570fcd8ce2dc47baf7dffda0b67f4335cdd63dd045ea3a72)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
+      '@blocknote/core': 0.46.2(patch_hash=32075bcc7263768b993c34eb7ed1f4c3c5f0a2739178393d62b797193a19fc5e)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
       '@shikijs/core': 3.23.0
       '@shikijs/engine-javascript': 3.23.0
       '@shikijs/langs': 3.23.0
@@ -6559,7 +6559,7 @@ snapshots:
       '@shikijs/themes': 3.23.0
       '@shikijs/types': 3.22.0
 
-  '@blocknote/core@0.46.2(patch_hash=e60eb5fab780a9e8570fcd8ce2dc47baf7dffda0b67f4335cdd63dd045ea3a72)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)':
+  '@blocknote/core@0.46.2(patch_hash=32075bcc7263768b993c34eb7ed1f4c3c5f0a2739178393d62b797193a19fc5e)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)':
     dependencies:
       '@emoji-mart/data': 1.2.1
       '@handlewithcare/prosemirror-inputrules': 0.1.4(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)
@@ -6611,7 +6611,7 @@ snapshots:
 
   '@blocknote/mantine@0.46.2(@floating-ui/dom@1.7.5)(@mantine/core@8.3.14(@mantine/hooks@8.3.14(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@8.3.14(react@19.2.4))(@mantine/utils@6.0.22(react@19.2.4))(@types/hast@3.0.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@blocknote/core': 0.46.2(patch_hash=e60eb5fab780a9e8570fcd8ce2dc47baf7dffda0b67f4335cdd63dd045ea3a72)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
+      '@blocknote/core': 0.46.2(patch_hash=32075bcc7263768b993c34eb7ed1f4c3c5f0a2739178393d62b797193a19fc5e)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
       '@blocknote/react': 0.46.2(patch_hash=67ee7211dff79c50d821c3145b0c96b42bb9a614d508edafd65492b6b5ccb41e)(@floating-ui/dom@1.7.5)(@types/hast@3.0.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/core': 8.3.14(@mantine/hooks@8.3.14(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/hooks': 8.3.14(react@19.2.4)
@@ -6633,7 +6633,7 @@ snapshots:
 
   '@blocknote/react@0.46.2(patch_hash=67ee7211dff79c50d821c3145b0c96b42bb9a614d508edafd65492b6b5ccb41e)(@floating-ui/dom@1.7.5)(@types/hast@3.0.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@blocknote/core': 0.46.2(patch_hash=e60eb5fab780a9e8570fcd8ce2dc47baf7dffda0b67f4335cdd63dd045ea3a72)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
+      '@blocknote/core': 0.46.2(patch_hash=32075bcc7263768b993c34eb7ed1f4c3c5f0a2739178393d62b797193a19fc5e)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
       '@emoji-mart/data': 1.2.1
       '@floating-ui/react': 0.27.17(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@floating-ui/utils': 0.2.10
