@@ -7,7 +7,11 @@ import {
   getOkfVersion,
   isOkfBundle,
   formatOkfTimestamp,
+  buildOkfDirectoryListing,
+  exportOkfBundle,
+  importOkfBundle,
 } from './okf'
+import type { VaultEntry } from '../types'
 import type { ParsedFrontmatter } from './frontmatter'
 
 function fm(overrides: Record<string, unknown> = {}): ParsedFrontmatter {
@@ -89,5 +93,89 @@ describe('formatOkfTimestamp', () => {
   })
   it('returns raw string for invalid dates', () => {
     expect(formatOkfTimestamp('not-a-date')).toBe('not-a-date')
+  })
+})
+
+describe('buildOkfDirectoryListing', () => {
+  function makeEntry(overrides: Partial<VaultEntry> = {}): VaultEntry {
+    return {
+      path: '/vault/test.md',
+      filename: 'test.md',
+      title: 'Test',
+      workspace: undefined,
+      isA: null,
+      aliases: [],
+      belongsTo: [],
+      relatedTo: [],
+      status: null,
+      archived: false,
+      modifiedAt: null,
+      createdAt: null,
+      fileSize: 0,
+      snippet: '',
+      wordCount: 0,
+      relationships: {},
+      icon: null,
+      color: null,
+      order: null,
+      sidebarLabel: null,
+      template: null,
+      sort: null,
+      view: null,
+      visible: null,
+      fileKind: 'markdown',
+      ...overrides,
+    } as VaultEntry
+  }
+
+  it('generates markdown listing with heading and notes', () => {
+    const entries = [
+      makeEntry({ path: '/vault/recipes/pasta.md', filename: 'pasta.md', title: 'Pasta Recipe' }),
+      makeEntry({ path: '/vault/recipes/salad.md', filename: 'salad.md', title: 'Salad Recipe' }),
+    ]
+    const result = buildOkfDirectoryListing(entries, 'recipes')
+    expect(result).toContain('# recipes')
+    expect(result).toContain('Pasta Recipe')
+    expect(result).toContain('Salad Recipe')
+    expect(result).toContain('## Notes')
+  })
+
+  it('lists subdirectories', () => {
+    const entries = [
+      makeEntry({ path: '/vault/recipes/italian/pizza.md', filename: 'pizza.md', title: 'Pizza' }),
+      makeEntry({ path: '/vault/recipes/pasta.md', filename: 'pasta.md', title: 'Pasta' }),
+    ]
+    const result = buildOkfDirectoryListing(entries, 'recipes')
+    expect(result).toContain('## Directories')
+    expect(result).toContain('italian')
+  })
+
+  it('excludes index.md and log.md from listing', () => {
+    const entries = [
+      makeEntry({ path: '/vault/recipes/index.md', filename: 'index.md', title: 'Index' }),
+      makeEntry({ path: '/vault/recipes/log.md', filename: 'log.md', title: 'Log' }),
+      makeEntry({ path: '/vault/recipes/pasta.md', filename: 'pasta.md', title: 'Pasta' }),
+    ]
+    const result = buildOkfDirectoryListing(entries, 'recipes')
+    expect(result).not.toContain('Index')
+    expect(result).not.toContain('Log')
+    expect(result).toContain('Pasta')
+  })
+
+  it('returns heading only for empty folder', () => {
+    const result = buildOkfDirectoryListing([], 'empty-folder')
+    expect(result).toBe('# empty-folder\n')
+  })
+})
+
+describe('exportOkfBundle', () => {
+  it('is a function', () => {
+    expect(typeof exportOkfBundle).toBe('function')
+  })
+})
+
+describe('importOkfBundle', () => {
+  it('is a function', () => {
+    expect(typeof importOkfBundle).toBe('function')
   })
 })

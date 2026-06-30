@@ -8,7 +8,7 @@ import {
 } from '../../utils/dateDisplay'
 import { useDateDisplayFormat } from '../../hooks/useAppPreferences'
 import type { ParsedFrontmatter } from '../../utils/frontmatter'
-import { getOkfTimestamp, getOkfVersion, formatOkfTimestamp } from '../../utils/okf'
+import { getOkfTimestamp, getOkfVersion, formatOkfTimestamp, isOkfReservedFile } from '../../utils/okf'
 
 function formatDate(timestamp: number | null, dateDisplayFormat: DateDisplayFormat): string {
   if (!timestamp) return '\u2014'
@@ -47,12 +47,18 @@ export function NoteInfoPanel({
   const wordCount = countWords(content ?? '')
   const okfTimestamp = frontmatter ? getOkfTimestamp(frontmatter) : null
   const okfVersion = frontmatter ? getOkfVersion(frontmatter) : null
+  const isReservedOkfFile = isOkfReservedFile(entry.filename)
   return (
     <div>
       <h4 className="font-mono-overline mb-2 flex items-center gap-1 text-muted-foreground">
         <Info size={12} className="shrink-0" />
         {translate(locale, 'inspector.info.title')}
       </h4>
+      {isReservedOkfFile && (
+        <div className="mb-2 rounded border border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/10 px-2 py-1.5 text-[11px] text-[var(--accent-blue)]" data-testid="okf-structural-file-note">
+          This is an OKF structural file (directory listing / update history).
+        </div>
+      )}
       <div className="flex flex-col gap-1.5">
         <InfoRow label={translate(locale, 'inspector.info.modified')} value={formatDate(entry.modifiedAt, dateDisplayFormat)} />
         <InfoRow label={translate(locale, 'inspector.info.created')} value={formatDate(entry.createdAt, dateDisplayFormat)} />

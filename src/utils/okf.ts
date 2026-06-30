@@ -12,6 +12,7 @@
  */
 
 import type { ParsedFrontmatter } from './frontmatter'
+import type { VaultEntry } from '../types'
 
 /** Reserved OKF filenames that are NOT concept documents. */
 export const OKF_RESERVED_FILENAMES = new Set(['index.md', 'log.md'])
@@ -78,4 +79,79 @@ export function formatOkfTimestamp(timestamp: string): string {
   const date = new Date(timestamp)
   if (Number.isNaN(date.getTime())) return timestamp
   return date.toISOString().replace('T', ' ').replace(/\.\d+Z$/, 'Z')
+}
+
+/**
+ * Build a markdown directory listing for a folder, following the OKF spec for
+ * `index.md` content. Lists child markdown files (excluding index.md/log.md)
+ * and subdirectories as markdown links.
+ */
+export function buildOkfDirectoryListing(entries: VaultEntry[], folderPath: string): string {
+  const normalizedFolder = folderPath.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
+  const folderName = normalizedFolder.split('/').pop() ?? normalizedFolder
+
+  const childEntries = entries.filter((entry) => {
+    const normalizedEntryPath = entry.path.replace(/\\/g, '/')
+    return normalizedEntryPath.includes(`/${normalizedFolder}/`) || normalizedEntryPath.startsWith(`${normalizedFolder}/`)
+  })
+
+  const markdownFiles: VaultEntry[] = []
+  const subdirs = new Set<string>()
+
+  for (const entry of childEntries) {
+    const normalizedEntryPath = entry.path.replace(/\\/g, '/')
+    const relativePath = normalizedEntryPath.startsWith(`${normalizedFolder}/`)
+      ? normalizedEntryPath.slice(normalizedFolder.length + 1)
+      : normalizedEntryPath.slice(normalizedEntryPath.indexOf(`/${normalizedFolder}/`) + normalizedFolder.length + 2)
+
+    if (relativePath.includes('/')) {
+      const topDir = relativePath.split('/')[0] ?? ''
+      if (topDir) subdirs.add(topDir)
+      continue
+    }
+
+    if (isOkfReservedFile(relativePath)) continue
+    markdownFiles.push(entry)
+  }
+
+  const lines: string[] = [`# ${folderName}`, '']
+
+  if (subdirs.size > 0) {
+    lines.push('## Directories', '')
+    for (const dir of [...subdirs].sort()) {
+      lines.push(`- [${dir}](./${dir}/)`)
+    }
+    lines.push('')
+  }
+
+  if (markdownFiles.length > 0) {
+    lines.push('## Notes', '')
+    for (const entry of markdownFiles) {
+      const filename = entry.filename.replace(/\.md$/, '')
+      const label = entry.title || filename
+      lines.push(`- [${label}](./${entry.filename})`)
+    }
+    lines.push('')
+  }
+
+  return lines.join('\n')
+}
+
+/**
+ * Export a vault (or subdirectory) as an OKF-compatible bundle.
+ * Delegates to the Rust backend `export_okf_bundle` Tauri command.
+ */
+export async function exportOkfBundle(vaultPath: string, outputPath: string): Promise<string> {
+  const { invoke } = await import('@tauri-apps/api/core')
+  return invoke<string>('export_okf_bundle', { vaultPath, outputPath })
+}
+
+/**
+ * Import an OKF bundle into the vault, preserving directory structure.
+ * Skips structural files (index.md, log.md). Delegates to the Rust backend
+ * `import_okf_bundle` Tauri command.
+ */
+export async function importOkfBundle(bundlePath: string, vaultPath: string): Promise<string> {
+  const { invoke } = await import('@tauri-apps/api/core')
+  return invoke<string>('import_okf_bundle', { bundlePath, vaultPath })
 }
