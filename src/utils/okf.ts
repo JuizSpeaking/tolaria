@@ -81,58 +81,88 @@ export function formatOkfTimestamp(timestamp: string): string {
   return date.toISOString().replace('T', ' ').replace(/\.\d+Z$/, 'Z')
 }
 
+/** Normalize a path: backslashes → forward slashes, trim leading/trailing slashes. */
+function normalizeOkfPath(path: string): string {
+  return path.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
+}
+
+/** Check if an entry path lives inside the given normalized folder. */
+function isEntryInFolder(entryPath: string, normalizedFolder: string): boolean {
+  const normalizedEntryPath = entryPath.replace(/\\/g, '/')
+  return normalizedEntryPath.includes(`/${normalizedFolder}/`) || normalizedEntryPath.startsWith(`${normalizedFolder}/`)
+}
+
+/** Compute the path of an entry relative to the normalized folder. */
+function relativeEntryPath(entryPath: string, normalizedFolder: string): string {
+  const normalizedEntryPath = entryPath.replace(/\\/g, '/')
+  if (normalizedEntryPath.startsWith(`${normalizedFolder}/`)) {
+    return normalizedEntryPath.slice(normalizedFolder.length + 1)
+  }
+  return normalizedEntryPath.slice(normalizedEntryPath.indexOf(`/${normalizedFolder}/`) + normalizedFolder.length + 2)
+}
+
+interface OkfListingChildren {
+  markdownFiles: VaultEntry[]
+  subdirs: Set<string>
+}
+
+/** Partition child entries into markdown files and subdirectory names. */
+function partitionOkfChildren(entries: VaultEntry[], normalizedFolder: string): OkfListingChildren {
+  const childEntries = entries.filter((entry) => isEntryInFolder(entry.path, normalizedFolder))
+  const markdownFiles: VaultEntry[] = []
+  const subdirs = new Set<string>()
+
+  for (const entry of childEntries) {
+    const relativePath = relativeEntryPath(entry.path, normalizedFolder)
+    if (relativePath.includes('/')) {
+      const topDir = relativePath.split('/')[0] ?? ''
+      if (topDir) subdirs.add(topDir)
+      continue
+    }
+    if (isOkfReservedFile(relativePath)) continue
+    markdownFiles.push(entry)
+  }
+
+  return { markdownFiles, subdirs }
+}
+
+/** Render the subdirectories section of the listing, or empty if none. */
+function renderOkfSubdirs(subdirs: Set<string>): string[] {
+  if (subdirs.size === 0) return []
+  const lines = ['## Directories', '']
+  for (const dir of [...subdirs].sort()) {
+    lines.push(`- [${dir}](./${dir}/)`)
+  }
+  lines.push('')
+  return lines
+}
+
+/** Render the markdown notes section of the listing, or empty if none. */
+function renderOkfNotes(markdownFiles: VaultEntry[]): string[] {
+  if (markdownFiles.length === 0) return []
+  const lines = ['## Notes', '']
+  for (const entry of markdownFiles) {
+    const filename = entry.filename.replace(/\.md$/, '')
+    const label = entry.title || filename
+    lines.push(`- [${label}](./${entry.filename})`)
+  }
+  lines.push('')
+  return lines
+}
+
 /**
  * Build a markdown directory listing for a folder, following the OKF spec for
  * `index.md` content. Lists child markdown files (excluding index.md/log.md)
  * and subdirectories as markdown links.
  */
 export function buildOkfDirectoryListing(entries: VaultEntry[], folderPath: string): string {
-  const normalizedFolder = folderPath.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
+  const normalizedFolder = normalizeOkfPath(folderPath)
   const folderName = normalizedFolder.split('/').pop() ?? normalizedFolder
-
-  const childEntries = entries.filter((entry) => {
-    const normalizedEntryPath = entry.path.replace(/\\/g, '/')
-    return normalizedEntryPath.includes(`/${normalizedFolder}/`) || normalizedEntryPath.startsWith(`${normalizedFolder}/`)
-  })
-
-  const markdownFiles: VaultEntry[] = []
-  const subdirs = new Set<string>()
-
-  for (const entry of childEntries) {
-    const normalizedEntryPath = entry.path.replace(/\\/g, '/')
-    const relativePath = normalizedEntryPath.startsWith(`${normalizedFolder}/`)
-      ? normalizedEntryPath.slice(normalizedFolder.length + 1)
-      : normalizedEntryPath.slice(normalizedEntryPath.indexOf(`/${normalizedFolder}/`) + normalizedFolder.length + 2)
-
-    if (relativePath.includes('/')) {
-      const topDir = relativePath.split('/')[0] ?? ''
-      if (topDir) subdirs.add(topDir)
-      continue
-    }
-
-    if (isOkfReservedFile(relativePath)) continue
-    markdownFiles.push(entry)
-  }
+  const { markdownFiles, subdirs } = partitionOkfChildren(entries, normalizedFolder)
 
   const lines: string[] = [`# ${folderName}`, '']
-
-  if (subdirs.size > 0) {
-    lines.push('## Directories', '')
-    for (const dir of [...subdirs].sort()) {
-      lines.push(`- [${dir}](./${dir}/)`)
-    }
-    lines.push('')
-  }
-
-  if (markdownFiles.length > 0) {
-    lines.push('## Notes', '')
-    for (const entry of markdownFiles) {
-      const filename = entry.filename.replace(/\.md$/, '')
-      const label = entry.title || filename
-      lines.push(`- [${label}](./${entry.filename})`)
-    }
-    lines.push('')
-  }
+  lines.push(...renderOkfSubdirs(subdirs))
+  lines.push(...renderOkfNotes(markdownFiles))
 
   return lines.join('\n')
 }

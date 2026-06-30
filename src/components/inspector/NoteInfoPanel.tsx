@@ -32,6 +32,35 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
+function OkfStructuralFileNotice() {
+  return (
+    <div className="mb-2 rounded border border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/10 px-2 py-1.5 text-[11px] text-[var(--accent-blue)]" data-testid="okf-structural-file-note">
+      This is an OKF structural file (directory listing / update history).
+    </div>
+  )
+}
+
+function OkfTimestampRow({ frontmatter }: { frontmatter: ParsedFrontmatter }) {
+  const okfTimestamp = getOkfTimestamp(frontmatter)
+  if (!okfTimestamp) return null
+  return <InfoRow label="Timestamp" value={formatOkfTimestamp(okfTimestamp)} />
+}
+
+function OkfBundleBadge({ frontmatter }: { frontmatter: ParsedFrontmatter }) {
+  const okfVersion = getOkfVersion(frontmatter)
+  if (!okfVersion) return null
+  return (
+    <div className="mt-2 flex items-center gap-1.5" data-testid="okf-bundle-badge">
+      <Packages size={12} className="shrink-0 text-[var(--accent-blue)]" />
+      <span
+        className="inline-flex items-center rounded border border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/10 px-1.5 py-0.5 text-[10px] font-medium text-[var(--accent-blue)]"
+      >
+        OKF Bundle v{okfVersion}
+      </span>
+    </div>
+  )
+}
+
 export function NoteInfoPanel({
   entry,
   content,
@@ -45,8 +74,6 @@ export function NoteInfoPanel({
 }) {
   const dateDisplayFormat = useDateDisplayFormat()
   const wordCount = countWords(content ?? '')
-  const okfTimestamp = frontmatter ? getOkfTimestamp(frontmatter) : null
-  const okfVersion = frontmatter ? getOkfVersion(frontmatter) : null
   const isReservedOkfFile = isOkfReservedFile(entry.filename)
   return (
     <div>
@@ -54,30 +81,15 @@ export function NoteInfoPanel({
         <Info size={12} className="shrink-0" />
         {translate(locale, 'inspector.info.title')}
       </h4>
-      {isReservedOkfFile && (
-        <div className="mb-2 rounded border border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/10 px-2 py-1.5 text-[11px] text-[var(--accent-blue)]" data-testid="okf-structural-file-note">
-          This is an OKF structural file (directory listing / update history).
-        </div>
-      )}
+      {isReservedOkfFile && <OkfStructuralFileNotice />}
       <div className="flex flex-col gap-1.5">
         <InfoRow label={translate(locale, 'inspector.info.modified')} value={formatDate(entry.modifiedAt, dateDisplayFormat)} />
         <InfoRow label={translate(locale, 'inspector.info.created')} value={formatDate(entry.createdAt, dateDisplayFormat)} />
-        {okfTimestamp && (
-          <InfoRow label="Timestamp" value={formatOkfTimestamp(okfTimestamp)} />
-        )}
+        {frontmatter && <OkfTimestampRow frontmatter={frontmatter} />}
         <InfoRow label={translate(locale, 'inspector.info.words')} value={String(wordCount)} />
         <InfoRow label={translate(locale, 'inspector.info.size')} value={formatFileSize(entry.fileSize)} />
       </div>
-      {okfVersion && (
-        <div className="mt-2 flex items-center gap-1.5" data-testid="okf-bundle-badge">
-          <Packages size={12} className="shrink-0 text-[var(--accent-blue)]" />
-          <span
-            className="inline-flex items-center rounded border border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/10 px-1.5 py-0.5 text-[10px] font-medium text-[var(--accent-blue)]"
-          >
-            OKF Bundle v{okfVersion}
-          </span>
-        </div>
-      )}
+      {frontmatter && <OkfBundleBadge frontmatter={frontmatter} />}
     </div>
   )
 }
