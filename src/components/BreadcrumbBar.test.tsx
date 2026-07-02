@@ -624,7 +624,82 @@ describe('BreadcrumbBar — action buttons always right-aligned', () => {
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Add to favorites')
 
     act(() => {
+      // A real browser slide fires pointerleave on A and pointerenter on B.
+      fireEvent.pointerLeave(favoriteButton)
+      fireEvent.pointerEnter(organizedButton)
+    })
+
+    await waitFor(() => {
+      const visibleTooltips = screen.getAllByRole('tooltip')
+      expect(visibleTooltips).toHaveLength(1)
+      expect(visibleTooltips[0]).toHaveTextContent('Set note as organized')
+      expect(visibleTooltips[0]).not.toHaveTextContent('Add to favorites')
+    })
+  })
+
+  it('transfers the visible tooltip to the next icon during a slow continuous slide', async () => {
+    // Issue #982: slow slide from A to B leaves the old tooltip on screen.
+    // Faithful sequence: enter A, several move events on A, leave A, enter B,
+    // move on B. The previous tooltip must close and the new one open.
+    render(
+      <BreadcrumbBar
+        entry={baseEntry}
+        {...defaultProps}
+        onToggleFavorite={vi.fn()}
+        onToggleOrganized={vi.fn()}
+      />,
+    )
+
+    const favoriteButton = screen.getByRole('button', { name: 'Add to favorites' })
+    const organizedButton = screen.getByRole('button', { name: 'Set note as organized' })
+
+    act(() => {
+      fireEvent.pointerEnter(favoriteButton)
+    })
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Add to favorites')
+
+    act(() => {
+      // Cursor drifts inside A's hit area for a moment.
+      fireEvent.pointerMove(favoriteButton)
+      fireEvent.pointerMove(favoriteButton)
+    })
+
+    act(() => {
+      // Cursor crosses the gap into B.
+      fireEvent.pointerLeave(favoriteButton)
+      fireEvent.pointerEnter(organizedButton)
       fireEvent.pointerMove(organizedButton)
+    })
+
+    await waitFor(() => {
+      const visibleTooltips = screen.getAllByRole('tooltip')
+      expect(visibleTooltips).toHaveLength(1)
+      expect(visibleTooltips[0]).toHaveTextContent('Set note as organized')
+      expect(visibleTooltips[0]).not.toHaveTextContent('Add to favorites')
+    })
+  })
+
+  it('does not let a lingering pointermove on the previous icon reopen its tooltip after the cursor has left', async () => {
+    // The actual cause of #982: when the cursor leaves A and enters B,
+    // browsers can still deliver a trailing pointermove to A. The previous
+    // implementation re-activated A's label and the tooltip stuck.
+    render(
+      <BreadcrumbBar
+        entry={baseEntry}
+        {...defaultProps}
+        onToggleFavorite={vi.fn()}
+        onToggleOrganized={vi.fn()}
+      />,
+    )
+
+    const favoriteButton = screen.getByRole('button', { name: 'Add to favorites' })
+    const organizedButton = screen.getByRole('button', { name: 'Set note as organized' })
+
+    act(() => {
+      fireEvent.pointerEnter(favoriteButton)
+      fireEvent.pointerEnter(organizedButton)
+      // Trailing move arrives on A *after* B has been entered.
+      fireEvent.pointerMove(favoriteButton)
     })
 
     await waitFor(() => {
