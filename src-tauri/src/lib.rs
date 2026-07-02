@@ -1,6 +1,11 @@
+mod ai_agent_processes;
 pub mod ai_agents;
 mod ai_model_tools;
 pub mod ai_models;
+pub mod antigravity_cli;
+mod antigravity_config;
+mod antigravity_discovery;
+mod app_config;
 mod app_icon;
 pub mod app_updater;
 pub mod claude_cli;
@@ -9,9 +14,6 @@ mod cli_agent_runtime;
 pub mod codex_cli;
 mod commands;
 pub mod frontmatter;
-pub mod gemini_cli;
-mod gemini_config;
-mod gemini_discovery;
 pub mod git;
 pub mod hermes_cli;
 mod hermes_discovery;
@@ -520,6 +522,7 @@ macro_rules! app_invoke_handler {
             commands::restore_vault_ai_guidance,
             commands::stream_claude_chat,
             commands::stream_ai_agent,
+            commands::abort_ai_agent_stream,
             commands::stream_ai_model,
             commands::save_ai_model_provider_api_key,
             commands::delete_ai_model_provider_api_key,
@@ -562,6 +565,7 @@ macro_rules! app_invoke_handler {
             commands::remove_mcp_tools,
             commands::check_mcp_status,
             commands::get_mcp_config_snippet,
+            commands::get_opencode_mcp_config_snippet,
             commands::copy_text_to_clipboard,
             commands::read_text_from_clipboard,
             commands::sync_mcp_bridge_vault,

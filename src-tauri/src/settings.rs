@@ -4,14 +4,12 @@ use std::path::PathBuf;
 
 use crate::ai_models::{normalize_ai_model_providers, AiModelProvider};
 
-const APP_CONFIG_DIR: &str = "com.tolaria.app";
-const LEGACY_APP_CONFIG_DIR: &str = "com.laputa.app";
 const SUPPORTED_DEFAULT_AI_AGENTS: &[&str] = &[
     "claude_code",
     "codex",
     "opencode",
     "pi",
-    "gemini",
+    "antigravity",
     "kiro",
     "hermes",
 ];
@@ -91,6 +89,7 @@ pub struct AiWorkspaceConversationSetting {
 pub struct Settings {
     pub auto_pull_interval_minutes: Option<u32>,
     pub git_enabled: Option<bool>,
+    pub git_path: Option<String>,
     pub autogit_enabled: Option<bool>,
     pub autogit_idle_threshold_seconds: Option<u32>,
     pub autogit_inactive_threshold_seconds: Option<u32>,
@@ -146,6 +145,7 @@ pub fn effective_release_channel(value: Option<&str>) -> &'static str {
 
 pub fn normalize_default_ai_agent(value: Option<&str>) -> Option<String> {
     match value.map(|candidate| candidate.trim().to_ascii_lowercase()) {
+        Some(agent) if agent == "gemini" => Some("antigravity".to_string()),
         Some(agent) if SUPPORTED_DEFAULT_AI_AGENTS.contains(&agent.as_str()) => Some(agent),
         _ => None,
     }
@@ -204,6 +204,7 @@ fn normalize_settings(settings: Settings) -> Settings {
     Settings {
         auto_pull_interval_minutes: settings.auto_pull_interval_minutes,
         git_enabled: settings.git_enabled,
+        git_path: normalize_optional_string(settings.git_path),
         autogit_enabled: settings.autogit_enabled,
         autogit_idle_threshold_seconds: normalize_optional_positive_u32(
             settings.autogit_idle_threshold_seconds,
@@ -269,28 +270,12 @@ fn normalize_ai_workspace_conversations(
     }
 }
 
-fn app_config_dir() -> Result<PathBuf, String> {
-    dirs::config_dir().ok_or_else(|| "Could not determine config directory".to_string())
-}
-
 pub(crate) fn preferred_app_config_path(file_name: &str) -> Result<PathBuf, String> {
-    Ok(app_config_dir()?.join(APP_CONFIG_DIR).join(file_name))
+    crate::app_config::preferred_app_config_path(file_name)
 }
 
 fn resolve_existing_or_preferred_app_config_path(file_name: &str) -> Result<PathBuf, String> {
-    let preferred = preferred_app_config_path(file_name)?;
-    if preferred.exists() {
-        return Ok(preferred);
-    }
-
-    let legacy = app_config_dir()?
-        .join(LEGACY_APP_CONFIG_DIR)
-        .join(file_name);
-    if legacy.exists() {
-        return Ok(legacy);
-    }
-
-    Ok(preferred)
+    crate::app_config::resolve_existing_or_preferred_app_config_path(file_name)
 }
 
 fn settings_path() -> Result<PathBuf, String> {
@@ -445,6 +430,7 @@ mod tests {
         let settings = Settings {
             auto_pull_interval_minutes: Some(10),
             git_enabled: Some(false),
+            git_path: Some("/opt/homebrew/bin/git".to_string()),
             autogit_enabled: Some(true),
             autogit_idle_threshold_seconds: Some(90),
             autogit_inactive_threshold_seconds: Some(30),
@@ -551,6 +537,7 @@ mod tests {
     fn test_save_trims_whitespace() {
         let loaded = save_and_reload(Settings {
             anonymous_id: Some("  test-uuid  ".to_string()),
+            git_path: Some("  /opt/homebrew/bin/git  ".to_string()),
             release_channel: Some("  alpha  ".to_string()),
             theme_mode: Some("  dark  ".to_string()),
             ui_language: Some("  zh-cn  ".to_string()),
@@ -560,6 +547,7 @@ mod tests {
             ..Default::default()
         });
         assert_eq!(loaded.anonymous_id.as_deref(), Some("test-uuid"));
+        assert_eq!(loaded.git_path.as_deref(), Some("/opt/homebrew/bin/git"));
         assert_eq!(loaded.release_channel.as_deref(), Some("alpha"));
         assert_eq!(loaded.theme_mode.as_deref(), Some("dark"));
         assert_eq!(loaded.ui_language.as_deref(), Some("zh-CN"));
@@ -625,12 +613,21 @@ mod tests {
     }
 
     #[test]
-    fn test_gemini_default_ai_agent_is_preserved() {
+    fn test_antigravity_default_ai_agent_is_preserved() {
+        let loaded = save_and_reload(Settings {
+            default_ai_agent: Some("antigravity".to_string()),
+            ..Default::default()
+        });
+        assert_eq!(loaded.default_ai_agent.as_deref(), Some("antigravity"));
+    }
+
+    #[test]
+    fn test_legacy_gemini_default_ai_agent_migrates_to_antigravity() {
         let loaded = save_and_reload(Settings {
             default_ai_agent: Some("gemini".to_string()),
             ..Default::default()
         });
-        assert_eq!(loaded.default_ai_agent.as_deref(), Some("gemini"));
+        assert_eq!(loaded.default_ai_agent.as_deref(), Some("antigravity"));
     }
 
     #[test]

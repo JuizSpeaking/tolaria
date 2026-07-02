@@ -36,6 +36,19 @@ function renderSheetHarness(content: string, options: SheetHarnessOptions = {}) 
   }
 }
 
+function sheetWithA1Metadata(metadataLines: string[], body = 'Metric,January'): string {
+  return [
+    '---',
+    'type: Sheet',
+    '_sheet:',
+    '  cells:',
+    '    A1:',
+    ...metadataLines.map((line) => `      ${line}`),
+    '---',
+    body,
+  ].join('\n')
+}
+
 async function renderLoadedSheet(content: string, options: SheetHarnessOptions = {}) {
   const rendered = renderSheetHarness(content, options)
   await screen.findByTestId('ironcalc-workbook')
@@ -91,6 +104,36 @@ describe('SheetEditor serialization', () => {
 
   it('does not rewrite unchanged sheets with explicit trailing empty cells', async () => {
     await expectNoSaveOnUnmount('---\n_display: sheet\n---\nMetric,January,,\nRevenue,1200,,')
+  })
+
+  it('keeps a replaced workbook model alive until the replacement can commit', async () => {
+    const rendered = await renderLoadedSheet('---\n_display: sheet\n---\nMetric,January')
+    const firstModel = ironCalcMock.state.lastModel
+    expect(firstModel).not.toBeNull()
+
+    vi.useFakeTimers()
+    rendered.rerender(
+      <SheetEditor
+        content={'---\n_display: sheet\n---\nMetric,February'}
+        path={rendered.path}
+        onContentChange={rendered.onContentChange}
+      />,
+    )
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(ironCalcMock.state.modelConstructs).toBe(2)
+    expect(firstModel?.getSelectedSheet()).toBe(0)
+    expect(ironCalcMock.state.freedModels.has(firstModel!)).toBe(false)
+
+    act(() => {
+      vi.runOnlyPendingTimers()
+    })
+
+    expect(ironCalcMock.state.freedModels.has(firstModel!)).toBe(true)
+    expect(() => firstModel?.getSelectedSheet()).toThrow('null pointer passed to rust')
   })
 
   it('preserves trailing empty cells when saving an edited row', async () => {
@@ -228,6 +271,24 @@ describe('SheetEditor serialization', () => {
         '---',
         'Updated Metric,January',
       ].join('\n'),
+    })
+  })
+
+  it('normalizes violet sheet metadata colors before applying them to IronCalc', async () => {
+    await expectSaveAfterDirtyEdit({
+      content: sheetWithA1Metadata([
+        'font_color: violet',
+        'fill_color: violet',
+        'border_top: "thin violet"',
+      ]),
+      editWorkbook: () => {
+        ironCalcMock.state.lastModel?.setUserInput(0, 1, 1, 'Updated Metric')
+      },
+      expectedContent: sheetWithA1Metadata([
+        'font_color: "#ee82ee"',
+        'fill_color: "#ee82ee"',
+        'border_top: "thin #ee82ee"',
+      ], 'Updated Metric,January'),
     })
   })
 
